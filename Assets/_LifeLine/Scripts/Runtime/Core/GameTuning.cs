@@ -24,8 +24,8 @@ namespace Lifeline
         public float collectSeconds = .72f;
         public float cabinetSeconds = 1.5f;
         public int crateCapacity = 3;
-        [Tooltip("T3 is 54m so the new 50m buildings remain physically reachable.")]
-        public float[] ropeLengths = { 20f, 26f, 34f, 54f };
+        [Tooltip("T3 is 74m so the new 50m buildings remain physically reachable.")]
+        public float[] ropeLengths = { 28f, 44f, 54f, 74f };
 
         [Header("船舶与动力 / Ship")]
         public float boatSpeed = 3.4f;
@@ -41,12 +41,12 @@ namespace Lifeline
         public float eelHullMultiplier = 1.3f;
         public float eelSpeedMultiplier = 1.2f;
         public float[] hullLevels = { 100f, 150f, 220f };
-        public float[] oxygenLevels = { 40f, 70f, 100f, 130f };
+        public float[] oxygenLevels = { 40f, 70f, 115f, 145f };
 
         [Header("昼夜 / Day-night")]
-        public float daySeconds = 180f;
-        [Range(0, 1)] public float dayFraction = .67f;
-        [Range(0, 1)] public float duskFraction = .13f;
+        public float daySeconds = 200f;
+        [Range(0, 1)] public float dayFraction = .703f;
+        [Range(0, 1)] public float duskFraction = .117f;
         public float lightningIntervalMin = 12f;
         public float lightningIntervalMax = 18f;
         public float lightningWarning = 2.2f;
@@ -102,7 +102,13 @@ namespace Lifeline
         public float shadowWindup = 1.76f;
         public int shadowHitsRequired = 20;
         public float shadowSpeedMultiplier = .9f;
-        public float shadowSweepHullDamage = 25f;
+        public float shadowSweepHullDamage = 10f;
+        public Vector2 shadowMeleeHullDamage = new Vector2(5,10);
+        public float shadowBiteRadiusMultiplier = 1.5f, shadowDashRadiusMultiplier = .7f;
+        public float shadowDashSpeedMultiplier = 3f, shadowDashSeconds = .45f;
+        public float shadowWaterShotDamage = 5f, shadowWaterShotWarning = 2.2f;
+        public float lightningRadius = 1.4f, randomStormChance = .10f, turretSharkDepth = 20f;
+        public float deepSharkSpawnBonus = .15f;
         public float shadowAttackInterval = 6f;
         [Tooltip("Strictly more than this many complete calendar days, AND chapter 3/deep water/night.")]
         [Min(0)] public int shadowCompleteDaysRequired = 3;

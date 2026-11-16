@@ -14,7 +14,7 @@ namespace Lifeline
             var draft = ScriptableObject.CreateInstance<InputActionAsset>();
             draft.name = AssetName;
             AddMap(draft, "Captain", new[] { "w", "a", "s", "d" }, "w", "e", "r", "space", "q", "leftShift", "z", "x", "c");
-            AddMap(draft, "Diver", new[] { "upArrow", "leftArrow", "downArrow", "rightArrow" }, "upArrow", "enter", "1", "k", "2", "rightShift", "period", "slash", "m");
+            AddMap(draft, "Diver", new[] { "upArrow", "leftArrow", "downArrow", "rightArrow" }, "upArrow", "enter", "1", "0", "2", "rightShift", "period", "slash", "m");
 
             // Stable IDs keep PlayerPrefs overrides valid even when the runtime fallback is used.
             var json = draft.ToJson();

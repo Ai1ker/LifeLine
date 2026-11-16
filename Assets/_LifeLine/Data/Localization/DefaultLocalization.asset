@@ -1776,3 +1776,143 @@ MonoBehaviour:
     zh: "\u5DF2\u5B8C\u6210\u4ECA\u65E5\u81EA\u52A8\u5B58\u6863\u3002"
     en: Today's automatic save is complete.
     fragment: 1
+  - key: winch.shared.signal
+    zh: "\u6F5C\u6C34\u5458\u53CC\u4FE1\u53F7\uFF1A\u8BF7\u6C42\u540C\u65F6\u56DE\u6536\u6F5C\u6C34\u5458\u548C\u5168\u90E8\u6302\u8F7D\u8D27\u7BB1\u3002"
+    en: 'Diver double signal: Recover the diver and all attached cargo together.'
+    fragment: 1
+  - key: winch.shared.electric
+    zh: "\u8FDE\u7EED\u6551\u751F\u4FE1\u53F7\u5DF2\u89E6\u53D1\u7535\u52A8\u7EDE\u76D8\uFF0C\u6B63\u5728\u540C\u65F6\u56DE\u6536\u6F5C\u6C34\u5458\u548C\u5168\u90E8\u6302\u8F7D\u8D27\u7BB1\u3002"
+    en: The signal sequence activated the electric winch. Recovering the diver and all attached cargo together.
+    fragment: 1
+  - key: batch.001
+    zh: "\u5F53\u524D\u5DF2\u6709\u8239\u4F53\u7EF4\u4FEE\u4F5C\u4E1A\u3002"
+    en: A hull repair job is already in progress.
+    fragment: 1
+  - key: batch.002
+    zh: "\u70AE\u5854T2\uFF1A\u53EF\u540C\u65F6\u653B\u51FB\u4E24\u4E2A\u4E0D\u540C\u76EE\u6807\u3002"
+    en: 'Turret T2: attacks two different targets at once.'
+    fragment: 1
+  - key: batch.003
+    zh: "\u96F7\u51FB\u843D\u70B9\u5DF2\u6807\u8BB0\uFF0C\u79BB\u5F00\u9884\u8B66\u5706\u5708\u6216\u8FDB\u5165\u8239\u8231\u3002"
+    en: Lightning impact marked. Leave the warning circle or enter the cabin.
+    fragment: 1
+  - key: batch.004
+    zh: "\u4E24\u540D\u8239\u5458\u5747\u5DF2\u6655\u53A5\u3002\u8BFB\u53D6\u4E0A\u4E2A\u5B58\u6863\u6216\u8FD4\u56DE\u4E3B\u83DC\u5355\u3002"
+    en: Both crew members are incapacitated. Load the last save or return to the main menu.
+    fragment: 1
+  - key: batch.005
+    zh: "\u5347\u7EA7\u70AE\u5854T2\uFF1A1\u94C1\u677F 3\u7EA4\u7EF4\u675F 1\u6728\u677F"
+    en: 'Upgrade turret T2: 1 plate, 3 fiber bundles, 1 plank'
+    fragment: 1
+  - key: batch.006
+    zh: "\u4F18\u5148\u6DF1\u6E0A\u4E4B\u5F71\uFF0C\u5176\u6B21\u6D77\u9E25\u548C0\u201320\u7C73\u9CA8\u9C7C\uFF1B\u6BCF3\u79D2\u6D88\u80171%\u7535\u529B\u3002"
+    en: "Priority: Abyssal Shadow, gulls, then sharks at 0\u201320m. Uses 1% power every 3 seconds."
+    fragment: 1
+  - key: batch.007
+    zh: "\u56DE\u9000\u5230\u4E0A\u4E2A\u5B58\u6863"
+    en: Load last save
+    fragment: 1
+  - key: batch.008
+    zh: "\u8239\u4F53\u8010\u4E45"
+    en: Hull durability
+    fragment: 1
+  - key: batch.009
+    zh: "\u7535\u529B"
+    en: Power
+    fragment: 1
+  - key: batch.010
+    zh: "\u6F5C\u6C34\u5458\u6C27\u6C14"
+    en: Diver oxygen
+    fragment: 1
+  - key: batch.011
+    zh: "\u85CF\u533F\u4E2D \xB7 \u4E92\u52A8\u79BB\u5F00"
+    en: "Hiding \xB7 Interact to leave"
+    fragment: 1
+  - key: batch.012
+    zh: "\u85CF\u533F\u70B9 \xB7 \u4E92\u52A8\u8EB2\u85CF"
+    en: "Hideout \xB7 Interact to hide"
+    fragment: 1
+  - key: batch.013
+    zh: "\u63A5\u5730\u7EBF"
+    en: Ground
+    fragment: 1
+  - key: batch.014
+    zh: "24V \u7535\u6E90"
+    en: 24V power
+    fragment: 1
+  - key: batch.015
+    zh: "\u7167\u660E\u652F\u8DEF"
+    en: Lighting circuit
+    fragment: 1
+  - key: batch.016
+    zh: "\u65E0\u7EBF\u7535\u652F\u8DEF"
+    en: Radio circuit
+    fragment: 1
+  - key: batch.017
+    zh: "\u8239\u4F53\u5730\u7EBF"
+    en: Hull ground
+    fragment: 1
+  - key: batch.018
+    zh: "\u84C4\u7535\u6C60 +"
+    en: Battery +
+    fragment: 1
+  - key: batch.019
+    zh: "\u7535\u53F0"
+    en: Radio
+    fragment: 1
+  - key: batch.020
+    zh: "\u71C3\u6CB9\u8F6F\u7BA1"
+    en: Fuel hose
+    fragment: 1
+  - key: batch.021
+    zh: "\u4F20\u52A8\u9F7F\u8F6E"
+    en: Drive gear
+    fragment: 1
+  - key: batch.022
+    zh: "\u51B7\u5374\u9600\u95E8"
+    en: Cooling valve
+    fragment: 1
+  - key: batch.023
+    zh: "\u71C3\u6CB9\u7BA1\u65AD\u88C2"
+    en: Broken fuel hose
+    fragment: 1
+  - key: batch.024
+    zh: "\u70B9\u706B\u7EBF\u5708\u70E7\u6BC1"
+    en: Burnt ignition coil
+    fragment: 1
+  - key: batch.025
+    zh: "\u4F20\u52A8\u9F7F\u8F6E\u5D29\u9F7F"
+    en: Damaged gear teeth
+    fragment: 1
+  - key: batch.026
+    zh: "\u51B7\u5374\u9600\u95E8\u635F\u574F"
+    en: Broken cooling valve
+    fragment: 1
+  - key: batch.027
+    zh: "\u5148\u63A5\u5730 \u23DA\uFF0C\u518D\u63A5\u5176\u4ED6\u652F\u8DEF\u3002\u70B9\u51FB\u5DE6\u4FA7\u7EBF\u5934\uFF0C\u518D\u70B9\u53F3\u4FA7\u5BF9\u5E94\u7AEF\u53E3\u3002"
+    en: Connect ground first. Select a left wire, then its matching right terminal.
+    fragment: 1
+  - key: batch.028
+    zh: "\u5408\u4E0A\u603B\u95F8 \xB7 \u6062\u590D\u4F9B\u7535"
+    en: "Close main breaker \xB7 Restore power"
+    fragment: 1
+  - key: batch.029
+    zh: "\u8BF7\u5148\u8FDE\u63A5\u63A5\u5730\u7EBF\u3002"
+    en: Connect the ground wire first.
+    fragment: 1
+  - key: batch.030
+    zh: "\u65CB\u8F6C\u7BA1\u9053\uFF1A\u7EFF\u8272\u8868\u793A\u5DF2\u7ECF\u4ECE\u5165\u53E3\u6D41\u901A\uFF0C\u8FDE\u63A5\u51FA\u53E3\u540E\u52A0\u538B\u8BD5\u6C34\u3002"
+    en: Rotate pipes. Green marks flow from the inlet. Connect the outlet, then pressure-test.
+    fragment: 1
+  - key: batch.031
+    zh: "\u5165\u53E3 \u2192"
+    en: "Inlet \u2192"
+    fragment: 1
+  - key: batch.032
+    zh: "\u2192 \u51FA\u53E3"
+    en: "\u2192 Outlet"
+    fragment: 1
+  - key: batch.033
+    zh: "\u6309\u4F4F\u6CB9\u6C61\u64E6\u62ED\uFF0C\u6216\u6309\u4F4F\u4E92\u52A8\u952E\u6E05\u7406\u5F53\u524D\u6545\u969C\uFF1B\u9732\u51FA\u7B26\u53F7\u540E\u5B89\u88C5\u5BF9\u5E94\u96F6\u4EF6\u3002"
+    en: Hold over an oil patch to scrub it, or hold Interact to clean the selected fault. Reveal its symbol, then fit the correct part.
+    fragment: 1

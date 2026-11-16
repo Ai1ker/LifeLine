@@ -43,6 +43,25 @@ namespace Lifeline
         Vector3 centerOffset;
         float planeZ;
         int searchCasts;
+        public float frameBudgetMilliseconds = 1.5f;
+        public float failedSearchRetrySeconds = .18f;
+        public int routeCacheHits, detourSearches, totalQueries;
+        public bool SearchPending => search != null;
+        static int geometryRevision;
+        public static void NotifyGeometryChanged() { unchecked { geometryRevision++; } }
+        int routeRevision=-1, cachedFrame=-1, budgetFrame=-1;
+        Vector3 cachedAnchor, cachedEndpoint;
+        double checkedAt, retryAt, budgetStart;
+        SearchState search;
+        CapsuleCollider cachedCapsule;
+        sealed class SearchState
+        {
+            public Vector3 start,end; public float reach; public int casts, current=-1, next=2, revision;
+            public readonly List<SearchNode> nodes = new List<SearchNode>();
+            public readonly HashSet<Collider> visited = new HashSet<Collider>();
+            public readonly Queue<Vector3> corners = new Queue<Vector3>();
+            public int linkingCorner = -1, nextLink;
+        }
 
         sealed class SearchNode
         {
@@ -55,10 +74,11 @@ namespace Lifeline
 
         public void Configure(CrewActor swimmer, Transform shipRoot = null)
         {
+            if (actor != swimmer || cachedCapsule == null) cachedCapsule = swimmer != null ? swimmer.GetComponent<CapsuleCollider>() : null;
             actor = swimmer; ignoredShipRoot = shipRoot;
             if (actor != null && deriveClearanceFromActor)
             {
-                var capsule = actor.GetComponent<CapsuleCollider>();
+                var capsule = cachedCapsule;
                 if (capsule != null)
                 {
                     Vector3 scale = capsule.transform.lossyScale;
@@ -71,7 +91,7 @@ namespace Lifeline
 
         public void ResetRoute()
         {
-            points.Clear(); PathLength = 0; IsBlocked = false;
+            points.Clear(); PathLength = 0; IsBlocked = false; routeRevision=-1; search=null; retryAt=0;
         }
 
         public Vector3[] CaptureContacts()
@@ -93,6 +113,16 @@ namespace Lifeline
         public bool UpdateRoute(Vector3 anchor, Vector3 endpoint)
         {
             if (!Finite(anchor) || !Finite(endpoint)) { IsBlocked = true; return false; }
+            double now=Time.realtimeSinceStartupAsDouble;
+            bool same=(cachedAnchor-anchor).sqrMagnitude<.00000001f && (cachedEndpoint-endpoint).sqrMagnitude<.00000001f;
+            if (routeRevision==geometryRevision && points.Count>=2 && same
+                && (cachedFrame==Time.frameCount || now-checkedAt<.04)
+                && (!IsBlocked || search==null && now<retryAt || cachedFrame==Time.frameCount))
+            { routeCacheHits++; return !IsBlocked; }
+            if(routeRevision==geometryRevision && IsBlocked && search==null && now<retryAt
+                && (cachedAnchor-anchor).sqrMagnitude<.01f && (cachedEndpoint-endpoint).sqrMagnitude<.01f)
+            { points[0]=anchor; points[points.Count-1]=endpoint;RecalculateLength(); routeCacheHits++;return false; }
+            cachedAnchor=anchor; cachedEndpoint=endpoint; routeRevision=geometryRevision; cachedFrame=Time.frameCount; checkedAt=now;
             planeZ = endpoint.z; anchor = Planar(anchor); endpoint = Planar(endpoint);
             if (points.Count < 2) { points.Clear(); points.Add(anchor); points.Add(endpoint); }
             else { points[0] = anchor; points[points.Count - 1] = endpoint; }
@@ -109,9 +139,10 @@ namespace Lifeline
                 { IsBlocked = true; continue; }
                 // Detour contains both existing endpoints; insert only its interior contacts.
                 for (int i = 1; i < detour.Count - 1; i++) points.Insert(segment + i, detour[i]);
-                segment += detour.Count - 2;
+                segment += Mathf.Max(0,detour.Count - 3);
             }
             Simplify(); RecalculateLength();
+            if(IsBlocked && search==null)retryAt=Time.realtimeSinceStartupAsDouble+failedSearchRetrySeconds;
             return !IsBlocked;
         }
 
@@ -218,7 +249,7 @@ namespace Lifeline
         {
             if (target == null || target.body == null || points.Count < 2 || maximumLength <= 0) return;
             UpdateRoute(points[0], target.Position);
-            if (IsBlocked) { target.body.linearVelocity = Vector3.zero; return; }
+            if (IsBlocked) { if(!SearchPending||PathLength>=maximumLength-.5f)target.body.linearVelocity = Vector3.zero; return; }
             if (PathLength > maximumLength) Pull(target, PathLength - maximumLength);
             if (PathLength < maximumLength - collisionSkin) return;
             Vector3 outward = -LastPullDirection;
@@ -281,6 +312,7 @@ namespace Lifeline
 
         bool SegmentClear(Vector3 from, Vector3 to, out RaycastHit closest)
         {
+            totalQueries++;
             closest = default; Vector3 difference = to - from; float distance = difference.magnitude;
             if (distance < .00001f) return true;
             Vector3 offset = Vector3.up * Mathf.Max(0, clearanceHeight * .5f - clearanceRadius);
@@ -303,43 +335,65 @@ namespace Lifeline
 
         bool FindDetour(Vector3 start, Vector3 end, out List<Vector3> result)
         {
-            result = null; searchCasts = 0;
-            var nodes = new List<SearchNode> { new SearchNode(start) { distance = 0 }, new SearchNode(end) };
-            var visitedObstacles = new HashSet<Collider>();
-            float reach = Mathf.Max(minimumSearchReach, Vector3.Distance(start, end) * maximumDetourRatio);
-            while (searchCasts < maximumSearchCasts)
+            result=null;
+            if(search==null || search.revision!=geometryRevision || (search.start-start).sqrMagnitude>4f || (search.end-end).sqrMagnitude>4f)
             {
-                int best = -1; float score = float.PositiveInfinity;
-                for (int i = 0; i < nodes.Count; i++)
-                {
-                    if (nodes[i].closed || float.IsPositiveInfinity(nodes[i].distance)) continue;
-                    float estimate = nodes[i].distance + Vector3.Distance(nodes[i].point, end);
-                    if (estimate < score) { best = i; score = estimate; }
-                }
-                if (best < 0 || score > reach) return false;
-                var current = nodes[best]; current.closed = true;
-                RaycastHit blocker; searchCasts++;
-                if (SegmentClear(current.point, end, out blocker))
-                {
-                    nodes[1].parent = best;
-                    result = new List<Vector3> { end };
-                    int index = best;
-                    while (index >= 0) { result.Add(nodes[index].point); index = nodes[index].parent; }
-                    result.Reverse(); return true;
-                }
-                AddObstacle(blocker.collider, nodes, visitedObstacles, start, end, reach);
-                for (int next = 2; next < nodes.Count && searchCasts < maximumSearchCasts; next++)
-                {
-                    if (nodes[next].closed) continue;
-                    float cost = current.distance + Vector3.Distance(current.point, nodes[next].point);
-                    if (cost >= nodes[next].distance || cost + Vector3.Distance(nodes[next].point, end) > reach) continue;
-                    searchCasts++;
-                    if (SegmentClear(current.point, nodes[next].point, out blocker))
-                    { nodes[next].distance = cost; nodes[next].parent = best; }
-                    else AddObstacle(blocker.collider, nodes, visitedObstacles, start, end, reach);
-                }
+                search=new SearchState { start=start,end=end,revision=geometryRevision,
+                    reach=Mathf.Max(minimumSearchReach,Vector3.Distance(start,end)*maximumDetourRatio) };
+                search.nodes.Add(new SearchNode(start){distance=0});search.nodes.Add(new SearchNode(end));detourSearches++;
             }
-            return false;
+            if(budgetFrame!=Time.frameCount){budgetFrame=Time.frameCount;budgetStart=Time.realtimeSinceStartupAsDouble;}
+            searchCasts=search.casts;
+            var nodes=search.nodes;
+            while(searchCasts<maximumSearchCasts)
+            {
+                if(Application.isPlaying && (Time.realtimeSinceStartupAsDouble-budgetStart)*1000>=frameBudgetMilliseconds)
+                {search.casts=searchCasts;return false;}
+                if(search.corners.Count>0 || search.linkingCorner>=0)
+                { ProcessCornerStep(search); continue; }
+                if(search.current<0)
+                {
+                    int best=-1;float score=float.PositiveInfinity;
+                    for(int i=0;i<nodes.Count;i++)
+                    {
+                        if(nodes[i].closed || float.IsPositiveInfinity(nodes[i].distance))continue;
+                        float estimate=nodes[i].distance+Vector3.Distance(nodes[i].point,search.end);
+                        if(estimate<score){best=i;score=estimate;}
+                    }
+                    if(best<0 || score>search.reach){search=null;return false;}
+                    var chosen=nodes[best]; chosen.closed=true;
+                    RaycastHit blocker;searchCasts++;
+                    if(SegmentClear(chosen.point,search.end,out blocker))
+                    {
+                        result=new List<Vector3>{end};if((search.end-end).sqrMagnitude>.0001f)result.Add(search.end);int index=best;
+                        while(index>=0){result.Add(nodes[index].point);index=nodes[index].parent;}
+                        result.Reverse();result[0]=start;
+                        search=null;return true;
+                    }
+                    AddObstacle(blocker.collider,nodes,search.visited,search.start,search.end,search.reach);
+                    search.current=best;search.next=2;
+                }
+                var current=nodes[search.current];
+                while(search.next<nodes.Count && searchCasts<maximumSearchCasts)
+                {
+                    if(Application.isPlaying && (Time.realtimeSinceStartupAsDouble-budgetStart)*1000>=frameBudgetMilliseconds)
+                    {search.casts=searchCasts;return false;}
+                    int next=search.next++;
+                    if(nodes[next].closed)continue;
+                    float cost=current.distance+Vector3.Distance(current.point,nodes[next].point);
+                    if(cost>=nodes[next].distance || cost+Vector3.Distance(nodes[next].point,search.end)>search.reach)continue;
+                    RaycastHit blocker;searchCasts++;
+                    if(SegmentClear(current.point,nodes[next].point,out blocker)){nodes[next].distance=cost;nodes[next].parent=search.current;}
+                    else
+                    {
+                        AddObstacle(blocker.collider,nodes,search.visited,search.start,search.end,search.reach);
+                        if(search.corners.Count>0)break;
+                    }
+                }
+                if(search.corners.Count>0)continue;
+                search.current=-1;
+            }
+            search=null;return false;
         }
 
         void AddObstacle(Collider collider, List<SearchNode> nodes, HashSet<Collider> visited, Vector3 start, Vector3 end, float reach)
@@ -350,42 +404,48 @@ namespace Lifeline
             float right = bounds.max.x + clearanceRadius + cornerMargin - centerOffset.x;
             float bottom = bounds.min.y - clearanceHeight * .5f - cornerMargin - centerOffset.y;
             float top = bounds.max.y + clearanceHeight * .5f + cornerMargin - centerOffset.y;
-            AddCorner(new Vector3(left, bottom, planeZ), nodes, visited, start, end, reach);
-            AddCorner(new Vector3(left, top, planeZ), nodes, visited, start, end, reach);
-            AddCorner(new Vector3(right, bottom, planeZ), nodes, visited, start, end, reach);
-            AddCorner(new Vector3(right, top, planeZ), nodes, visited, start, end, reach);
+            search.corners.Enqueue(new Vector3(left, bottom, planeZ));
+            search.corners.Enqueue(new Vector3(left, top, planeZ));
+            search.corners.Enqueue(new Vector3(right, bottom, planeZ));
+            search.corners.Enqueue(new Vector3(right, top, planeZ));
         }
 
-        void AddCorner(Vector3 point, List<SearchNode> nodes, HashSet<Collider> visited, Vector3 start, Vector3 end, float reach)
+        // Each step performs at most one physics query. Nearby walls are queued, never
+        // recursively expanded in one frame; late corners still link to closed A* nodes.
+        void ProcessCornerStep(SearchState job)
         {
-            if (nodes.Count >= maximumSearchNodes || Vector3.Distance(start, point) + Vector3.Distance(point, end) > reach) return;
-            Vector3 offset = Vector3.up * Mathf.Max(0, clearanceHeight * .5f - clearanceRadius);
-            Vector3 center = point + centerOffset;
-            int count = gameObject.scene.GetPhysicsScene().OverlapCapsule(center + offset, center - offset, clearanceRadius,
-                overlaps, collisionMask, QueryTriggerInteraction.Ignore);
-            bool blocked = false;
-            // Copy blockers before recursion: this component intentionally reuses its non-alloc query buffer.
-            var adjacent = new List<Collider>();
-            for (int i = 0; i < count; i++)
-                if (!Ignored(overlaps[i])) { blocked = true; adjacent.Add(overlaps[i]); }
-            if (blocked)
+            var nodes=job.nodes;
+            if(job.linkingCorner>=0)
             {
-                foreach (var obstacle in adjacent) AddObstacle(obstacle, nodes, visited, start, end, reach);
-                return;
+                var added=nodes[job.linkingCorner];
+                while(job.nextLink<job.linkingCorner)
+                {
+                    int i=job.nextLink++;
+                    if(!nodes[i].closed)continue;
+                    float cost=nodes[i].distance+Vector3.Distance(nodes[i].point,added.point);
+                    if(cost>=added.distance || cost+Vector3.Distance(added.point,job.end)>job.reach)continue;
+                    searchCasts++;
+                    if(SegmentClear(nodes[i].point,added.point,out _)){added.distance=cost;added.parent=i;}
+                    return;
+                }
+                job.linkingCorner=-1;return;
             }
-            for (int i = 0; i < nodes.Count; i++) if ((nodes[i].point - point).sqrMagnitude < .0001f) return;
-            var added = new SearchNode(point);
-            // Obstacles are discovered lazily. A newly discovered corner may be visible from
-            // an already expanded node, so connect it now rather than losing a valid maze route.
-            for (int i = 0; i < nodes.Count && searchCasts < maximumSearchCasts; i++)
+            Vector3 point=job.corners.Dequeue();
+            if(nodes.Count>=maximumSearchNodes || Vector3.Distance(job.start,point)+Vector3.Distance(point,job.end)>job.reach)return;
+            for(int i=0;i<nodes.Count;i++)if((nodes[i].point-point).sqrMagnitude<.0001f)return;
+            Vector3 offset=Vector3.up*Mathf.Max(0,clearanceHeight*.5f-clearanceRadius);
+            Vector3 center=point+centerOffset;
+            int count=gameObject.scene.GetPhysicsScene().OverlapCapsule(center+offset,center-offset,clearanceRadius,
+                overlaps,collisionMask,QueryTriggerInteraction.Ignore);
+            bool blocked=false;
+            for(int i=0;i<count;i++)if(!Ignored(overlaps[i]))
             {
-                if (!nodes[i].closed) continue;
-                float cost = nodes[i].distance + Vector3.Distance(nodes[i].point, point);
-                if (cost >= added.distance || cost + Vector3.Distance(point, end) > reach) continue;
-                searchCasts++;
-                if (SegmentClear(nodes[i].point, point, out _)) { added.distance = cost; added.parent = i; }
+                blocked=true;
+                AddObstacle(overlaps[i],nodes,job.visited,job.start,job.end,job.reach);
             }
-            nodes.Add(added);
+            if(blocked)return;
+            job.linkingCorner=nodes.Count;job.nextLink=0;
+            nodes.Add(new SearchNode(point));
         }
 
         void RecalculateLength()

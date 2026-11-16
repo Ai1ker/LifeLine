@@ -88,8 +88,8 @@ namespace Lifeline.Tests
             Assert.That(tuning.generatorStrokeInterval, Is.EqualTo(1));
             PrefabLibraryBuilder.MigrateKnownTuningDefaults(tuning, true);
             Assert.That(tuning.baseOxygen, Is.EqualTo(40));
-            Assert.That(tuning.oxygenLevels, Is.EqualTo(new[] { 40f, 70f, 100f, 130f }));
-            Assert.That(tuning.ropeLengths[3], Is.EqualTo(54));
+            Assert.That(tuning.oxygenLevels, Is.EqualTo(new[] { 40f, 70f, 115f, 145f }));
+            Assert.That(tuning.ropeLengths[3], Is.EqualTo(74));
             Assert.That(tuning.generatorStrokeInterval, Is.EqualTo(3));
             Assert.That(tuning.caveChance, Is.EqualTo(.05f)); Assert.That(tuning.eelCaveChance, Is.EqualTo(.05f));
             Assert.That(PrefabLibraryBuilder.MigrateKnownTuningDefaults(tuning, true), Is.Empty);

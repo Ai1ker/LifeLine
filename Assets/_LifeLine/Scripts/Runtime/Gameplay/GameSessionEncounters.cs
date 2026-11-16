@@ -57,7 +57,11 @@ namespace Lifeline
                         if (candidates.Count == 0) continue;
                         // Match the world's three-deep / one-middle candidate weighting. The other
                         // slots prefer deeper points; each fourth slot retains some middle-band danger.
-                        int index = selected.Count % 4 == 3 ? candidates.Count - 1 : 0;
+                        // 3:1 baseline gives75% deep weight. Moving45% of middle slots deep
+                        // gives86.25%: a relative15% increase, while retaining the global cap.
+                        bool retainMiddle = selected.Count % 4 == 3;
+                        int sampleHash = Mathf.Abs(unchecked(worldSeed + day*397 + selected.Count*7919)) % 10000;
+                        int index = retainMiddle && sampleHash >= Mathf.Clamp01(tuning.deepSharkSpawnBonus*3)*10000 ? candidates.Count - 1 : 0;
                         selected.Add(candidates[index]); candidates.RemoveAt(index); found = true;
                         if (selected.Count >= tuning.maximumSharks) break;
                     }
@@ -84,12 +88,12 @@ namespace Lifeline
             Tell("新的一天，海底遗迹与物资已刷新。已挂载货箱、背包和船上升级保留。");
         }
 
-        public LifelineEnemy SpawnEnemy(EnemyKind kind, Vector3 position)
+        public LifelineEnemy SpawnEnemy(EnemyKind kind, Vector3 position, bool restoreExisting = false)
         {
             if (kind == EnemyKind.Shark || kind == EnemyKind.WhiteShark)
             {
                 float surface = world != null ? world.WaterSurface : -1.5f;
-                if (surface - position.y < tuning.sharkMinimumDepth) return null;
+                if (!restoreExisting && surface - position.y < tuning.sharkMinimumDepth) return null;
                 int count = 0; foreach (LifelineEnemy existing in enemies) if (existing != null && existing.IsShark && existing.IsAlive) count++;
                 if (count >= tuning.maximumSharks) return null;
             }
@@ -187,7 +191,9 @@ namespace Lifeline
             maps?.MoveGameplayObject(root, spear.onShipMap);
             spear.damage = spearDamage * (Buffs(actor).attack > 0 ? 1 + tuning.fishAttackBonus : 1);
             if (spearMaterial != null && root.GetComponentInChildren<Renderer>() != null) root.GetComponentInChildren<Renderer>().sharedMaterial = spearMaterial;
-            activeSpears[index] = spear; return true;
+            spear.maximumRange=10f;
+            if(root.GetComponent<SpearTetherView>()==null)root.AddComponent<SpearTetherView>().spear=spear;
+            activeSpears[index] = spear; actor.EmitPresentationEvent(CrewVisualEvent.Fire); return true;
         }
 
         public void NotifyWeaponHit(GameObject target, CrewActor actor)
@@ -201,7 +207,7 @@ namespace Lifeline
         {
             if (phase != SessionPhase.Playing || turretInstalled || !circuitRepaired) return false;
             if (!Spend(turretBuildCost)) return false;
-            turretInstalled = true; turretOn = true; turretPowerClock = turretShotClock = 0;
+            turretInstalled = true; turretTier = 1; turretOn = true; turretPowerClock = turretShotClock = 0;
             Tell("甲板炮塔已安装。每3秒消耗1%电力，自动驱鸟并对抗深渊巨影。"); Changed(); return true;
         }
 
@@ -223,15 +229,34 @@ namespace Lifeline
             if (!infinitePower && power <= 0) return;
             turretShotClock += dt;
             if (turretShotClock < tuning.turretShotInterval) return;
-            LifelineEnemy target = null;
-            foreach (LifelineEnemy enemy in enemies)
+            var targets = SelectTurretTargets();
+            if(targets.Count==0)return;
+            turretShotClock=0;
+            foreach(var target in targets) FireTurret(target);
+        }
+        public bool UpgradeTurret()
+        {
+            if(!turretInstalled || turretTier>=2 || !Spend(turretUpgradeCost))return false;
+            turretTier=2;Tell("炮塔T2：可同时攻击两个不同目标。");Changed();return true;
+        }
+        public List<LifelineEnemy> SelectTurretTargets()
+        {
+            var result=new List<LifelineEnemy>();
+            foreach(var enemy in enemies)
             {
-                if (enemy == null || !enemy.IsAlive) continue;
-                if (enemy.IsAirborne && Vector3.Distance(enemy.transform.position, ShipPoint(boatAnchorLocal)) < 20) { target = enemy; break; }
-                if (enemy.kind == EnemyKind.Shadow && Vector3.Distance(enemy.transform.position, BoatAnchor) < 28) target = enemy;
+                if(enemy==null||!enemy.IsAlive)continue;
+                float depth=(world!=null?world.WaterSurface:diver!=null?diver.waterSurfaceY:-1.5f)-enemy.transform.position.y;
+                bool eligible=enemy.kind==EnemyKind.Shadow?Vector3.Distance(enemy.transform.position,BoatAnchor)<28
+                    :enemy.IsAirborne?Vector3.Distance(enemy.transform.position,ShipPoint(boatAnchorLocal))<20
+                    :enemy.IsShark&&depth>=0&&depth<=tuning.turretSharkDepth&&Mathf.Abs(enemy.transform.position.x-BoatAnchor.x)<24;
+                if(eligible)result.Add(enemy);
             }
-            if (target == null) return;
-            turretShotClock = 0;
+            result.Sort((a,b)=>{int rankA=a.kind==EnemyKind.Shadow?0:a.IsAirborne?1:2;int rankB=b.kind==EnemyKind.Shadow?0:b.IsAirborne?1:2;
+                return rankA!=rankB?rankA.CompareTo(rankB):Vector2.Distance(a.transform.position,a.IsAirborne?ShipPoint(boatAnchorLocal):BoatAnchor).CompareTo(Vector2.Distance(b.transform.position,b.IsAirborne?ShipPoint(boatAnchorLocal):BoatAnchor));});
+            int count=turretTier>=2?2:1;if(result.Count>count)result.RemoveRange(count,result.Count-count);return result;
+        }
+        void FireTurret(LifelineEnemy target)
+        {
             // The shot is a real traveling projectile: no remote damage or idle click reward.
             GameObject root = spearPrefab != null ? Instantiate(spearPrefab) : GameObject.CreatePrimitive(PrimitiveType.Sphere);
             bool shipMap = target.IsAirborne;
@@ -250,34 +275,18 @@ namespace Lifeline
 
         void UpdateWeather(float dt)
         {
-            if (!StormActive) { stormWarning = 0; return; }
-            if (stormWarning > 0)
+            if(!StormActive){stormWarning=0;return;}
+            if(stormWarning>0)
             {
-                stormWarning -= dt;
-                if (stormWarning <= 0)
-                {
-                    CrewActor actor = lightningTarget == CrewRole.Captain ? captain : diver;
-                    if (actor != null && actor.onboard && ship != null && ship.transform.InverseTransformPoint(actor.Position).y > -2)
-                    {
-                        actor.SetDowned(true); actor.controlsCaptured = false;
-                        DamageHull(lightningHullDamage);
-                        Tell("雷击击倒了" + GameNames.Role(actor.role) + "！同伴靠近按交互救助，船舱可躲避雷击。");
-                    }
-                    // Exactly one probability roll per strike, independent of frame rate.
-                    if (engineRepaired && UnityEngine.Random.value < tuning.lightningEngineRisk) DamageEngine("雷击损坏了引擎");
-                    stormCountdown = UnityEngine.Random.Range(tuning.lightningIntervalMin, tuning.lightningIntervalMax);
-                }
+                stormWarning=Mathf.Max(0,stormWarning-dt);
+                if(stormWarning<=0)stormCountdown=UnityEngine.Random.Range(tuning.lightningIntervalMin,tuning.lightningIntervalMax);
+                return;
             }
-            else
-            {
-                stormCountdown -= dt;
-                if (stormCountdown <= 0)
-                {
-                    lightningTarget = UnityEngine.Random.value < .5f ? CrewRole.Captain : CrewRole.Diver;
-                    stormWarning = tuning.lightningWarning;
-                    Tell("雷击预警：" + GameNames.Role(lightningTarget) + "尽快进入船舱！");
-                }
-            }
+            stormCountdown-=dt;if(stormCountdown>0)return;
+            stormWarning=tuning.lightningWarning;
+            Vector3 point=ShipToWaterPoint(ShipPoint(new Vector3(UnityEngine.Random.Range(-10.5f,10.5f),.9f,0)));
+            QueueAreaStrike(AreaStrikeKind.Lightning,point,true,tuning.lightningRadius,tuning.lightningWarning,lightningHullDamage);
+            Tell("雷击落点已标记，离开预警圆圈或进入船舱。");
         }
 
         public float GetStormDriftSpeed()

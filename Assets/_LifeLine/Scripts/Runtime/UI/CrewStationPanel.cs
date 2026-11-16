@@ -15,11 +15,17 @@ namespace Lifeline
         public Button actionButtonPrefab, closeButton;
         public Image rhythmFill;
         public Image rhythmWindow, rhythmCursor;
+        public QteStationView qteView;
+        public RepairBoardView repairBoardPrefab;
+        public RepairVisualTheme repairTheme;
+        RepairBoardView repairBoard;
+        private float generatorFeedback;
+        private bool generatorGood;
         [Header("可替换小游戏视图 / public tuning")]
         public Vector2 generatorWindow = new Vector2(.7f, .9f);
         public Vector2 fishWaitSeconds = new Vector2(2.5f, 5f);
         public Vector2 fishHalfWidths = new Vector2(.135f, .095f);
-        public Vector2 fishMoveSpeeds = new Vector2(1.5f, 2.15f);
+        public Vector2 fishMoveSpeeds = new Vector2(1.35f, 1.935f);
         public Vector2 fishGainRates = new Vector2(.21f, .15f);
         public Vector2 fishLossRates = new Vector2(.11f, .14f);
         public float fishRiseAcceleration = 1.6f, fishFallAcceleration = 1.1f, fishMaxVelocity = .7f;
@@ -38,12 +44,10 @@ namespace Lifeline
         private CrewActor actor;
         private Vector2 previousMove;
         private readonly List<GameObject> buttons = new List<GameObject>();
-        private int circuitSource = -1;
         private int engineVersion = -1;
         private int lastJobCount = -1;
         private float fishWait;
         private HoldActionButton heldButton;
-        private int circuitShuffle;
         private bool repairStarted;
 
         public void Initialize(GameHUDController owner, GameSession game, CrewActor crew)
@@ -61,7 +65,6 @@ namespace Lifeline
             repairStarted = session.repairAuthorized[(int)kind];
             if (kind == StationKind.Winch) session.SetWinchActive(true);
             if (kind == StationKind.Engine) engineVersion = session.engineRepairVersion;
-            if (kind == StationKind.Circuit) circuitShuffle = Mathf.Abs(session.worldSeed % 4);
             BuildActions();
         }
         public void Close()
@@ -79,6 +82,7 @@ namespace Lifeline
             if (station == StationKind.Engine && engineVersion != session.engineRepairVersion)
             { engineVersion = session.engineRepairVersion; repairStarted = false; BuildActions(); }
             if (session.phase != SessionPhase.Playing) return;
+            generatorFeedback = Mathf.Max(0, generatorFeedback - Time.deltaTime);
             UpdateLive();
             if (station == StationKind.Fishing) UpdateFishing(Time.deltaTime);
             if (station == StationKind.Engine && repairStarted && IsHeld("Interact")) ScrubSelected(Time.deltaTime);
@@ -100,6 +104,8 @@ namespace Lifeline
                     session.CraftQte(selectedJobId, direction);
                 }
             }
+            else if (station == StationKind.Engine && repairStarted && command.move.sqrMagnitude>.2f && previousMove.sqrMagnitude<.2f)
+            { int part=Mathf.Abs(command.move.y)>=Mathf.Abs(command.move.x)?command.move.y>0?0:2:command.move.x<0?1:3; session.TryRepairEngineFault((int)selectedFault,part); BuildActions(); }
             else if (station == StationKind.Winch && command.melee) session.TryWinchQte(WinchAngle());
             else if (station == StationKind.Generator && command.melee) Crank();
             else if (station == StationKind.Fishing && command.interact) StartFishing();
@@ -122,6 +128,8 @@ namespace Lifeline
         private void BuildActions()
         {
             ClearActions(); lastJobCount = session.jobs.Count;
+            ConfigureQtePresentation();
+            if(station==StationKind.Filter||station==StationKind.Circuit||station==StationKind.Engine){if(rhythmFill!=null)rhythmFill.transform.parent.gameObject.SetActive(false);}
             switch (station)
             {
                 case StationKind.Workbench:
@@ -150,6 +158,7 @@ namespace Lifeline
                         Add(UpgradeLabel(upgrade) + "  T" + displayTier + extra + "\n" + Costs(session.GetUpgradeCost(upgrade)), () => ActionAndRefresh(() => session.TryUpgrade(selected)), level < session.MaxUpgradeLevel(upgrade));
                     }
                     Add(session.turretInstalled ? "炮塔 " + (session.turretOn ? "关闭" : "开启") : "建造炮塔：3木板 3铁板 1纤维束", () => ActionAndRefresh(() => { if (session.turretInstalled) session.ToggleTurret(); else session.BuildTurret(); }));
+                    if(session.turretInstalled && session.turretTier<2)Add("升级炮塔T2：1铁板 3纤维束 1木板",()=>ActionAndRefresh(()=>session.UpgradeTurret()));
                     Add("完成电台后：向东启程救援", () => ActionAndRefresh(() => session.StartRescueVoyage()), session.radioStage >= 3 && session.diver.onboard);
                     break;
                 case StationKind.Winch:
@@ -171,7 +180,8 @@ namespace Lifeline
                     Add(session.searchlightOn ? "关闭探照灯" : "开启探照灯", () => ActionAndRefresh(() => session.ToggleSearchlight()));
                     break;
                 case StationKind.Turret:
-                    detailText.text = "自动锁定海鸥和深渊之影；每3秒消耗1%电力。";
+                    detailText.text = "优先深渊之影，其次海鸥和0–20米鲨鱼；每3秒消耗1%电力。";
+                    if(session.turretInstalled && session.turretTier<2)Add("升级炮塔T2：1铁板 3纤维束 1木板",()=>ActionAndRefresh(()=>session.UpgradeTurret()));
                     Add(session.turretInstalled ? session.turretOn ? "关闭炮塔" : "开启炮塔" : "建造：3木板 3铁板 1纤维束", () => ActionAndRefresh(() => { if (session.turretInstalled) session.ToggleTurret(); else session.BuildTurret(); }));
                     break;
                 case StationKind.Fishing:
@@ -200,78 +210,30 @@ namespace Lifeline
                 Add("开始维修", () => { if (session.TryRepairDevice(station)) { repairStarted = true; BuildActions(); } });
                 return;
             }
-            if (station == StationKind.Filter)
-            {
-                if (hud.filterPuzzle.masks == null || hud.filterPuzzle.masks.Length == 0) hud.filterPuzzle.Generate(session.worldSeed + 31);
-                detailText.text = "入口第" + (hud.filterPuzzle.sourceRow + 1) + "行，出口第" + (hud.filterPuzzle.exitRow + 1) + "行。逐格顺时针旋转后试水。";
-                var gridObject = new GameObject("Pipe tiles", typeof(RectTransform), typeof(LayoutElement), typeof(GridLayoutGroup));
-                gridObject.transform.SetParent(actionsRoot, false); buttons.Add(gridObject);
-                var grid = gridObject.GetComponent<GridLayoutGroup>();
-                grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount; grid.constraintCount = hud.filterPuzzle.columns;
-                float tileSize = Mathf.Clamp((actionsRoot.rect.width - 50) / hud.filterPuzzle.columns, 38, 60);
-                grid.cellSize = Vector2.one * tileSize; grid.spacing = Vector2.one * 5;
-                grid.childAlignment = TextAnchor.MiddleCenter;
-                gridObject.GetComponent<LayoutElement>().preferredHeight = (tileSize + 5) * hud.filterPuzzle.rows;
-                for (int i = 0; i < hud.filterPuzzle.masks.Length; i++)
-                {
-                    int tile = i;
-                    Button tileButton = Add(hud.filterPuzzle.TileLabel(i), () => { hud.filterPuzzle.RotateTile(tile); BuildActions(); });
-                    tileButton.transform.SetParent(gridObject.transform, false);
-                    tileButton.GetComponentInChildren<Text>().fontSize = 30;
-                }
-                Add("加压试水", () => { if (hud.filterPuzzle.IsSolved()) { session.CompleteRepair(station); BuildActions(); } else liveText.text = "尚未连通出口，继续调整。"; });
-            }
-            else if (station == StationKind.Circuit)
-            {
-                detailText.text = "先选电源端，再选对应设备端；四路都接好才能供电。";
-                for (int i = 0; i < 4; i++)
-                {
-                    int source = i;
-                    Add("电源 " + (char)('A' + i) + (hud.circuitConnected[i] ? " ✓" : ""), () => { circuitSource = source; liveText.text = "已选电源 " + (char)('A' + source); }, !hud.circuitConnected[i]);
-                }
-                for (int i = 0; i < 4; i++)
-                {
-                    int target = (i * 3 + 1 + circuitShuffle) % 4;
-                    Add("设备 " + (char)('A' + target), () =>
-                    {
-                        if (circuitSource != target) { liveText.text = "端子不匹配。"; return; }
-                        hud.circuitConnected[target] = true; circuitSource = -1;
-                        if (Array.TrueForAll(hud.circuitConnected, connected => connected)) session.CompleteRepair(station);
-                        BuildActions();
-                    }, !hud.circuitConnected[target]);
-                }
-            }
-            else
-            {
-                detailText.text = "选择故障后，长按互动或下方擦拭按钮清理局部油污，再选正确零件。";
-                string[] parts = { "燃油管", "点火线圈", "齿轮", "冷却阀" };
-                selectedFault = Mathf.Clamp((int)selectedFault, 0, session.engineFaultFixed.Length - 1);
-                for (int i = 0; i < session.engineFaultFixed.Length; i++)
-                {
-                    int fault = i;
-                    string name = session.engineFaultClean[i] >= 1 ? parts[session.engineFaultTypes[i]] : "油污遮挡";
-                    Add("故障 " + (i + 1) + "：" + (session.engineFaultFixed[i] ? "已修复" : name), () => { selectedFault = fault; BuildActions(); }, !session.engineFaultFixed[i]);
-                }
-                Button scrub = Add("按住擦拭当前故障 / " + actor.input.GetBindingLabel("Interact"), () => { });
-                heldButton = scrub.gameObject.AddComponent<HoldActionButton>();
-                for (int i = 0; i < 4; i++)
-                {
-                    int part = i;
-                    Add("安装 " + parts[i], () => { session.TryRepairEngineFault((int)selectedFault, part); BuildActions(); }, session.engineFaultClean[(int)selectedFault] >= 1);
-                }
-            }
+            var obj=repairBoardPrefab!=null?Instantiate(repairBoardPrefab.gameObject,actionsRoot):new GameObject("Repair board / replaceable",typeof(RectTransform));
+            obj.transform.SetParent(actionsRoot,false);obj.SetActive(true);buttons.Add(obj);
+            repairBoard=obj.GetComponent<RepairBoardView>();if(repairBoard==null)repairBoard=obj.AddComponent<RepairBoardView>();
+            repairBoard.theme=repairTheme;repairBoard.panel=this;repairBoard.session=session;repairBoard.hud=hud;repairBoard.actor=actor;
+            repairBoard.Build(station);
         }
+        public void RebuildRepair()=>BuildActions();
+        public void ScrubEngineAt(int index,float seconds)
+        {
+            if(session==null||session.phase!=SessionPhase.Playing||!IsOpen||station!=StationKind.Engine||!repairStarted||index<0||index>=session.engineFaultClean.Length)return;
+            selectedFault=index;session.engineFaultClean[index]=Mathf.Clamp01(session.engineFaultClean[index]+seconds/Mathf.Max(.1f,scrubSecondsPerFault));
+        }
+
         private void ScrubSelected(float delta)
         {
             int fault = Mathf.Clamp((int)selectedFault, 0, session.engineFaultFixed.Length - 1);
-            if (session.engineFaultFixed[fault] || session.engineFaultClean[fault] >= 1) return;
-            session.engineFaultClean[fault] = Mathf.Clamp01(session.engineFaultClean[fault] + delta / Mathf.Max(.1f, scrubSecondsPerFault));
-            if (session.engineFaultClean[fault] >= 1) BuildActions();
+            ScrubEngineAt(fault,delta);
         }
         private void Crank()
         {
             float beat = Mathf.Repeat(session.elapsed, session.tuning.generatorStrokeInterval) / Mathf.Max(.1f, session.tuning.generatorStrokeInterval);
-            session.CrankGenerator(beat >= generatorWindow.x && beat <= generatorWindow.y);
+            float previous = session.lastCrankAt;
+            bool good = session.CrankGenerator(beat >= generatorWindow.x && beat <= generatorWindow.y);
+            if (session.lastCrankAt != previous) { generatorGood = good; generatorFeedback = qteView != null && qteView.theme != null ? qteView.theme.feedbackSeconds : .65f; }
         }
         private void StartFishing()
         {
@@ -291,7 +253,7 @@ namespace Lifeline
             fishingVelocity += (IsHeld("Interact") ? fishRiseAcceleration : -fishFallAcceleration) * dt;
             fishingVelocity = Mathf.Clamp(fishingVelocity, -fishMaxVelocity, fishMaxVelocity);
             fishingZone = Mathf.Clamp(fishingZone + fishingVelocity * dt, fishZoneHalfWidth, 1 - fishZoneHalfWidth);
-            fishingFish = Mathf.Clamp01(.5f + Mathf.Sin(fishingTime * (fishingQuality ? fishMoveSpeeds.y : fishMoveSpeeds.x)) * .3f + Mathf.Sin(fishingTime * 3.8f) * .12f);
+            fishingFish = Mathf.Clamp01(.5f + Mathf.Sin(fishingTime * (fishingQuality ? fishMoveSpeeds.y : fishMoveSpeeds.x)) * .3f + Mathf.Sin(fishingTime * 3.42f) * .12f);
             bool inRange = Mathf.Abs(fishingFish - fishingZone) <= fishZoneHalfWidth;
             fishingProgress = Mathf.Clamp01(fishingProgress + (inRange ? fishingQuality ? fishGainRates.y : fishGainRates.x : -(fishingQuality ? fishLossRates.y : fishLossRates.x)) * dt);
             rhythmFill.fillAmount = fishingProgress;
@@ -308,10 +270,12 @@ namespace Lifeline
             {
                 if (lastJobCount != session.jobs.Count) { selectedJobId = session.jobs.Count > 0 ? session.jobs[0].id : 0; BuildActions(); }
                 CraftJob job = session.jobs.Find(candidate => candidate.id == selectedJobId);
-                if (job == null) { liveText.text = "作业槽 " + session.jobs.Count + "/" + session.CraftCapacity; rhythmFill.fillAmount = 0; return; }
+                if (job == null) { liveText.text = "作业槽 " + session.jobs.Count + "/" + session.CraftCapacity; rhythmFill.fillAmount = 0; if (qteView != null) qteView.gameObject.SetActive(false); return; }
                 float offset = job.nextCue - job.elapsed;
                 rhythmFill.fillAmount = Mathf.Clamp01(1 - offset);
                 SetRhythmRange(.5f, session.GetCraftQteWindow(job) * 2 / session.tuning.craftCueInterval, .5f - offset / session.tuning.craftCueInterval);
+                if (qteView != null) qteView.ShowLane(actor.input, job.noteDirection, job.elapsed, job.nextCue,
+                    session.tuning.craftCueInterval, session.GetCraftQteWindow(job), job.feedbackTime, job.feedback != null && job.feedback.StartsWith("+"));
                 string key = actor.input.GetBindingLabel("Move", job.noteDirection + 1);
                 liveText.text = job.recipe.displayName + " · " + job.NormalizedProgress.ToString("P0") + "\n" + "下个音符 [" + key + "] · " + Mathf.Max(0, offset).ToString("0.00") + "s" + "  " + (job.feedbackTime > 0 ? job.feedback : "指针进入绿色区域时按键");
             }
@@ -321,14 +285,20 @@ namespace Lifeline
                 float half = session.tuning.winchOriginalWidth * (1 + bonus) * .5f;
                 rhythmFill.fillAmount = WinchAngle();
                 SetRhythmRange(session.tuning.winchCenter, half * 2, WinchAngle());
+                if (qteView != null) qteView.ShowCircle(actor.input, WinchAngle(), session.tuning.winchCenter,
+                    half * 2, session.winchProgress, session.winchFeedbackTime, session.winchFeedback.Contains("成功") || session.winchProgress >= 1,
+                    session.GetUpgrade(UpgradeKind.Rope) >= 3);
                 rhythmFill.color = session.winchFeedbackTime > 0 ? session.winchFeedback.Contains("成功") ? new Color(.3f,.9f,.5f) : new Color(.95f,.4f,.3f) : new Color(.83f,.68f,.35f);
-                liveText.text = session.winchProgress.ToString("P0") + " · " + session.winchFeedback + "\n指针 " + WinchAngle().ToString("0.00") + " / 绿色窗口 " + (session.tuning.winchCenter - half).ToString("0.000") + " — " + (session.tuning.winchCenter + half).ToString("0.000");
+                liveText.text = session.WinchTargetCount + " × " + session.WinchEfficiency.ToString("P0") + " · " + session.winchProgress.ToString("P0") + " · " + session.winchFeedback + "\n指针 " + WinchAngle().ToString("0.00") + " / 绿色窗口 " + (session.tuning.winchCenter - half).ToString("0.000") + " — " + (session.tuning.winchCenter + half).ToString("0.000");
             }
             else if (station == StationKind.Generator)
             {
                 float beat = Mathf.Repeat(session.elapsed, session.tuning.generatorStrokeInterval) / Mathf.Max(.1f, session.tuning.generatorStrokeInterval);
                 rhythmFill.fillAmount = beat;
                 SetRhythmRange((generatorWindow.x + generatorWindow.y) * .5f, generatorWindow.y - generatorWindow.x, beat);
+                if (qteView != null && !session.infinitePower) qteView.ShowCircle(actor.input, beat,
+                    (generatorWindow.x + generatorWindow.y) * .5f, generatorWindow.y - generatorWindow.x,
+                    session.power / Mathf.Max(1, session.tuning.maxPower), generatorFeedback, generatorGood);
                 liveText.text = "电力 " + session.power.ToString("0") + "% · " + (session.infinitePower ? "电鳗供能" : session.generatorTier > 0 ? "燃油 / 手摇双模式" : "手摇") + "\n指针进入绿色区域时发力 / 当前 " + beat.ToString("0.00");
             }
             else if (station == StationKind.Engine && repairStarted)
@@ -339,6 +309,28 @@ namespace Lifeline
             }
             else if (station != StationKind.Fishing) { liveText.text = session.StatusMessage; rhythmFill.fillAmount = 0; }
         }
+        private void ConfigureQtePresentation()
+        {
+            if (qteView == null || qteView.theme == null) return;
+            bool lane = station == StationKind.Workbench || station == StationKind.HullRepair;
+            bool circle = station == StationKind.Winch || station == StationKind.Generator && !session.infinitePower;
+            bool graphical = lane || circle;
+            bool repair = station == StationKind.Filter || station == StationKind.Circuit || station == StationKind.Engine;
+            qteView.gameObject.SetActive(graphical); qteView.SetMode(circle);
+            if (rhythmFill != null) rhythmFill.transform.parent.gameObject.SetActive(!graphical);
+            var root = (RectTransform)qteView.transform;
+            root.anchorMin = new Vector2(.05f, lane ? .44f : .30f); root.anchorMax = new Vector2(.95f, .63f);
+            root.offsetMin = root.offsetMax = Vector2.zero;
+            liveText.rectTransform.anchorMin = new Vector2(.04f, repair ? .77f : graphical ? .64f : .57f);
+            liveText.rectTransform.anchorMax = new Vector2(.96f, repair ? .81f : graphical ? .75f : .73f);
+            liveText.fontSize = repair ? 14 : 18;
+            if (actionsRoot != null && actionsRoot.parent is RectTransform scroll)
+            {
+                scroll.anchorMax = new Vector2(.965f, repair ? .76f : lane ? .43f : circle ? .29f : .52f);
+                scroll.offsetMin = scroll.offsetMax = Vector2.zero;
+            }
+        }
+
         private void SetRhythmRange(float center, float width, float cursor)
         {
             if (rhythmWindow != null)

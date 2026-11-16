@@ -13,6 +13,7 @@ namespace Lifeline
         [Tooltip("Actual real seconds since the job started.")] public float elapsed;
         [Tooltip("Work done in seconds, including successful QTE bonuses.")] public float progress;
         public float duration;
+        public float repairApplied;
         [Tooltip("The next cue's centre, in elapsed job seconds.")] public float nextCue = 1f;
         [Tooltip("0=W/up, 1=A/left, 2=S/down, 3=D/right.")] public int noteDirection;
         public bool attempted;

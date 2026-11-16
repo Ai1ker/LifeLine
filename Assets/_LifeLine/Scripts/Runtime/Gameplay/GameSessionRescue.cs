@@ -6,12 +6,20 @@ namespace Lifeline
     {
         public float ClampBoatXToLeash(float proposedBoatX)
         {
-            if (diver == null || diver.onboard || ship == null || ropeLength <= 0) return proposedBoatX;
-            DiverRope route = GetOrCreateLifeline();
-            route.UpdateRoute(BoatAnchor, diver.Position);
+            if (ship == null || ropeLength <= 0) return proposedBoatX;
             Vector3 proposedAnchor = BoatAnchor + Vector3.right * (proposedBoatX - ship.Position.x);
-            Vector3 allowed = route.ClampAnchorMove(proposedAnchor, ropeLength);
-            return ship.Position.x + allowed.x - BoatAnchor.x;
+            if (diver != null && !diver.onboard)
+            {
+                var route = GetOrCreateLifeline(); route.UpdateRoute(BoatAnchor, diver.Position);
+                proposedAnchor = route.ClampAnchorMove(proposedAnchor, ropeLength);
+            }
+            if (world != null) foreach (var cargo in world.pickups)
+            {
+                if (!IsWinchCargo(cargo)) continue;
+                var route = GetCargoLifeline(cargo); route.UpdateRoute(BoatAnchor, cargo.transform.position);
+                proposedAnchor = route.ClampAnchorMove(proposedAnchor, ropeLength);
+            }
+            return ship.Position.x + proposedAnchor.x - BoatAnchor.x;
         }
 
         public void ApplyDiverLeash(CrewActor actor)
@@ -25,6 +33,7 @@ namespace Lifeline
         void UpdateOxygen(float dt)
         {
             if (diver == null) return;
+            if(diverHidden && (world==null||!world.IsAtHideSpot(diver)))diverHidden=false;
             diverInvulnerable = Mathf.Max(0, diverInvulnerable - dt);
             diver.oxygenMax = GetOxygenMax();
             diver.oxygen = Mathf.Min(diver.oxygen, diver.oxygenMax);
@@ -75,7 +84,7 @@ namespace Lifeline
 
         public bool ReceiveDiverHit(string reason, bool dropResource = true)
         {
-            if (diver == null || diver.onboard || diverFainted || diver.downed || diverInvulnerable > 0) return false;
+            if (diver == null || diverFainted || diver.downed || diverInvulnerable > 0) return false;
             if (GetUpgrade(UpgradeKind.DivingSuit) >= 2 && UnityEngine.Random.value < tuning.upgradedSuitImmunity)
             {
                 diverInvulnerable = biteInvulnerabilitySeconds;
@@ -84,7 +93,7 @@ namespace Lifeline
             diverBites++; diverInvulnerable = biteInvulnerabilitySeconds;
             if (dropResource && diver.backpack.Count > 0) diver.backpack.RemoveAt(diver.backpack.Count - 1);
             Tell(reason + "（" + diverBites + "/" + GetMaxDiverBites() + "）。" + (dropResource ? "掉落1件背包物资。" : "") + "用鱼叉反击或投放诱饵。");
-            if (diverBites >= GetMaxDiverBites()) FaintDiver("潜水服承伤次数耗尽");
+            if (diverBites >= GetMaxDiverBites()) { if (diver.onboard) diver.SetDowned(true); else FaintDiver("潜水服承伤次数耗尽"); }
             return true;
         }
 
@@ -123,34 +132,37 @@ namespace Lifeline
             Tell(winchElectric ? "船长启动了电动绞盘，关闭面板后仍会继续接回目标。" : "手动绞盘缓慢收绳。成功校准加进度，失败会回滑。"); Changed();
         }
 
-        void PrepareWinchTarget()
+        public int WinchTargetCount
         {
-            if (winchCargo != null && (!winchCargo.attached || winchCargo.consumed)) winchCargo = null;
-            if (winchSignalAuthorized) winchCargo = null;
-            if (winchCargo == null && !winchSignalAuthorized && world != null && (signalCount != 1 || diver == null || diver.onboard))
+            get
             {
-                foreach (LootPickup pickup in world.pickups)
-                    if (pickup != null && pickup.isCrate && pickup.attached && !pickup.consumed)
-                    { winchCargo = pickup; GetOrCreateLifeline(true).ResetRoute(); break; }
-            }
-            string kind = winchCargo != null ? "cargo" : diver != null && !diver.onboard ? "diver" : "";
-            if (kind == "" && rescueVoyage && ship != null && ship.transform.position.x >= rescueArrivalX && day >= 4) kind = "survivors";
-            if (kind != winchTargetKind)
-            {
-                winchTargetKind = kind; winchStartDistance = 0; winchProgress = 0;
-            }
-            if (kind == "diver" || kind == "cargo")
-            {
-                DiverRope route = GetOrCreateLifeline(winchCargo != null);
-                route.UpdateRoute(BoatAnchor, WinchTargetPosition());
-                float distance = route.PathLength;
-                // A target can swim or be carried further away after the operator opened the panel.
-                // Never clamp a subsequent QTE to the shorter original distance.
-                winchStartDistance = Mathf.Max(winchStartDistance, distance);
+                int count = diver != null && !diver.onboard ? 1 : 0;
+                if (world != null) foreach (var cargo in world.pickups) if (IsWinchCargo(cargo)) count++;
+                return count;
             }
         }
+        public float WinchEfficiency => 1f / Mathf.Max(1, WinchTargetCount);
+        static bool IsWinchCargo(LootPickup cargo) => cargo != null && cargo.isCrate && cargo.attached && !cargo.consumed && cargo.gameObject.activeInHierarchy;
 
-        Vector3 WinchTargetPosition() => winchCargo != null ? winchCargo.transform.position : diver != null ? diver.Position : BoatAnchor;
+        void PrepareWinchTarget()
+        {
+            winchCargo = null;
+            float distance = 0;
+            if (diver != null && !diver.onboard)
+            {
+                var route = GetOrCreateLifeline(); route.UpdateRoute(BoatAnchor, diver.Position); distance += route.PathLength;
+            }
+            if (world != null) foreach (var cargo in world.pickups)
+            {
+                if (!IsWinchCargo(cargo)) continue;
+                if (winchCargo == null) winchCargo = cargo;
+                var route = GetCargoLifeline(cargo); route.UpdateRoute(BoatAnchor, cargo.transform.position); distance += route.PathLength;
+            }
+            string kind = WinchTargetCount > 0 ? (winchCargo != null ? "cargo" : "diver") : "";
+            if (kind == "" && rescueVoyage && ship != null && ship.Position.x >= rescueArrivalX && day >= 4) kind = "survivors";
+            if (kind != winchTargetKind && winchStartDistance <= 0) winchProgress = 0;
+            winchTargetKind = kind; winchStartDistance = Mathf.Max(winchStartDistance, distance);
+        }
 
         void UpdateWinch(float dt)
         {
@@ -177,7 +189,7 @@ namespace Lifeline
             if (string.IsNullOrEmpty(winchTargetKind)) return false;
             winchAttemptedThisCycle = true;
             bool good = Mathf.Abs(Mathf.Repeat(normalizedAngle, 1) - tuning.winchCenter) <= WinchQteWidth * .5f;
-            winchFeedback = good ? "校准成功 +" + tuning.winchGoodDistance.ToString("0.00") + "m" : "校准失败 −" + tuning.winchBadDistance.ToString("0.00") + "m";
+            winchFeedback = good ? "校准成功 +" + (tuning.winchGoodDistance * WinchEfficiency).ToString("0.00") + "m" : "校准失败 −" + (tuning.winchBadDistance * WinchEfficiency).ToString("0.00") + "m";
             winchFeedbackTime = 1.2f;
             if (winchTargetKind == "survivors")
             {
@@ -191,28 +203,38 @@ namespace Lifeline
 
         void MoveWinch(float pullDistance)
         {
-            if (winchTargetKind != "diver" && winchTargetKind != "cargo") return;
-            DiverRope route = GetOrCreateLifeline(winchCargo != null);
-            route.UpdateRoute(BoatAnchor, WinchTargetPosition());
-            if (pullDistance > 0) route.TryBreakBlockingGate();
-            float distance = route.PathLength;
-            winchStartDistance = Mathf.Max(winchStartDistance, distance);
-            if (pullDistance < 0) pullDistance = -Mathf.Min(-pullDistance, Mathf.Max(0, ropeLength - distance));
-            if (winchCargo != null) winchCargo.transform.position = route.PullPoint(winchCargo.transform.position, pullDistance);
-            else if (diver != null) route.Pull(diver, pullDistance);
-            route.UpdateRoute(BoatAnchor, WinchTargetPosition());
-            float actualDistance = route.PathLength;
-            winchProgress = Mathf.Clamp01(1 - actualDistance / Mathf.Max(boardDistance, winchStartDistance));
-            if (route.IsBlocked || actualDistance > boardDistance || pullDistance <= 0) return;
-            if (winchCargo != null)
+            int count = WinchTargetCount;
+            if (count == 0) return;
+            float share = pullDistance / count;
+            if (world != null) foreach (var cargo in world.pickups)
             {
-                winchCargo.Deliver(this); winchCargo = null; signalCount = 0;
-                Tell("货箱吊运完成，只有实际装入的物资进入了仓库。");
+                if (!IsWinchCargo(cargo)) continue;
+                var route = GetCargoLifeline(cargo); route.UpdateRoute(BoatAnchor, cargo.transform.position);
+                if (share > 0) route.TryBreakBlockingGate();
+                float movement = share < 0 ? -Mathf.Min(-share, Mathf.Max(0, ropeLength - route.PathLength)) : share;
+                cargo.transform.position = route.PullPoint(cargo.transform.position, movement);
+                route.UpdateRoute(BoatAnchor, cargo.transform.position);
+                if (share > 0 && !route.IsBlocked && route.PathLength <= boardDistance) cargo.Deliver(this);
             }
-            else BankDiver();
-            winchProgress = 1; winchFeedback = "接回完成"; winchFeedbackTime = 1.2f;
-            winchStartDistance = 0; winchTargetKind = "";
-            if (!winchElectric) winchActive = false;
+            if (diver != null && !diver.onboard)
+            {
+                var route = GetOrCreateLifeline(); route.UpdateRoute(BoatAnchor, diver.Position);
+                if (share > 0) route.TryBreakBlockingGate();
+                float movement = share < 0 ? -Mathf.Min(-share, Mathf.Max(0, ropeLength - route.PathLength)) : share;
+                route.Pull(diver, movement); route.UpdateRoute(BoatAnchor, diver.Position);
+                if (share > 0 && !route.IsBlocked && route.PathLength <= boardDistance) BankDiver();
+            }
+            PrepareWinchTarget();
+            float remaining = 0;
+            if (diver != null && !diver.onboard) remaining += GetOrCreateLifeline().PathLength;
+            if (world != null) foreach (var cargo in world.pickups) if (IsWinchCargo(cargo)) remaining += GetCargoLifeline(cargo).PathLength;
+            winchProgress = Mathf.Clamp01(1 - remaining / Mathf.Max(boardDistance, winchStartDistance));
+            if (WinchTargetCount == 0)
+            {
+                winchProgress = 1; winchFeedback = "接回完成"; winchFeedbackTime = 1.2f;
+                winchStartDistance = 0; winchTargetKind = ""; winchCargo = null;
+                winchActive = winchElectric = winchSignalAuthorized = false;
+            }
             Changed();
         }
 
@@ -225,7 +247,6 @@ namespace Lifeline
             if (diverRope != null) diverRope.ResetRoute();
             diverFainted = false; diverHidden = false; diverSprinting = false; diverBites = 0; diverInvulnerable = 0;
             diver.oxygenMax = GetOxygenMax(); diver.oxygen = diver.oxygenMax;
-            if (winchSignalAuthorized) { winchElectric = false; winchSignalAuthorized = false; }
             signalCount = 0;
             Tell("船长接回潜水员，" + delivered + "件物资已卸入共享仓库。" + (diver.downed ? "靠近倒地潜水员按交互进行救助。" : ""));
         }
@@ -234,14 +255,13 @@ namespace Lifeline
         {
             signalCount = elapsed - lastSignalAt <= tuning.electricWinchSignalWindow ? signalCount + 1 : 1;
             lastSignalAt = elapsed;
-            if (signalCount == 1) { winchCargo = null; winchTargetKind = ""; }
-            Tell(signalCount == 1 ? "潜水员信号：请求船长收绳。" : signalCount == 2 ? "潜水员双信号：优先吊运已挂载货箱。" : "潜水员紧急三信号：请船长立即操作绞盘！");
+            Tell(signalCount == 1 ? "潜水员信号：请求船长收绳。" : signalCount == 2 ? "潜水员双信号：请求同时回收潜水员和全部挂载货箱。" : "潜水员紧急三信号：请船长立即操作绞盘！");
             AttractEnemies(diver != null ? diver.Position : BoatAnchor);
             if (signalCount >= tuning.electricWinchSignalCount && IsElectricWinch && diver != null && !diver.onboard && circuitRepaired && (power > 0 || infinitePower))
             {
                 winchCargo = null; winchTargetKind = ""; winchActive = false; winchElectric = true; winchSignalAuthorized = true;
                 winchStartDistance = 0; winchProgress = 0; signalCount = 0;
-                PrepareWinchTarget(); Tell("连续救生信号已触发电动绞盘，正在自动接回潜水员。"); Changed();
+                PrepareWinchTarget(); Tell("连续救生信号已触发电动绞盘，正在同时回收潜水员和全部挂载货箱。"); Changed();
             }
         }
 
@@ -281,25 +301,15 @@ namespace Lifeline
                 reviveProgress[i] += dt;
                 if (reviveProgress[i] >= tuning.reviveSeconds)
                 {
-                    target.Revive(); reviveTargets[i] = null; reviveProgress[i] = 0;
+                    target.Revive(); if(target==diver) diverBites=0; reviveTargets[i] = null; reviveProgress[i] = 0;
                     Tell(GameNames.Role(actor.role) + "扶起了" + GameNames.Role(target.role) + "。"); Changed();
                 }
             }
             bool wipe = captain != null && diver != null && captain.downed && (diver.downed || diverFainted);
             crewWipeTimer = wipe ? crewWipeTimer + dt : 0;
-            if (crewWipeTimer < crewWipeDelay) return;
+            if (crewWipeTimer < Mathf.Min(crewWipeDelay,.15f)) return;
             crewWipeTimer = 0;
-            foreach (ResourceAmount slot in bank) slot.amount = 0;
-            captain.backpack.Clear(); diver.backpack.Clear(); GetOrCreateCraftingManager().ClearQueue();
-            if (world != null) foreach (LootPickup pickup in world.pickups) if (pickup != null && pickup.attached) { pickup.consumed = true; pickup.gameObject.SetActive(false); }
-            captain.SetOnboard(true, ShipPoint(captainSpawnLocal)); diver.SetOnboard(true, ShipPoint(diverSpawnLocal));
-            ResetLifelines();
-            captain.controlsCaptured = diver.controlsCaptured = false;
-            captain.Revive(); diver.Revive(); diverFainted = false; diverBites = 0;
-            diver.oxygen = GetOxygenMax(); hull = Mathf.Max(hull, hullMax * .3f);
-            winchActive = winchElectric = winchSignalAuthorized = false; winchCargo = null; winchTargetKind = ""; winchProgress = winchStartDistance = 0;
-            if (ship != null && ship.helmOperator != null) ship.SetHelm(ship.helmOperator);
-            Tell("两名船员在救生平台苏醒：仓库、背包、挂载货物与制作中的物资遗失；已安装设备与升级保留。"); Changed();
+            EndSession(false, "两名船员均已晕厥。读取上个存档或返回主菜单。");
         }
     }
 }

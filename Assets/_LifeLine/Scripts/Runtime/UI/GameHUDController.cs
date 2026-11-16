@@ -69,8 +69,9 @@ namespace Lifeline
             if (EventSystem.current != null) EventSystem.current.sendNavigationEvents = session.phase != SessionPhase.Playing;
             if ((session.phase == SessionPhase.Won || session.phase == SessionPhase.Lost) && !endingShown)
             {
-                endingShown = true; captainPanel.Close(); diverPanel.Close(); endingPanel.SetActive(true);
-                endingText.text = session.phase == SessionPhase.Won ? "从获救者，成为救援者\n幸存者已登船。你们守住了同一根绳。" : "船体失去浮力\n带着这次经验，重新一起出发。";
+                endingShown = true; captainPanel.Close(); diverPanel.Close(); endingPanel.SetActive(true);endingPanel.transform.SetAsLastSibling();
+                if(session.phase==SessionPhase.Lost){var save=FindAnyObjectByType<GameSaveManager>(); endingRestartButton.interactable=save!=null&&save.HasValidSave(out _);endingRestartButton.GetComponentInChildren<Text>().text=UiLocalization.Text("回退到上个存档");}
+                endingText.text = session.phase == SessionPhase.Won ? "从获救者，成为救援者\n幸存者已登船。你们守住了同一根绳。" : session.StatusMessage;
             }
             if (Time.unscaledTime < nextHudUpdate) return;
             nextHudUpdate = Time.unscaledTime + .1f;
@@ -156,7 +157,7 @@ namespace Lifeline
         public void RequestManualSave() { ManualSaveRequested?.Invoke(); }
         public void SetManualSaveAvailable(bool available) { if (saveButton != null) saveButton.interactable = available; }
         public void SetSaveStatus(string status) { if (saveStatusText != null) saveStatusText.text = status; }
-        public void Restart() { GameSaveManager.RequestNewGame(); Time.timeScale = 1; SceneManager.LoadScene(SceneManager.GetActiveScene().name); }
+        public void Restart() { if(session!=null&&session.phase==SessionPhase.Lost)GameSaveManager.RequestContinue();else GameSaveManager.RequestNewGame(); Time.timeScale = 1; SceneManager.LoadScene(SceneManager.GetActiveScene().name); }
         public void ReturnMenu() { Time.timeScale = 1; SceneManager.LoadScene(menuSceneName); }
     }
 }

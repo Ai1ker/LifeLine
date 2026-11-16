@@ -1,7 +1,7 @@
 {
     "name": "LifeLine.Tests.EditMode",
     "rootNamespace": "Lifeline.Tests",
-    "references": ["LifeLine.Runtime", "LifeLine.Editor", "Unity.InputSystem"],
+    "references": ["LifeLine.Runtime", "LifeLine.Editor", "Unity.InputSystem", "Unity.ugui"],
     "includePlatforms": ["Editor"],
     "optionalUnityReferences": ["TestAssemblies"],
     "autoReferenced": false

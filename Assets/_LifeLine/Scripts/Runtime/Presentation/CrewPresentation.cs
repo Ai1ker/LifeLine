@@ -13,6 +13,12 @@ namespace Lifeline
         public MonoBehaviour[] eventSinks;
         public bool mirrorFacing = true;
         public float movementDamping = .1f;
+        public bool placeholderPoses = true;
+        public float swingSeconds=.25f;
+        public LineRenderer meleeStroke;
+        public Material meleeMaterial;
+        float swingTimer;
+        Material generatedMeleeMaterial;
         [Header("Optional Animator parameters")]
         public string speedParameter = "Speed";
         public string swimmingParameter = "Swimming", groundedParameter = "Grounded", downedParameter = "Downed";
@@ -60,12 +66,39 @@ namespace Lifeline
             if (actor == null) return;
             if (mirrorFacing && visualRoot != null && Mathf.Abs(actor.Facing.x) > .05f)
                 visualRoot.localScale = new Vector3(Mathf.Abs(baseScale.x) * Mathf.Sign(actor.Facing.x), baseScale.y, baseScale.z);
+            if(placeholderPoses&&visualRoot!=null)
+            {
+                bool lying=actor.downed||actor.session!=null&&actor==actor.session.diver&&actor.session.diverFainted;
+                float angle=lying?90:!actor.onboard?actor.Facing.x<0?90:-90:0;
+                visualRoot.localRotation=Quaternion.Euler(0,0,angle);
+            }
+            DrawMelee();
             SetFloat(speedParameter, actor.RelativeMoveSpeed);
             SetBool(swimmingParameter, !actor.onboard);
             SetBool(groundedParameter, actor.Grounded);
             SetBool(downedParameter, actor.downed);
         }
 
+        void DrawMelee()
+        {
+            swingTimer=Mathf.Max(0,swingTimer-Time.deltaTime);
+            if(meleeStroke==null && swingTimer>0)
+            {
+                meleeStroke=new GameObject("Melee swing / replaceable").AddComponent<LineRenderer>();meleeStroke.transform.SetParent(actor.transform,false);
+                meleeStroke.useWorldSpace=true;meleeStroke.numCapVertices=3;meleeStroke.positionCount=3;
+                if(meleeMaterial==null){generatedMeleeMaterial=new Material(Shader.Find("Sprites/Default"));meleeMaterial=generatedMeleeMaterial;}meleeStroke.sharedMaterial=meleeMaterial;
+            }
+            if(meleeStroke==null)return;
+            meleeStroke.enabled=placeholderPoses&&swingTimer>0;
+            if(!meleeStroke.enabled)return;
+            float sign=actor.Facing.x<0?-1:1;
+            float angle=Mathf.Lerp(-65,70,1-swingTimer/Mathf.Max(.01f,swingSeconds))*Mathf.Deg2Rad;
+            Vector3 hand=actor.Position+new Vector3(sign*.25f,.1f,-1.8f),tip=hand+new Vector3(sign*Mathf.Cos(angle),Mathf.Sin(angle),0)*1.4f;
+            meleeStroke.startWidth=actor.session!=null&&actor.session.hasHarpoon?.07f:.13f;meleeStroke.endWidth=.05f;
+            meleeStroke.startColor=meleeStroke.endColor=new Color(1,.76f,.32f);
+            meleeStroke.SetPosition(0,hand);meleeStroke.SetPosition(1,tip);meleeStroke.SetPosition(2,tip+new Vector3(-sign*.15f,.1f,0));
+        }
+        void OnDestroy(){if(generatedMeleeMaterial!=null)Destroy(generatedMeleeMaterial);}
         private bool Has(string name, AnimatorControllerParameterType type)
         {
             return animator != null && !string.IsNullOrEmpty(name) && parameters.TryGetValue(Animator.StringToHash(name), out var found) && found == type;
@@ -76,6 +109,7 @@ namespace Lifeline
         { if (Has(name, AnimatorControllerParameterType.Bool)) animator.SetBool(name, value); }
         private void OnPresentationEvent(CrewActor source, CrewVisualEvent kind, float strength)
         {
+            if(kind==CrewVisualEvent.Melee)swingTimer=swingSeconds;
             if ((kind == CrewVisualEvent.Melee || kind == CrewVisualEvent.Fire) && Has(attackTrigger, AnimatorControllerParameterType.Trigger)) animator.SetTrigger(attackTrigger);
             if (eventSinks == null) return;
             foreach (var component in eventSinks)

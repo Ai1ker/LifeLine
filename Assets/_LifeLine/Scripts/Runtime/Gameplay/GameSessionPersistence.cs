@@ -21,7 +21,8 @@ namespace Lifeline
             RefreshLifelines();
             var data = new GameSaveData
             {
-                coordinateVersion = 1, savedUtc = DateTime.UtcNow.ToString("O"), state = new SessionSaveState(),
+                areaStrikes=areaStrikes.ToArray(), coordinateVersion = 1, savedUtc = DateTime.UtcNow.ToString("O"), state = new SessionSaveState(),
+                cycleSeconds = tuning.daySeconds, daylightSeconds = tuning.daySeconds * tuning.dayFraction, duskSeconds = tuning.daySeconds * tuning.duskFraction,
                 shipPosition = ship != null ? ShipToWaterPoint(ship.Position) : Vector3.zero,
                 diverRopeContacts = diverRope != null ? diverRope.CaptureContacts() : Array.Empty<Vector3>(),
                 cargoRopeContacts = cargoRope != null ? cargoRope.CaptureContacts() : Array.Empty<Vector3>()
@@ -45,7 +46,7 @@ namespace Lifeline
                 {
                     if (pickup == null) continue;
                     if (string.IsNullOrEmpty(pickup.saveId)) pickup.saveId = "dynamic:" + Guid.NewGuid().ToString("N");
-                    pickups.Add(new PickupSaveState { id = pickup.saveId, dynamic = pickup.mazeIndex < 0 || !pickup.saveId.StartsWith(prefix, StringComparison.Ordinal), resource = pickup.resource, amount = pickup.amount, capacity = pickup.capacity, isCrate = pickup.isCrate, isCabinet = pickup.isCabinet, contents = pickup.contents, attached = pickup.attached, consumed = pickup.consumed, position = pickup.transform.position, mazeIndex = pickup.mazeIndex, mazeCell = pickup.mazeCell });
+                    pickups.Add(new PickupSaveState { id = pickup.saveId, dynamic = pickup.mazeIndex < 0 || !pickup.saveId.StartsWith(prefix, StringComparison.Ordinal), resource = pickup.resource, amount = pickup.amount, capacity = pickup.capacity, isCrate = pickup.isCrate, isCabinet = pickup.isCabinet, contents = pickup.contents, attached = pickup.attached, consumed = pickup.consumed, position = pickup.transform.position, mazeIndex = pickup.mazeIndex, mazeCell = pickup.mazeCell, ropeContacts = pickup.attached && !pickup.consumed ? GetCargoLifeline(pickup).CaptureContacts() : Array.Empty<Vector3>() });
                 }
                 data.world.pickups = pickups.ToArray();
                 var gates = new List<GateSaveState>();
@@ -96,23 +97,28 @@ namespace Lifeline
             error = "";
             if (!GameSaveValidation.Validate(data, out error)) return false;
             if (tuning == null || captain == null || diver == null || ship == null) { error = "场景缺少读档所需的角色、船舶或调参资产。"; return false; }
-            if (data.state.day != 1 + Mathf.FloorToInt(data.state.elapsed / Mathf.Max(1, tuning.daySeconds))) { error = "存档日期与当前昼夜配置不兼容。"; return false; }
+            if (!SaveClock.TryMap(data, tuning, out float restoredElapsed)) { error = "存档日期与当前昼夜配置不兼容。"; return false; }
             CraftingManager manager = GetOrCreateCraftingManager();
             foreach (CraftSaveState job in data.jobs) if (manager.FindRecipe(job.recipeId) == null) { error = "存档配方不存在：" + job.recipeId; return false; }
             if (data.world.present && (world == null || data.world.activeDay != data.state.day || WorldGenerator.ComputeDaySeed(data.state.worldSeed, data.world.activeDay, world.dailySeedStride) != data.world.generatedSeed))
             { error = "存档世界种子与当前地图配置不兼容。"; return false; }
             // All semantic checks above happen before replacing the active world or its inventory.
             data = CloneSave(data);
+            float clockOffset = restoredElapsed - data.state.elapsed;
+            data.state.elapsed = restoredElapsed;
+            data.state.lastCrankAt += clockOffset; data.state.lastSignalAt += clockOffset;
             GameSaveValidation.NormalizeUninitializedPuzzle(data.repairUI);
             phase = SessionPhase.Paused; Time.timeScale = 0; hud?.CloseTransientPanels();
             try
             {
-                ClearSavedCombat();
+                ClearSavedCombat(); ClearAreaStrikes();
                 ship.session = this; ship.Initialize(this);
                 Vector3 shipPosition = WaterToShipPoint(data.shipPosition);
                 ship.body.position = shipPosition; ship.transform.position = shipPosition; ship.speed = 0;
                 captain.Initialize(this, CrewRole.Captain, ShipPoint(captainSpawnLocal)); diver.Initialize(this, CrewRole.Diver, ShipPoint(diverSpawnLocal));
                 CopySaveFields(data.state, this); Current = this;
+                int ropeTier=Mathf.Min(GetUpgrade(UpgradeKind.Rope),tuning.ropeLengths.Length-1);
+                float[] oldRope={20,26,34,54};if(ropeTier<oldRope.Length&&Mathf.Approximately(ropeLength,oldRope[ropeTier]))ropeLength=tuning.ropeLengths[ropeTier];
                 manager.ResetQueue(); manager.nextJobId = data.nextJobId;
                 foreach (CraftSaveState saved in data.jobs)
                 {
@@ -125,7 +131,8 @@ namespace Lifeline
                     world.session = this; world.tuning = tuning; world.Generate(worldSeed);
                     RestoreWorld(data.world);
                 }
-                RestoreCrew(captain, data.captain); RestoreCrew(diver, data.diver);
+                RestoreCrew(captain, data.captain); RestoreCrew(diver, data.diver); IgnoreCrewCollision();
+                if(data.areaStrikes!=null)areaStrikes.AddRange(data.areaStrikes);
                 var enemyMap = new Dictionary<string, LifelineEnemy>();
                 foreach (EnemySaveState saved in data.enemies)
                 {
@@ -135,7 +142,7 @@ namespace Lifeline
                         saved.position = WaterToShipPoint(saved.position); saved.home = WaterToShipPoint(saved.home);
                         saved.spawnPoint = WaterToShipPoint(saved.spawnPoint); saved.targetPoint = WaterToShipPoint(saved.targetPoint);
                     }
-                    LifelineEnemy enemy = SpawnEnemy(saved.kind, saved.position);
+                    LifelineEnemy enemy = SpawnEnemy(saved.kind, saved.position, true);
                     if (enemy == null) throw new InvalidOperationException("存档敌人位置或数量与当前配置不兼容。");
                     CopySaveFields(saved, enemy); enemyMap.Add(saved.id, enemy);
                 }
@@ -155,6 +162,12 @@ namespace Lifeline
                 winchCargo = null;
                 if (world != null && !string.IsNullOrEmpty(data.state.winchCargoId)) winchCargo = world.pickups.Find(pickup => pickup != null && pickup.saveId == data.state.winchCargoId);
                 RestoreLifelines(data.diverRopeContacts, data.cargoRopeContacts);
+                if (world != null) foreach (var savedPickup in data.world.pickups)
+                    if (savedPickup.attached && !savedPickup.consumed && savedPickup.ropeContacts != null && savedPickup.ropeContacts.Length > 0)
+                    {
+                        var cargo = world.pickups.Find(p => p != null && p.saveId == savedPickup.id);
+                        if (cargo != null) GetCargoLifeline(cargo).RestoreContacts(BoatAnchor, cargo.transform.position, savedPickup.ropeContacts);
+                    }
                 winchActive = false; diverSprinting = false;
                 reviveHeld = new bool[2]; reviveTargets = new CrewActor[2]; reviveProgress = new float[2];
                 if (hud != null && data.repairUI != null && data.repairUI.present) { hud.filterPuzzle = data.repairUI.filterPuzzle; hud.circuitConnected = data.repairUI.circuitConnected; }
@@ -171,6 +184,15 @@ namespace Lifeline
         void RestoreCrew(CrewActor actor, CrewSaveState saved)
         {
             actor.maxHealth = saved.maxHealth; actor.health = saved.health; actor.oxygenMax = saved.oxygenMax; actor.oxygen = saved.oxygen;
+            if(actor==diver)
+            {
+                float[] oldOxygen={40,70,100,130};int tier=Mathf.Min(GetUpgrade(UpgradeKind.Oxygen),oldOxygen.Length-1);
+                float bonus=diverBuffs.oxygen>0?1+tuning.fishOxygenBonus:1;
+                if(Mathf.Approximately(actor.oxygenMax,oldOxygen[tier]*bonus))
+                {
+                    float newMax=GetOxygenMax();actor.oxygen=Mathf.Min(newMax,actor.oxygen+Mathf.Max(0,newMax-actor.oxygenMax));actor.oxygenMax=newMax;
+                }
+            }
             actor.backpack = saved.backpack;
             actor.RestorePose(saved.onboard, saved.onboard ? ShipPoint(saved.position) : saved.position, saved.velocity, saved.facing);
             actor.SetDowned(saved.downed);
@@ -215,7 +237,8 @@ namespace Lifeline
             if (spearPrefab == null) root.transform.localScale = new Vector3(.07f, .55f, .07f);
             Collider collider = root.GetComponent<Collider>(); if (collider != null) collider.isTrigger = true;
             LifelineSpear spear = root.GetComponent<LifelineSpear>(); if (spear == null) spear = root.AddComponent<LifelineSpear>();
-            CopySaveFields(saved, spear); spear.session = this; spear.owner = saved.owner == CrewRole.Captain ? captain : diver;
+            CopySaveFields(saved, spear); if(spear.maximumRange<=0)spear.maximumRange=10;
+            if(!spear.turretShot && spear.GetComponent<SpearTetherView>()==null)spear.gameObject.AddComponent<SpearTetherView>().spear=spear; spear.session = this; spear.owner = saved.owner == CrewRole.Captain ? captain : diver;
             if (!string.IsNullOrEmpty(saved.targetId)) spear.target = enemyMap[saved.targetId];
             if (!string.IsNullOrEmpty(saved.parentEnemyId)) root.transform.SetParent(enemyMap[saved.parentEnemyId].transform, true);
             if (spear.direction.sqrMagnitude > .001f) root.transform.rotation = Quaternion.FromToRotation(Vector3.up, spear.direction.normalized);

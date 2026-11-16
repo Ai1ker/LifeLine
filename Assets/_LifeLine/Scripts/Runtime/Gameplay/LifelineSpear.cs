@@ -19,6 +19,7 @@ namespace Lifeline
         public bool hasHit;
         public float damage = 2;
         public float age;
+        public float maximumRange=10f, travelled;
         public float collisionRadius = .1f;
         public float returnMultiplier = 1.7f;
         public LayerMask collisionMask = ~0;
@@ -46,10 +47,19 @@ namespace Lifeline
                 if (turretShot) Destroy(gameObject); else Recall();
                 return;
             }
+            if(!turretShot && (Vector3.Distance(transform.position,RecallPoint)>=maximumRange-.001f || travelled>=maximumRange)){Recall();return;}
             if (lodged) return;
             if (turretShot && target != null) direction = (target.transform.position - transform.position).normalized;
             if (direction.sqrMagnitude > .001f) transform.rotation = Quaternion.FromToRotation(Vector3.up, direction.normalized);
             Vector3 step = direction.normalized * session.tuning.spearSpeed * dt;
+            if(!turretShot)
+            {
+                Vector3 relative=transform.position-RecallPoint;
+                float dot=Vector3.Dot(relative,direction.normalized);
+                float edge=-dot+Mathf.Sqrt(Mathf.Max(0,dot*dot+maximumRange*maximumRange-relative.sqrMagnitude));
+                step=direction.normalized*Mathf.Min(step.magnitude,Mathf.Max(0,Mathf.Min(edge,maximumRange-travelled)));
+            }
+            travelled+=step.magnitude;
             RaycastHit[] hits = Physics.SphereCastAll(transform.position, collisionRadius, direction.normalized, step.magnitude, collisionMask, QueryTriggerInteraction.Collide);
             System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
             foreach (RaycastHit hit in hits)
@@ -73,6 +83,7 @@ namespace Lifeline
                 return;
             }
             transform.position += step;
+            if(!turretShot && (travelled>=maximumRange-.001f||Vector3.Distance(transform.position,RecallPoint)>=maximumRange-.001f))Recall();
         }
 
         public void Recall() { if (turretShot) return; returning = true; lodged = false; transform.SetParent(null, true); }

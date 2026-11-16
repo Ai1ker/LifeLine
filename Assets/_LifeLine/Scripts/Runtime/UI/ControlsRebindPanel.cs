@@ -30,7 +30,7 @@ namespace Lifeline
         public void Open()
         {
             if (panel == null) return;
-            panel.SetActive(true); panel.transform.SetAsLastSibling(); selectedRole = CrewRole.Captain; BuildRows();
+            panel.SetActive(true); panel.transform.SetAsLastSibling(); selectedRole = CrewRole.Captain; BuildRows(); UiLocalization.Refresh(panel);
         }
         public void Close()
         {
@@ -51,7 +51,7 @@ namespace Lifeline
         private void Select(CrewRole role) { if (!rebinding) { selectedRole = role; BuildRows(); } }
         private void BuildRows()
         {
-            foreach (GameObject row in rows) Destroy(row); rows.Clear();
+            foreach (GameObject row in rows) if(row!=null){row.SetActive(false);Destroy(row);} rows.Clear();
             if (Selected == null) return;
             statusText.text = GameNames.Role(selectedRole) + " · 点击一个绑定后按新键；Esc 取消。";
             foreach (InputAction action in Selected.BindableActions)
@@ -60,19 +60,21 @@ namespace Lifeline
                 {
                     if (action.bindings[i].isComposite) continue;
                     int index = i; string actionName = action.name;
-                    string part = action.bindings[i].isPartOfComposite ? "/" + action.bindings[i].name : "";
+                    string partName=action.bindings[i].name;
+                    string part = action.bindings[i].isPartOfComposite ? "/" + (LocalizationManager.Current!=null?LocalizationManager.Current.Format("input."+partName.ToLowerInvariant()):partName) : "";
                     Button row = Instantiate(rowButtonPrefab, rowsRoot); row.gameObject.SetActive(true); rows.Add(row.gameObject);
                     Text label = row.GetComponentInChildren<Text>();
-                    label.text = actionName + part + "    [ " + Selected.GetBindingLabel(actionName, index) + " ]";
+                    label.text = UiLocalization.Text(actionName + part + "    [ " + Selected.GetBindingLabel(actionName, index) + " ]");
                     row.onClick.RemoveAllListeners();
                     row.onClick.AddListener(() =>
                     {
                         if (rebinding) return;
                         rebinding = true; statusText.text = "请按新键 · Esc 取消";
-                        Selected.BeginRebind(actionName, index, result => { rebinding = false; lastRebindEndedFrame = Time.frameCount; BuildRows(); statusText.text = result; });
+                        Selected.BeginRebind(actionName, index, result => { rebinding = false; lastRebindEndedFrame = Time.frameCount; BuildRows(); statusText.text = UiLocalization.Text(result); });
                     });
                 }
             }
+            UiLocalization.Refresh(panel);
         }
     }
 }

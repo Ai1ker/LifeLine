@@ -91,6 +91,8 @@ namespace Lifeline
         public bool searchlightOn;
         public bool turretInstalled;
         public bool turretOn;
+        public int turretTier;
+        public ResourceAmount[] turretUpgradeCost = { new ResourceAmount(ResourceKind.Plate,1), new ResourceAmount(ResourceKind.FiberBundle,3), new ResourceAmount(ResourceKind.Plank,1) };
         public float filterMoveMultiplier = 1.1f;
         public float repairedEngineSpeedMultiplier = 1.4f;
         public float sailSpeedBonus = .15f;
@@ -207,7 +209,16 @@ namespace Lifeline
         public Vector3 WaterShipPoint(Vector3 local) => ShipToWaterPoint(ShipPoint(local));
         public Vector3 BoatAnchor => WaterShipPoint(boatAnchorLocal);
         public int CraftCapacity => craftingManager != null ? craftingManager.Capacity : GetUpgrade(UpgradeKind.Workbench) >= 3 ? 2 : 1;
-        public bool StormActive => day >= 2 && (IsDusk || IsNight);
+        public int forceStormDay = -1;
+        public bool StormActive => IsNight && (forceStormDay == day || day == 2 || day >= 4 && WeatherRoll(day, worldSeed) < tuning.randomStormChance);
+        public static float WeatherRoll(int day, int seed) { unchecked { uint x=(uint)(seed ^ day*73856093); x ^= x>>16; x*=0x7feb352d; x ^= x>>15; return (x%10000)/10000f; } }
+        public void SetDayClock(int requestedDay, float fraction, bool forceStorm = false)
+        {
+            bool dayChanged = day != Mathf.Max(1, requestedDay);
+            day = previousDay = Mathf.Max(1, requestedDay); elapsed = (day-1)*tuning.daySeconds + Mathf.Clamp(fraction,0,.9999f)*tuning.daySeconds;
+            forceStormDay = forceStorm ? day : -1; stormWarning=0; stormCountdown=.2f; ClearAreaStrikes();
+            if(dayChanged)RefreshWorldForDay(day);else world?.RefreshDay(day); UpdateQuest(); Changed();
+        }
         public bool LightEffective => searchlightOn && circuitRepaired && (infinitePower || power > 0);
         public bool IsElectricWinch => GetUpgrade(UpgradeKind.Rope) >= 3;
         public int QuestChapter => rescueVoyage ? 4 : radioStage >= 2 ? 3 : radioStage >= 1 ? 2 : 1;
@@ -272,6 +283,7 @@ namespace Lifeline
             if (ship != null) { ship.session = this; ship.Initialize(this); }
             if (captain != null) captain.Initialize(this, CrewRole.Captain, ShipPoint(captainSpawnLocal));
             if (diver != null) diver.Initialize(this, CrewRole.Diver, ShipPoint(diverSpawnLocal));
+            IgnoreCrewCollision(); ClearAreaStrikes(); turretTier=0; forceStormDay=-1;
             ResetLifelines();
             if (world != null) { world.session = this; world.tuning = tuning; world.Generate(worldSeed); }
             SpawnInitialSharks();
@@ -299,7 +311,7 @@ namespace Lifeline
             for (int i = 0; i < meleeCooldowns.Length; i++) meleeCooldowns[i] = Mathf.Max(0, meleeCooldowns[i] - dt);
             baitTime = Mathf.Max(0, baitTime - dt);
             UpdateCrafts(dt); UpdateOxygen(dt); UpdateWinch(dt); UpdateElectricity(dt);
-            UpdateWeather(dt); UpdateEncounters(dt); UpdateRecovery(dt); UpdateRescue(dt);
+            UpdateWeather(dt); UpdateAreaStrikes(dt); UpdateEncounters(dt); UpdateRecovery(dt); UpdateRescue(dt);
             bool dayAdvanced = day != previousDay;
             if (dayAdvanced)
             {
@@ -328,7 +340,7 @@ namespace Lifeline
             reviveHeld[(int)actor.role] = command.interactHeld || command.interact;
             if (reviveHeld[(int)actor.role] && TryReviveTeammate(actor)) return;
             if (IsActorInputBlocked(actor)) return;
-            if (actor == diver) { diverSprinting = command.sprint; if (command.hide && !diver.onboard) { diverHidden = !diverHidden; Tell(diverHidden ? "潜水员藏身于废墟阴影。" : "潜水员离开藏身处。"); } }
+            if (actor == diver) { diverSprinting = command.sprint; if (command.hide && !diver.onboard) world?.TryHide(diver); }
             if (capturedBeforeEvent || actor.controlsCaptured) return;
             if (command.melee) MeleeAttack(actor);
             if (command.fire) FireSpear(actor);
@@ -341,6 +353,7 @@ namespace Lifeline
                 {
                     if (world != null && world.TryLoadCrate(actor)) return;
                     if (world != null && world.TryInteractTrapdoor(actor)) return;
+                    if (world != null && world.TryHide(actor)) return;
                     if (Vector3.Distance(actor.Position, BoatAnchor) < 3) Tell("已经抵达船底。请船长打开绞盘接回；潜水员无法自行登船。");
                 }
                 return;

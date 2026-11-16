@@ -135,6 +135,7 @@ namespace Lifeline.Editor
             SessionAuthority authority = new GameObject("Networking - reserved transport boundary").AddComponent<SessionAuthority>();
             authority.session = session; authority.cameraRig = rig;
             GameHUDController hud = CreateHUD(session, authority);
+            GameplayBatchMigration.InstallBars(hud);session.areaWarningPrefab=GameplayBatchMigration.WarningPrefab();
             var saves = session.gameObject.AddComponent<GameSaveManager>(); saves.session = session; saves.hud = hud;
             new GameObject("Diver lifeline presentation").AddComponent<DiverLifelineView>().Initialize(session);
             CreateUnderwaterProxy(session, rig, library);
@@ -276,7 +277,7 @@ namespace Lifeline.Editor
             controller.rhythmCursor = Rect("MovingPointer", controller.rhythmFill.transform.parent, new Vector2(.5f, 0), new Vector2(.5f, 1)).gameObject.AddComponent<Image>();
             controller.rhythmCursor.color = Color.white; controller.rhythmCursor.raycastTarget = false;
             controller.actionsRoot = ScrollContent("Actions", panel, new Vector2(.035f, .02f), new Vector2(.965f, .52f));
-            controller.actionButtonPrefab = actionPrefab; panel.gameObject.SetActive(false);
+            controller.actionButtonPrefab = actionPrefab; QteUiBuilder.Install(controller); GameplayBatchMigration.InstallPanel(controller); panel.gameObject.SetActive(false);
             return controller;
         }
 

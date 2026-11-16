@@ -104,10 +104,10 @@ namespace Lifeline.Editor
                 if(apply)set((float[])next.Clone());
             }
             Scalar("baseOxygen",tuning.baseOxygen,60,40,value=>tuning.baseOxygen=value);
-            ArrayValue("oxygenLevels",tuning.oxygenLevels,new[]{60f,90f,120f,150f},new[]{40f,70f,100f,130f},value=>tuning.oxygenLevels=value);
+            ArrayValue("oxygenLevels",tuning.oxygenLevels,new[]{60f,90f,120f,150f},new[]{40f,70f,115f,145f},value=>tuning.oxygenLevels=value);
             // Earlier tiers may be authored. Only the recognized final rope tier changes.
             if(tuning.ropeLengths!=null && tuning.ropeLengths.Length==4 && Mathf.Approximately(tuning.ropeLengths[3],44))
-            { changes.Add("ropeLengths[3]: 44 -> 54"); if(apply)tuning.ropeLengths[3]=54; }
+            { changes.Add("ropeLengths[3]: 44 -> 74"); if(apply)tuning.ropeLengths[3]=74; }
             Scalar("generatorStrokeInterval",tuning.generatorStrokeInterval,1,3,value=>tuning.generatorStrokeInterval=value);
             Scalar("upgradedCraftSeconds (compatibility)",tuning.upgradedCraftSeconds,30,25,value=>tuning.upgradedCraftSeconds=value);
             Scalar("caveChance",tuning.caveChance,.55f,.05f,value=>tuning.caveChance=value);

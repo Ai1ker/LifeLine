@@ -12,6 +12,7 @@ namespace Lifeline
         public bool isCrate, isCabinet;
         public List<ResourceKind> contents = new List<ResourceKind>();
         public bool attached, consumed;
+        [System.NonSerialized] public DiverRope lifeline;
         public WorldGenerator world;
         public Transform visualRoot;
         public TextMesh label;
@@ -136,7 +137,8 @@ namespace Lifeline
             if (label == null) return;
             string progress = CollectionProgress > 0 ? " " + Mathf.RoundToInt(CollectionProgress * 100) + "%" : "";
             label.text = isCrate ? (attached ? "CARGO / ATTACHED" : "CARGO " + contents.Count + "/" + capacity) + progress
-                : isCabinet ? "SALVAGE " + contents.Count + progress : resource.ToString().ToUpperInvariant() + progress;
+                : isCabinet ? "SALVAGE " + contents.Count + progress : GameNames.Resource(resource) + progress;
+            label.text = UiLocalization.Text(label.text);
         }
     }
 }

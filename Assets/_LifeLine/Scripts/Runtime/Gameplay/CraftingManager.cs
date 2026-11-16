@@ -99,6 +99,7 @@ namespace Lifeline
             foreach (CraftJob queued in jobs)
             {
                 if (queued == null || queued.recipe == null) continue;
+                if (recipe.repairAmount > 0 && queued.recipe.repairAmount > 0) { reason = "当前已有船体维修作业。"; return false; }
                 bool sameTool = !string.IsNullOrEmpty(recipe.toolId) && queued.recipe.toolId == recipe.toolId;
                 bool sameRadioStage = recipe.radioStage > 0 && queued.recipe.radioStage == recipe.radioStage;
                 if (sameTool || sameRadioStage) { reason = "这项工具或电台部件已在制作队列中。"; return false; }
@@ -157,6 +158,7 @@ namespace Lifeline
             }
             else { job.misses++; job.feedback = "节奏错过 · 自动制作继续"; }
             job.feedbackTime = feedbackSeconds;
+            ApplyRepairProgress(job);
             if (job.progress >= job.duration) CompleteCraft(job);
             session.Changed(); return good;
         }
@@ -174,8 +176,16 @@ namespace Lifeline
                     job.nextCue += Mathf.Max(.1f, session.tuning.craftCueInterval);
                     job.noteDirection = UnityEngine.Random.Range(0, 4); job.attempted = false;
                 }
+                ApplyRepairProgress(job);
                 if (job.progress >= job.duration) CompleteCraft(job);
             }
+        }
+
+        void ApplyRepairProgress(CraftJob job)
+        {
+            if(job.recipe == null || job.recipe.repairAmount<=0)return;
+            float earned=job.recipe.repairAmount*job.NormalizedProgress;
+            session.hull=Mathf.Min(session.hullMax, session.hull+Mathf.Max(0,earned-job.repairApplied)); job.repairApplied=earned;
         }
 
         void CompleteCraft(CraftJob job)
@@ -190,7 +200,7 @@ namespace Lifeline
             if (recipe.toolId == "harpoon") session.hasHarpoon = true;
             if (recipe.toolId == "speargun") session.hasSpeargun = true;
             if (recipe.radioStage > 0) session.radioStage = Mathf.Max(session.radioStage, recipe.radioStage);
-            if (recipe.repairAmount > 0) session.hull = Mathf.Min(session.hullMax, session.hull + recipe.repairAmount);
+            ApplyRepairProgress(job);
             if (recipe.radioStage == 1) session.Tell("无线电1/3：「……有人吗？我们在东边，浮筏上还有孩子……」");
             else if (recipe.radioStage == 2) session.Tell("无线电2/3：「坐标确认，向东。浮筏撑不了多久。」");
             else if (recipe.radioStage == 3) session.Tell("无线电3/3：我们能呼救自己了。但他们的信号在变弱。去接他们！");

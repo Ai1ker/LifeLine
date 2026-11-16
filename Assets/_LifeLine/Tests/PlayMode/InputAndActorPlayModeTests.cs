@@ -128,7 +128,7 @@ namespace Lifeline.Tests
             Assert.That(a.interactHeld, Is.True, "revive keeps its held signal after the interact edge is consumed");
             Press(); captain.ReadCommand(); diver.ReadCommand();
             Assert.That(captain.ReadCommand().interactHeld, Is.False, "release cancels the continuous revive signal");
-            Press(Key.UpArrow, Key.Enter, Key.Digit1, Key.Digit2, Key.K, Key.RightShift, Key.Period, Key.Slash, Key.M);
+            Press(Key.UpArrow, Key.Enter, Key.Digit1, Key.Digit2, Key.Digit0, Key.RightShift, Key.Period, Key.Slash, Key.M);
             b = diver.ReadCommand(); a = captain.ReadCommand();
             Assert.That(b.move, Is.EqualTo(Vector2.up));
             Assert.That(b.jump && b.interact && b.collect && b.fire && b.melee && b.sprint && b.signal && b.bait && b.hide, Is.True);

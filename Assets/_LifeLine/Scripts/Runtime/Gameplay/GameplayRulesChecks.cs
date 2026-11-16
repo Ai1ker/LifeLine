@@ -48,7 +48,7 @@ namespace Lifeline
                 Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 9, "backpack T1 adds one slot", log);
                 Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 10, "backpack T2 adds one more slot", log);
                 Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 10 && Mathf.Approximately(game.GetCollectSpeedMultiplier(game.diver), 1.25f), "backpack T3 gives 25 percent collection speed", log);
-                Check(Mathf.Approximately(game.GetOxygenMax(), 40) && Mathf.Approximately(tuning.oxygenLevels[3], 130) && Mathf.Approximately(tuning.ropeLengths[3], 54), "rebalanced oxygen and reachable 54m final rope", log);
+                Check(Mathf.Approximately(game.GetOxygenMax(), 40) && Mathf.Approximately(tuning.oxygenLevels[3], 145) && Mathf.Approximately(tuning.ropeLengths[3], 74), "rebalanced oxygen and reachable 74m final rope", log);
                 game.upgradeLevels[(int)UpgradeKind.Workbench] = 0;
                 recipe.id = "test_plank"; recipe.displayName = "Test plank";
                 recipe.cost = new[] { new ResourceAmount(ResourceKind.Wood, 1) };
@@ -182,8 +182,19 @@ namespace Lifeline
                     canBecomeWhiteShark |= point.x >= tuning.deepBoundary;
                 }
                 Check(sharkPoints.Count == 6 && perArea[0] == 2 && perArea[1] == 2 && perArea[2] == 2, "grouped shark candidates distribute six spawns evenly across all three areas", log);
-                Check(allLegal && deepPoints > sharkPoints.Count - deepPoints && deepPoints < sharkPoints.Count, "shark selection filters shallow points and favors deep points while retaining middle-band danger", log);
+                Check(allLegal && deepPoints > sharkPoints.Count - deepPoints, "shark selection filters shallow points and favors deep points", log);
                 Check(canBecomeWhiteShark, "natural shark selection includes the deep sea needed for day-three white-shark mutation", log);
+                int savedDay=game.day, boostedDeep=0, baselineDeep=0;float savedBonus=tuning.deepSharkSpawnBonus;bool retainedMiddle=false;
+                for(int sampleDay=1;sampleDay<=256;sampleDay++)
+                {
+                    game.day=sampleDay;tuning.deepSharkSpawnBonus=0;
+                    foreach(var point in game.SelectInitialSharkSpawnPoints())if(surface-point.y>=36)baselineDeep++;
+                    tuning.deepSharkSpawnBonus=savedBonus;
+                    foreach(var point in game.SelectInitialSharkSpawnPoints()){if(surface-point.y>=36)boostedDeep++;else retainedMiddle=true;}
+                }
+                game.day=savedDay;tuning.deepSharkSpawnBonus=savedBonus;
+                Check(boostedDeep>baselineDeep,"deep shark bonus increases deep occupancy across daily seeds without raising the global cap",log);
+                Check(retainedMiddle,"middle-band shark danger remains possible across daily seeds",log);
                 tuning.maximumSharks = 2;
                 Check(game.SelectInitialSharkSpawnPoints().Count == 2 && spawnWorld.sharkSpawnPoints.Count == 13, "shark sampling honors a smaller cap without consuming world candidate data", log);
                 tuning.maximumSharks = 6;

@@ -22,6 +22,7 @@ namespace Lifeline
         public List<Vector3> sharkSpawnPoints = new List<Vector3>();
         public List<MazeLayout> layouts = new List<MazeLayout>();
         public List<TrapdoorGate> trapdoors = new List<TrapdoorGate>();
+        public List<UnderwaterHideSpot> hideSpots = new List<UnderwaterHideSpot>();
         public List<RuinConnection> regionalConnections = new List<RuinConnection>();
 
         [Header("Geometry (metres, XY physics)")]
@@ -113,6 +114,7 @@ namespace Lifeline
 
         void GenerateInternal(bool preserveCargo)
         {
+            DiverRope.NotifyGeometryChanged();
             var cargo = new List<LootPickup>();
             if (preserveCargo)
                 foreach (var pickup in pickups)
@@ -122,7 +124,7 @@ namespace Lifeline
                         pickup.mazeIndex = pickup.mazeCell = -1;
                         cargo.Add(pickup);
                     }
-            ResetWorld();
+            ResetWorld(); hideSpots.Clear();
             generatedSeed = ComputeDaySeed(seed, activeDay, dailySeedStride);
             var random = new System.Random(generatedSeed);
             generatedRoot = Child(transform, "Generated");
@@ -161,6 +163,12 @@ namespace Lifeline
             for (int area = 0; area < areaCenters.Length; area++)
                 for (int band = 0; band + 1 < bandRoomCounts.Length; band++)
                     ConnectDepthBands(areaMazes[area, band], areaMazes[area, band + 1]);
+            foreach(var maze in layouts)
+            {
+                int cell=maze.entranceCell==0?Mathf.Min(maze.Count-1,maze.columns+1):0;
+                var obj=new GameObject("Ruins hiding spot");obj.transform.SetParent(generatedRoot,false);obj.transform.position=maze.Center(cell);
+                var hide=obj.AddComponent<UnderwaterHideSpot>();hide.world=this;hideSpots.Add(hide);
+            }
             // Independent rolls: an eel can occur in the deepest ruin even when no cave occurs.
             Vector2Int events = RollDeepEvents(random);
             bool caveOccurs = events.x != 0, eelOccurs = events.y != 0;
@@ -551,6 +559,13 @@ namespace Lifeline
             view.RefreshNow();
         }
 
+        public bool IsAtHideSpot(CrewActor actor)
+        {foreach(var hide in hideSpots)if(hide!=null&&Vector2.Distance(actor.Position,hide.transform.position)<=hide.range)return true;return false;}
+        public bool TryHide(CrewActor actor)
+        {
+            if(actor==null||actor.onboard||session==null||!IsAtHideSpot(actor))return false;
+            session.diverHidden=!session.diverHidden;session.Tell(session.diverHidden?"潜水员藏身于废墟阴影。":"潜水员离开藏身处。");return true;
+        }
         public Transform GetLabelFocus()
         {
             if (!Application.isPlaying || !drawLabels || session == null || session.diver == null

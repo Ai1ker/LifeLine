@@ -19,6 +19,9 @@ namespace Lifeline
                 Require(data.coordinateVersion >= 0 && data.coordinateVersion <= 1, "存档版本不受支持。");
                 Require((data.diverRopeContacts == null || data.diverRopeContacts.Length <= 256) && (data.cargoRopeContacts == null || data.cargoRopeContacts.Length <= 256), "存档世界数据不完整。");
                 CheckFinite(data, new HashSet<object>());
+                Require(data.cycleSeconds >= 0 && (data.cycleSeconds == 0 || data.daylightSeconds > 0 && data.duskSeconds > 0 && data.daylightSeconds + data.duskSeconds < data.cycleSeconds), "存档时间无效。");
+                Require(data.areaStrikes==null||data.areaStrikes.Length<=128,"存档战斗数据不完整。");
+                if(data.areaStrikes!=null)foreach(var strike in data.areaStrikes)Require(strike!=null&&EnumValue(strike.kind)&&strike.remaining>=0&&strike.duration>0&&strike.radius>0&&strike.hullDamage>=0,"存档战斗数据不完整。");
                 SessionSaveState state = data.state;
                 Require(state != null && state.day >= 1 && state.elapsed >= 0 && data.lastAutoSavedDay >= 0 && data.lastAutoSavedDay <= state.day, "存档时间无效。");
                 Require(state.bank != null && state.upgradeLevels != null && state.upgradeLevels.Length == Enum.GetValues(typeof(UpgradeKind)).Length, "存档经济数据不完整。");
@@ -44,6 +47,7 @@ namespace Lifeline
                 foreach (PickupSaveState pickup in data.world.pickups)
                 {
                     Require(pickup != null && !string.IsNullOrEmpty(pickup.id) && pickupIds.Add(pickup.id) && EnumValue(pickup.resource) && pickup.amount >= 0 && pickup.capacity > 0 && pickup.contents != null && (!pickup.isCrate || pickup.contents.Count <= pickup.capacity) && (!pickup.attached || pickup.isCrate), "存档货物数据无效。");
+                    Require(pickup.ropeContacts == null || pickup.ropeContacts.Length <= 256, "存档世界数据不完整。");
                     foreach (ResourceKind kind in pickup.contents) Require(EnumValue(kind), "存档货物类型无效。");
                 }
                 if (!string.IsNullOrEmpty(state.winchCargoId)) Require(pickupIds.Contains(state.winchCargoId), "存档绞盘目标不存在。");

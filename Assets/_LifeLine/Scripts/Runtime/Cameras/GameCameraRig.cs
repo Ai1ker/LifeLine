@@ -67,7 +67,7 @@ namespace Lifeline
         public Color oceanClearColor = new Color(.48f, .76f, .82f);
 
         [Header("Official Cinemachine 3D obstruction handling")]
-        [Tooltip("Only solid world/ship layers. Exclude Crew, pickup triggers, and CameraBounds.")]
+        [Tooltip("Solid world geometry only. Ship cutaway solids are excluded from camera obstruction; Crew/pickups/CameraBounds must also be excluded.")]
         public LayerMask obstacleMask = 1;
         [Min(.01f)] public float cameraCollisionRadius = .22f;
         [Min(0)] public float minimumObstacleDistance = 1.05f;
@@ -254,7 +254,15 @@ namespace Lifeline
                 ? (diverViewMask | waterProxy) & ~((1 << shipSolidLayer) | presentation)
                 : (diverViewMask | presentation) & ~waterProxy;
             // An invisible hull must not pull the underwater camera toward a cabin wall.
-            int diverObstacles = underwater && isolateUnderwaterShip ? obstacleMask & ~(1 << shipSolidLayer) : obstacleMask;
+            // The playable cabin is a 2D cutaway. Its ceiling must never pull the camera
+            // through the sprite plane when the crew jumps or the boat drifts in a storm.
+            int diverObstacles = obstacleMask & ~(1 << shipSolidLayer);
+            if (captainDeoccluder != null) captainDeoccluder.CollideAgainst = diverObstacles;
+            if (captainDecollider != null)
+            {
+                var collision = captainDecollider.Decollision;
+                collision.ObstacleLayers = diverObstacles; captainDecollider.Decollision = collision;
+            }
             if (diverDeoccluder != null) diverDeoccluder.CollideAgainst = diverObstacles;
             if (diverDecollider != null)
             {

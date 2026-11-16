@@ -30,10 +30,10 @@ MonoBehaviour:
   cabinetSeconds: 1.5
   crateCapacity: 3
   ropeLengths:
-  - 20
-  - 26
-  - 34
+  - 28
+  - 44
   - 54
+  - 74
   boatSpeed: 3.4
   diveBoatMultiplier: 0.28
   baseHull: 100
@@ -53,11 +53,11 @@ MonoBehaviour:
   oxygenLevels:
   - 40
   - 70
-  - 100
-  - 130
-  daySeconds: 180
-  dayFraction: 0.67
-  duskFraction: 0.13
+  - 115
+  - 145
+  daySeconds: 200
+  dayFraction: 0.703
+  duskFraction: 0.117
   lightningIntervalMin: 12
   lightningIntervalMax: 18
   lightningWarning: 2.2
@@ -103,10 +103,27 @@ MonoBehaviour:
   sharkReacquireDelay: 3
   sharkMinimumDepth: 25
   maximumSharks: 6
+  mutationStartDay: 3
+  armoredBirdChance: 0.35
+  sharkHealth: 2
+  whiteSharkHealth: 4
+  birdHealth: 1
+  armoredBirdHealth: 2
   shadowWindup: 1.76
   shadowHitsRequired: 20
   shadowSpeedMultiplier: 0.9
-  shadowSweepHullDamage: 25
+  shadowSweepHullDamage: 10
+  shadowMeleeHullDamage: {x: 5, y: 10}
+  shadowBiteRadiusMultiplier: 1.5
+  shadowDashRadiusMultiplier: 0.7
+  shadowDashSpeedMultiplier: 3
+  shadowDashSeconds: 0.45
+  shadowWaterShotDamage: 5
+  shadowWaterShotWarning: 2.2
+  lightningRadius: 1.4
+  randomStormChance: 0.1
+  turretSharkDepth: 20
+  deepSharkSpawnBonus: 0.15
   shadowAttackInterval: 6
   shadowCompleteDaysRequired: 3
   turretPowerInterval: 3

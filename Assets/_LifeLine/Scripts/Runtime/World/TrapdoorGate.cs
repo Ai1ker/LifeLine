@@ -60,6 +60,7 @@ namespace Lifeline
         }
         public void SetOpen(bool value)
         {
+            if(open!=(destroyed||value))DiverRope.NotifyGeometryChanged();
             open = destroyed || value;
             if (barrier != null) barrier.enabled = !open;
             if (visualRoot != null)

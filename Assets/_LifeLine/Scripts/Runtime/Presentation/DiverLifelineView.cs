@@ -19,7 +19,6 @@ namespace Lifeline
         public float foregroundZ = -1.7f;
         public int presentationLayer = 8;
         Material generatedMaterial;
-        DiverRope waitingCargoRoute;
 
         void Start()
         {
@@ -71,17 +70,7 @@ namespace Lifeline
             rope.startColor = rope.endColor = ropeColor; rope.startWidth = rope.endWidth = width;
             DiverRope route;
             if (cargo == null) route = session.GetOrCreateLifeline();
-            else if (session.winchCargo == cargo) route = session.GetOrCreateLifeline(true);
-            else
-            {
-                if (waitingCargoRoute == null)
-                {
-                    var routeObject = new GameObject("Waiting cargo collision route");
-                    routeObject.transform.SetParent(transform, false); waitingCargoRoute = routeObject.AddComponent<DiverRope>();
-                }
-                route = waitingCargoRoute; route.Configure(session.diver, session.ship != null ? session.ship.transform : null);
-                route.collisionMask = session.world != null ? 1 << session.world.geometryLayer : session.obstacleMask;
-            }
+            else route = session.GetCargoLifeline(cargo);
             route.UpdateRoute(session.BoatAnchor, cargo != null ? cargo.transform.position : session.diver.Position);
             int count = route.Points.Count + 1;
             rope.positionCount = count;

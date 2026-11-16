@@ -277,6 +277,7 @@ namespace Lifeline
             transform.position = worldPosition;
             SetShipCollision(!value);
             if (session != null && session.maps != null) session.maps.MoveCrewToMap(this);
+            session?.IgnoreCrewCollision();
             if (changed) EmitPresentationEvent(value ? CrewVisualEvent.Board : CrewVisualEvent.Dive);
         }
 
@@ -304,6 +305,7 @@ namespace Lifeline
             var direction = delta.normalized;
             foreach (var hit in body.SweepTestAll(direction, distance + collisionSkin, QueryTriggerInteraction.Ignore))
             {
+                if (hit.collider != null && hit.collider.GetComponentInParent<CrewActor>() != null) continue;
                 if (hit.collider == null || !onboard && session != null && session.ship != null && hit.collider.transform.IsChildOf(session.ship.transform)) continue;
                 distance = Mathf.Min(distance, Mathf.Max(0f, hit.distance - collisionSkin));
             }
@@ -336,7 +338,8 @@ namespace Lifeline
         public void ReceiveDamage(float amount)
         {
             if (amount <= 0f || downed) return;
-            if (role == CrewRole.Diver && !onboard && session != null)
+            if (role == CrewRole.Captain) { health=0; SetDowned(true); EmitPresentationEvent(CrewVisualEvent.Hit, amount); return; }
+            if (role == CrewRole.Diver && session != null)
             {
                 if (session.ReceiveDiverHit("水下受击", false)) EmitPresentationEvent(CrewVisualEvent.Hit, amount);
                 return;

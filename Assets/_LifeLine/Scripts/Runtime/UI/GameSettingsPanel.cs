@@ -27,7 +27,7 @@ namespace Lifeline
             if (panel == null) return;
             panel.SetActive(true); panel.transform.SetAsLastSibling();
             if (cameraRig == null) cameraRig = FindAnyObjectByType<GameCameraRig>();
-            RefreshLabels();
+            RefreshLabels(); UiLocalization.Refresh(panel);
         }
         public void Close() { if (panel != null) panel.SetActive(false); }
         public void CycleLanguage()
@@ -47,6 +47,7 @@ namespace Lifeline
             if (languageLabel != null)
                 languageLabel.text = LocalizationManager.LanguagePreference == GameLanguage.System ? "语言：跟随系统" : LocalizationManager.LanguagePreference == GameLanguage.Chinese ? "语言：简体中文" : "语言：英语";
             if (cameraLabel != null) cameraLabel.text = GameCameraRig.LoadShipSplitPreference() ? "船上镜头：双人分屏" : "船上镜头：双人同屏";
+            if(panel!=null)UiLocalization.Refresh(panel);
         }
     }
 }

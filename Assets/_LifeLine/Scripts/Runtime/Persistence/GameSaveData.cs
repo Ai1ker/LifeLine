@@ -16,6 +16,8 @@ namespace Lifeline
         // Version 0 saves predate the separate ship map. Their world coordinates already
         // match the logical water map. Version 1 normalizes ship-map positions on write.
         public int coordinateVersion;
+        public float cycleSeconds, daylightSeconds, duskSeconds;
+        public AreaStrike[] areaStrikes = Array.Empty<AreaStrike>();
         public string savedUtc;
         public SaveReason reason;
         public int lastAutoSavedDay;
@@ -40,7 +42,7 @@ namespace Lifeline
         public bool hasRod, hasHarpoon, hasSpeargun;
         public float hull, hullMax, power;
         public bool filterRepaired, circuitRepaired, engineRepaired, engineEverRepaired;
-        public int engineRepairVersion, generatorTier;
+        public int engineRepairVersion, generatorTier, turretTier;
         public bool infinitePower, searchlightOn, turretInstalled, turretOn;
         public float lastCrankAt, lowPowerSailingSeconds;
         public float[] engineFaultClean;
@@ -84,7 +86,7 @@ namespace Lifeline
     [Serializable] public sealed class CraftSaveState
     {
         public int id; public string recipeId; public CrewRole owner;
-        public float elapsed, progress, duration, nextCue;
+        public float elapsed, progress, duration, nextCue, repairApplied;
         public int noteDirection, hits, misses;
         public bool attempted;
     }
@@ -103,6 +105,7 @@ namespace Lifeline
         public int amount, capacity, mazeIndex, mazeCell;
         public Vector3 position;
         public List<ResourceKind> contents;
+        public Vector3[] ropeContacts = Array.Empty<Vector3>();
     }
     [Serializable] public sealed class GateSaveState { public string id; public bool open, destroyed; }
     [Serializable] public sealed class EnemySaveState
@@ -110,7 +113,8 @@ namespace Lifeline
         public string id; public EnemyKind kind; public EnemyState state;
         public Vector3 position, home, spawnPoint, targetPoint, facing;
         public float health, maxHealth, stateTime, pursuitTime, attackCooldown, reacquireTime;
-        public int shadowHitCount; public bool variantApplied;
+        public int shadowHitCount, shadowAttackIndex, shadowPhase; public bool variantApplied;
+        public float shadowAttackClock; public Vector3 shadowAim;
     }
     [Serializable] public sealed class SpearSaveState
     {
@@ -118,7 +122,7 @@ namespace Lifeline
         public Vector3 position, direction;
         public bool turretShot, ignoreShipColliders, returning, lodged, hasHit;
         public bool onShipMap;
-        public float damage, age;
+        public float damage, age, travelled, maximumRange=10f;
         public string targetId, parentEnemyId;
     }
     [Serializable] public sealed class RepairUISaveState

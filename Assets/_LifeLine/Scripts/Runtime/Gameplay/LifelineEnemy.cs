@@ -15,6 +15,9 @@ namespace Lifeline
         public float health;
         public float maxHealth;
         public int shadowHitCount;
+        public int shadowAttackIndex, shadowPhase;
+        public float shadowAttackClock;
+        public Vector3 shadowAim;
         public float stateTime;
         public float pursuitTime;
         public float attackCooldown;
@@ -121,7 +124,7 @@ namespace Lifeline
         {
             CrewActor diver = session.diver;
             float surface = session.world != null ? session.world.WaterSurface : -1.5f;
-            bool available = diver != null && !diver.onboard && !diver.downed && !session.diverFainted && surface - diver.Position.y >= session.tuning.sharkMinimumDepth;
+            bool available = diver != null && !diver.onboard && !diver.downed && !session.diverFainted && surface - diver.Position.y >= 0;
             float distance = available ? Vector3.Distance(transform.position, diver.Position) : float.MaxValue;
             float detection = session.IsNight ? session.tuning.sharkNightDetectionRange : session.tuning.sharkDetectionRange;
             if (session.diverHidden) detection *= .4f;
@@ -222,25 +225,38 @@ namespace Lifeline
                 if (stateTime > shadowRetreatSeconds) Destroy(gameObject);
                 return;
             }
-            CrewActor diver = session.diver;
-            targetPoint = diver != null && !diver.onboard && !diver.downed ? diver.Position : session.BoatAnchor + Vector3.down * 2;
-            float speed = session.tuning.playerSwimSpeed * session.tuning.shadowSpeedMultiplier;
-            if (state == EnemyState.Telegraph)
+            CrewActor diver=session.diver;
+            float length=diver!=null&&diver.GetComponent<CapsuleCollider>()!=null?diver.GetComponent<CapsuleCollider>().height*diver.transform.lossyScale.y:1.8f;
+            float normal=session.tuning.playerSwimSpeed*session.tuning.shadowSpeedMultiplier;
+            Vector3 target=diver!=null&&!diver.onboard&&!diver.downed?diver.Position:session.BoatAnchor+Vector3.down*2;
+            if(shadowPhase==0)
             {
-                if (stateTime >= session.tuning.shadowWindup)
+                Move(target,normal*dt);
+                float reach=shadowAttackIndex==1?shadowAttackDistance:length*session.tuning.shadowBiteRadiusMultiplier+1;
+                if(attackCooldown>0||Vector2.Distance(transform.position,target)>reach)return;
+                shadowAim=target;shadowAttackClock=0;shadowPhase=1;ChangeState(EnemyState.Telegraph);
+                if(shadowAttackIndex==0)
                 {
-                    if (Vector3.Distance(transform.position, session.BoatAnchor) <= shadowAttackDistance + 3) session.DamageHull(session.tuning.shadowSweepHullDamage);
-                    if (diver != null && !diver.onboard && Vector3.Distance(transform.position, diver.Position) <= shadowAttackDistance)
-                    { session.ReceiveDiverHit("深渊巨影横扫", false); }
-                    attackCooldown = session.tuning.shadowAttackInterval; ChangeState(EnemyState.Pursuit);
+                    Vector3 center=transform.position+(target-transform.position).normalized*length*.5f;
+                    session.QueueAreaStrike(AreaStrikeKind.ShadowBite,center,false,length*session.tuning.shadowBiteRadiusMultiplier,session.tuning.shadowWindup,Random.Range(session.tuning.shadowMeleeHullDamage.x,session.tuning.shadowMeleeHullDamage.y));
+                }
+                else if(shadowAttackIndex==1)
+                    session.QueueAreaStrike(AreaStrikeKind.ShadowDash,shadowAim,false,length*session.tuning.shadowDashRadiusMultiplier,session.tuning.shadowWindup+session.tuning.shadowDashSeconds,Random.Range(session.tuning.shadowMeleeHullDamage.x,session.tuning.shadowMeleeHullDamage.y));
+                else for(int i=0;i<2;i++)
+                {
+                    float x=Random.Range(i==0?-10f:1f,i==0?-1f:10f);
+                    Vector3 point=session.ShipToWaterPoint(session.ShipPoint(new Vector3(x,.9f,0)));
+                    session.QueueAreaStrike(AreaStrikeKind.WaterShot,point,true,session.tuning.lightningRadius,session.tuning.shadowWaterShotWarning,session.tuning.shadowWaterShotDamage);
                 }
             }
-            else
+            shadowAttackClock+=dt;
+            if(shadowAttackIndex==1&&shadowAttackClock>=session.tuning.shadowWindup)
             {
-                Move(targetPoint, speed * dt);
-                bool nearTarget = Vector3.Distance(transform.position, targetPoint) <= shadowAttackDistance;
-                if (nearTarget && attackCooldown <= 0) ChangeState(EnemyState.Telegraph);
+                if(shadowPhase==1){shadowPhase=2;ChangeState(EnemyState.Lunge);}
+                Move(shadowAim,Mathf.Max(normal*session.tuning.shadowDashSpeedMultiplier,Vector3.Distance(transform.position,shadowAim)/Mathf.Max(.01f,session.tuning.shadowWindup+session.tuning.shadowDashSeconds-shadowAttackClock))*dt);
             }
+            float duration=shadowAttackIndex==2?session.tuning.shadowWaterShotWarning:session.tuning.shadowWindup+(shadowAttackIndex==1?session.tuning.shadowDashSeconds:0);
+            if(shadowAttackClock>=duration){shadowAttackIndex=(shadowAttackIndex+1)%3;shadowPhase=0;attackCooldown=session.tuning.shadowAttackInterval;ChangeState(EnemyState.Pursuit);}
         }
 
         public void Alert(Vector3 position)
@@ -295,11 +311,6 @@ namespace Lifeline
                 if (step <= .001f) return;
             }
             Vector3 next = transform.position + direction * step; next.z = 0;
-            if (IsShark && session != null)
-            {
-                float surface = session.world != null ? session.world.WaterSurface : -1.5f;
-                next.y = Mathf.Min(next.y, surface - session.tuning.sharkMinimumDepth);
-            }
             if (body != null) body.position = next;
             transform.position = next;
         }

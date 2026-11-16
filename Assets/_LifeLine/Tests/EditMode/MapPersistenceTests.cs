@@ -110,6 +110,41 @@ namespace Lifeline.Tests
             Assert.That(game.diverRope.PathLength, Is.EqualTo(pathLength).Within(.03f));
         }
 
+        [Test] public void EveryAttachedCargoRestoresItsOwnWrappedRoute()
+        {
+            var water = new GameObject("World"); water.transform.SetParent(root.transform);
+            game.world = water.AddComponent<WorldGenerator>(); game.world.session = game; game.world.tuning = tuning;
+            game.world.geometryLayer = 8; game.world.drawLabels = false; game.world.areaCenters = new[] { 0f }; game.world.generateCaves = false;
+            tuning.shallowLootCount = tuning.middleLootCount = tuning.deepLootCount = 1;
+            game.world.Generate(game.worldSeed);
+            var wall = new GameObject("Shared obstacle"); wall.transform.SetParent(root.transform); wall.layer = 8;
+            wall.transform.position = game.BoatAnchor + new Vector3(4, -3.5f, 0);
+            wall.AddComponent<BoxCollider>().size = new Vector3(1, 6, 2);
+            for (int i = 0; i < 2; i++)
+            {
+                var obj = new GameObject("Cargo " + i); obj.transform.SetParent(water.transform);
+                obj.transform.position = game.BoatAnchor + new Vector3(8 + i, -7, 0);
+                var cargo = obj.AddComponent<LootPickup>(); cargo.world = game.world;
+                cargo.isCrate = cargo.attached = true; cargo.contents.Add(ResourceKind.Wood);
+                game.world.pickups.Add(cargo); game.RegisterAttachedCargo(cargo);
+            }
+            Physics.SyncTransforms(); game.RefreshLifelines();
+            GameSaveData data = game.CaptureSaveData();
+            var attached = data.world.pickups.Where(p => p.attached).ToArray();
+            Assert.That(attached.Length, Is.EqualTo(2));
+            Assert.That(attached.All(p => p.ropeContacts.Length > 0));
+            Assert.That(game.TryRestoreSaveData(data, out string error), Is.True, error);
+            Assert.That(game.WinchTargetCount, Is.EqualTo(2), "the aboard diver does not count");
+            foreach (var saved in attached)
+            {
+                var cargo = game.world.pickups.Single(p => p.saveId == saved.id);
+                Assert.That(cargo.attached); Assert.That(cargo.transform.position, Is.EqualTo(saved.position));
+                var route = game.GetCargoLifeline(cargo);
+                Assert.That(route.IsBlocked, Is.False); Assert.That(route.ContactCount, Is.GreaterThan(0));
+                Assert.That(route.CaptureContacts(), Is.EqualTo(saved.ropeContacts));
+            }
+        }
+
         [Test] public void TurretFiresInTheTargetsMapAndCaptainHarpoonCanHitTheNearbyShadow()
         {
             game.circuitRepaired = game.turretInstalled = game.turretOn = true; game.power = 100;

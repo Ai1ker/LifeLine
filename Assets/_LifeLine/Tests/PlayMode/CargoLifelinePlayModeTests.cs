@@ -67,7 +67,8 @@ namespace Lifeline.Tests
             for (int i = 0; i < 900 && !cargo.consumed; i++) game.StepSimulation(.1f);
             Assert.That(cargo.consumed); Assert.That(game.GetResource(ResourceKind.Wood), Is.EqualTo(wood + 1));
             Assert.That(game.GetResource(ResourceKind.Metal), Is.EqualTo(metal + 1));
-            Assert.That(game.diver.onboard, Is.False, "cargo recovery must not board the diver");
+            Assert.That(game.diver.onboard, Is.True, "the same operation must recover cargo and diver together");
+            Assert.That(game.WinchTargetCount, Is.Zero);
         }
 
         [Test] public void CaptainReelingDestroysAClosedBlockingHatchAndRecoversTheDiver()
@@ -81,15 +82,53 @@ namespace Lifeline.Tests
             Assert.That(game.diver.onboard);
         }
 
-        [Test] public void SingleSignalSelectsDiverAndDoubleSignalSelectsAttachedCargo()
+        LootPickup Cargo(float distance = 5)
         {
             var cargo = Child("Cargo").AddComponent<LootPickup>(); cargo.isCrate = cargo.attached = true;
-            cargo.world = game.world; cargo.transform.position = game.diver.Position; cargo.contents.Add(ResourceKind.Wood);
-            game.world.pickups.Add(cargo); game.RegisterAttachedCargo(cargo);
-            game.SignalCaptain(); game.SetWinchActive(true);
-            Assert.That(game.winchTargetKind, Is.EqualTo("diver")); Assert.That(game.winchCargo, Is.Null);
-            game.SignalCaptain(); game.SetWinchActive(true);
-            Assert.That(game.winchTargetKind, Is.EqualTo("cargo")); Assert.That(game.winchCargo, Is.SameAs(cargo));
+            cargo.world = game.world; cargo.transform.position = game.BoatAnchor + Vector3.down * distance;
+            cargo.contents.Add(ResourceKind.Wood); game.world.pickups.Add(cargo); game.RegisterAttachedCargo(cargo);
+            return cargo;
+        }
+
+        [TestCase(0)] [TestCase(1)] [TestCase(2)]
+        public void PassiveReelingSharesTotalDistanceAcrossDiverAndEveryCargo(int crates)
+        {
+            for (int i = 0; i < crates; i++) Cargo();
+            game.SignalCaptain(); game.SignalCaptain(); game.SetWinchActive(true);
+            float share = tuning.winchPassiveSpeed / (crates + 1);
+            game.StepSimulation(1);
+            Assert.That(game.WinchTargetCount, Is.EqualTo(crates + 1));
+            Assert.That(game.DiverRopeLength, Is.EqualTo(5 - share).Within(.005f));
+            foreach (var cargo in game.world.pickups)
+                Assert.That(game.GetCargoLifeline(cargo).PathLength, Is.EqualTo(5 - share).Within(.005f));
+        }
+
+        [TestCase(true)] [TestCase(false)]
+        public void QteSuccessAndFailureAffectAllTargetsAtOneThirdEfficiency(bool good)
+        {
+            Cargo(); Cargo(); game.SetWinchActive(true);
+            Assert.That(game.TryWinchQte(good ? tuning.winchCenter : 0));
+            float distance = 5 - (good ? tuning.winchGoodDistance : -tuning.winchBadDistance) / 3;
+            Assert.That(game.DiverRopeLength, Is.EqualTo(distance).Within(.005f));
+            foreach (var cargo in game.world.pickups)
+                Assert.That(game.GetCargoLifeline(cargo).PathLength, Is.EqualTo(distance).Within(.005f));
+        }
+
+        [Test] public void ElectricSignalReelsAllTargetsAndContinuesAfterDiverBoards()
+        {
+            Cargo(8); Cargo(8);
+            game.diver.RestorePose(false, game.BoatAnchor + Vector3.down * .91f, Vector3.zero, Vector2.down);
+            game.upgradeLevels[(int)UpgradeKind.Rope] = 3; game.circuitRepaired = true; game.power = 100;
+            game.SignalCaptain(); game.SignalCaptain(); game.SignalCaptain();
+            Assert.That(game.winchElectric && game.winchSignalAuthorized);
+            float speed = tuning.winchPassiveSpeed + tuning.winchElectricSpeed;
+            game.StepSimulation(.5f);
+            Assert.That(game.diver.onboard);
+            Assert.That(game.winchElectric, "boarding the diver must not stop the other targets");
+            Assert.That(game.WinchTargetCount, Is.EqualTo(2));
+            float before = game.GetCargoLifeline(game.world.pickups[0]).PathLength;
+            game.StepSimulation(.5f);
+            Assert.That(game.GetCargoLifeline(game.world.pickups[0]).PathLength, Is.EqualTo(before - speed * .5f / 2).Within(.005f));
         }
     }
 }

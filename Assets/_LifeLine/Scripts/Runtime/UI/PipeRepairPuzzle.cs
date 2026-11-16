@@ -73,6 +73,26 @@ namespace Lifeline
             }
             return false;
         }
+        public bool[] FlowCells()
+        {
+            var visited=new bool[rows*columns];
+            if(masks==null||masks.Length!=visited.Length)return visited;
+            int source=sourceRow*columns;if((masks[source]&West)==0)return visited;
+            var queue=new Queue<int>();queue.Enqueue(source);visited[source]=true;
+            int[] dx={0,1,0,-1},dy={-1,0,1,0},bits={North,East,South,West},opposite={South,West,North,East};
+            while(queue.Count>0)
+            {
+                int current=queue.Dequeue();
+                for(int d=0;d<4;d++)
+                {
+                    int x=current%columns+dx[d],y=current/columns+dy[d];
+                    if(x<0||x>=columns||y<0||y>=rows||(masks[current]&bits[d])==0)continue;
+                    int next=y*columns+x;if(visited[next]||(masks[next]&opposite[d])==0)continue;
+                    visited[next]=true;queue.Enqueue(next);
+                }
+            }
+            return visited;
+        }
         public string TileLabel(int index)
         {
             switch (masks[index])

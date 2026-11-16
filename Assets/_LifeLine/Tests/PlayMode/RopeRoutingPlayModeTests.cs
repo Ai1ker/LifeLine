@@ -16,7 +16,7 @@ namespace Lifeline.Tests
             var actorObject = new GameObject("Diver"); actorObject.transform.SetParent(root.transform); actorObject.layer = 9;
             var capsule = actorObject.AddComponent<CapsuleCollider>(); capsule.radius = .32f; capsule.height = 1.6f;
             diver = actorObject.AddComponent<CrewActor>(); diver.enabled = false; diver.onboard = false;
-            rope = root.AddComponent<DiverRope>(); rope.Configure(diver);
+            rope = root.AddComponent<DiverRope>(); rope.Configure(diver); rope.frameBudgetMilliseconds = 1000;
             Physics.SyncTransforms();
         }
 
@@ -123,6 +123,25 @@ namespace Lifeline.Tests
             Assert.That(rope.UpdateRoute(anchor, cargo), Is.True);
             cargo = rope.PullPoint(cargo, 100);
             Assert.That(Vector3.Distance(cargo, anchor), Is.LessThan(.03f));
+        }
+
+        [UnityEngine.TestTools.UnityTest]
+        public System.Collections.IEnumerator BudgetedSearchResumesAndRepeatedCallsInOneFrameAreCached()
+        {
+            rope.frameBudgetMilliseconds=.01f;
+            BuildU(); Place(new Vector3(0,-5,0)); Vector3 anchor=new Vector3(0,1,0);
+            bool found=rope.UpdateRoute(anchor,diver.Position);
+            int queries=rope.totalQueries;
+            for(int i=0;i<20;i++)rope.UpdateRoute(anchor,diver.Position);
+            Assert.That(rope.totalQueries,Is.EqualTo(queries),"render, leash and winch must share the same frame route");
+            for(int frame=0;!found&&frame<200;frame++)
+            {
+                yield return null;
+                found=rope.UpdateRoute(anchor,diver.Position);
+            }
+            Assert.That(found,Is.True,"bounded work must eventually produce the same collision-free route");
+            Assert.That(rope.ContactCount,Is.GreaterThanOrEqualTo(3));AssertSafeSegments();
+            rope.frameBudgetMilliseconds=1000;PullToAnchor(anchor);
         }
 
         void BuildU()

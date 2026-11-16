@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ea50cad90579eb4a96046d593e22c58, type: 3}
+  m_Name: QteVisualTheme
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.QteVisualTheme
+  keycap: {fileID: 21300000, guid: 912ade21546bf12478626678f8cf1f59, type: 3}
+  keycapSuccess: {fileID: 21300000, guid: 785194b1a52d78541a39efe0bea4e760, type: 3}
+  keycapFailure: {fileID: 21300000, guid: 9a56fbb4538b7464ea6772ca3b90dcdc, type: 3}
+  lane: {fileID: 21300000, guid: 39ad3762c82efcc4e992f22f36660392, type: 3}
+  hitLine: {fileID: 21300000, guid: c1d245aad2588794fab27827837a0805, type: 3}
+  ring: {fileID: 21300000, guid: 8f7f0ea2325116943ba25f4bd5ede57f, type: 3}
+  ringFace: {fileID: 21300000, guid: 62d308c498c74154bbf2f3f8474b2ec9, type: 3}
+  needle: {fileID: 21300000, guid: 33f7add7d884f9542a4be69c00aa7ee3, type: 3}
+  hub: {fileID: 21300000, guid: 7b027b62d1b5807409af1c1b050a2aa4, type: 3}
+  upArrow: {fileID: 21300000, guid: b932e90a92026f54492bf736abdaaf6c, type: 3}
+  leftArrow: {fileID: 21300000, guid: f65f43945a639aa488fb8d8d9ed607c3, type: 3}
+  downArrow: {fileID: 21300000, guid: 9f486e8c1ed21da419e2d4eddd72170c, type: 3}
+  rightArrow: {fileID: 21300000, guid: 80433691aeab6dc46b94a0ce8eef3c9e, type: 3}
+  keyFont: {fileID: 0}
+  trackColor: {r: 0.16, g: 0.255, b: 0.29, a: 1}
+  faceColor: {r: 0.07, g: 0.17, b: 0.215, a: 1}
+  gold: {r: 0.9, g: 0.76, b: 0.53, a: 1}
+  success: {r: 0.51, g: 0.835, b: 0.714, a: 1}
+  failure: {r: 0.91, g: 0.635, b: 0.494, a: 1}
+  keyText: {r: 0.76, g: 0.94, b: 0.84, a: 1}
+  successKeyText: {r: 0.025, g: 0.176, b: 0.176, a: 1}
+  failureKeyText: {r: 0.94, g: 0.71, b: 0.61, a: 1}
+  laneHitPosition: 0.75
+  laneTravelPerCycle: 0.65
+  keySize: {x: 48, y: 48}
+  feedbackSeconds: 0.65
+  bindingArtwork: []

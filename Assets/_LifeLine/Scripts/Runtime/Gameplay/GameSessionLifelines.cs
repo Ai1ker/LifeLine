@@ -18,6 +18,7 @@ namespace Lifeline
 
         public DiverRope GetOrCreateLifeline(bool cargo = false)
         {
+            if (cargo && winchCargo != null) return GetCargoLifeline(winchCargo);
             DiverRope route = cargo ? cargoRope : diverRope;
             if (route == null)
             {
@@ -31,9 +32,24 @@ namespace Lifeline
             return route;
         }
 
+        public DiverRope GetCargoLifeline(LootPickup cargo)
+        {
+            if (cargo.lifeline == null)
+            {
+                var obj = new GameObject("Cargo collision rope"); obj.transform.SetParent(cargo.transform, false);
+                cargo.lifeline = obj.AddComponent<DiverRope>();
+            }
+            var route = cargo.lifeline;
+            route.Configure(diver, ship != null ? ship.transform : null);
+            route.collisionMask = world != null ? 1 << world.geometryLayer : obstacleMask & ~(1 << 9) & ~(1 << 10);
+            if (cargo == winchCargo) cargoRope = route;
+            return route;
+        }
+
         public void ResetLifelines()
         {
             if (diverRope != null) diverRope.ResetRoute();
+            if (world != null) foreach (var cargo in world.pickups) if (cargo != null && cargo.lifeline != null) cargo.lifeline.ResetRoute();
             if (cargoRope != null) cargoRope.ResetRoute();
         }
 
@@ -41,9 +57,8 @@ namespace Lifeline
         {
             if (diver != null && !diver.onboard) GetOrCreateLifeline().UpdateRoute(BoatAnchor, diver.Position);
             else if (diverRope != null) diverRope.ResetRoute();
-            if (winchCargo != null && winchCargo.attached && !winchCargo.consumed)
-                GetOrCreateLifeline(true).UpdateRoute(BoatAnchor, winchCargo.transform.position);
-            else if (cargoRope != null) cargoRope.ResetRoute();
+            if (world != null) foreach (var cargo in world.pickups)
+                if (IsWinchCargo(cargo)) GetCargoLifeline(cargo).UpdateRoute(BoatAnchor, cargo.transform.position);
         }
 
         public float DiverRopeLength
@@ -68,7 +83,10 @@ namespace Lifeline
         public bool RopeCrossesBounds(Bounds bounds)
         {
             RefreshLifelines();
-            return Crosses(diverRope, bounds) || Crosses(cargoRope, bounds);
+            if (Crosses(diverRope, bounds)) return true;
+            if (world != null) foreach (var cargo in world.pickups)
+                if (IsWinchCargo(cargo) && Crosses(cargo.lifeline, bounds)) return true;
+            return false;
         }
 
         static bool Crosses(DiverRope route, Bounds bounds)
