@@ -93,6 +93,24 @@ namespace Lifeline.Tests
         }
 
         [Test]
+        public void OnlyAuthorizedWinchCanBreakAClosedHatchPinchingTheRope()
+        {
+            Wall("Left", new Vector3(-2, -1, 0), new Vector3(.4f, 4.4f, 2));
+            Wall("Right", new Vector3(2, -1, 0), new Vector3(.4f, 4.4f, 2));
+            Wall("Floor", new Vector3(0, -3, 0), new Vector3(4.4f, .4f, 2));
+            var barrier = Wall("Hatch", new Vector3(0, 1, 0), new Vector3(4.4f, .2f, 2));
+            var hatch = barrier.gameObject.AddComponent<TrapdoorGate>(); hatch.barrier = barrier;
+            hatch.SetOpen(false); Physics.SyncTransforms();
+            Vector3 anchor = new Vector3(0, 4, 0); Place(new Vector3(0, -1, 0));
+            Assert.That(rope.UpdateRoute(anchor, diver.Position), Is.False);
+            Assert.That(rope.Pull(diver, 20), Is.Zero); Assert.That(hatch.destroyed, Is.False);
+            Assert.That(rope.TryBreakBlockingGate(), Is.True);
+            Assert.That(hatch.destroyed, Is.True); Assert.That(barrier.enabled, Is.False);
+            Assert.That(rope.IsBlocked, Is.False); Assert.That(rope.TryBreakBlockingGate(), Is.False);
+            PullToAnchor(anchor);
+        }
+
+        [Test]
         public void FailurePaysOutOnlyUntilCollisionAndCargoUsesTheSameBentRoute()
         {
             Wall("Seabed", new Vector3(0, -3, 0), new Vector3(12, .2f, 2));

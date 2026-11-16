@@ -568,7 +568,7 @@ namespace Lifeline
             }
             foreach (var gate in trapdoors)
             {
-                if (gate == null || !gate.gameObject.activeInHierarchy) continue;
+                if (gate == null || gate.destroyed || !gate.gameObject.activeInHierarchy) continue;
                 float distance = (gate.transform.position - position).sqrMagnitude;
                 if (distance >= best) continue;
                 best = distance; labelFocus = gate.transform;

@@ -126,10 +126,12 @@ namespace Lifeline
         void PrepareWinchTarget()
         {
             if (winchCargo != null && (!winchCargo.attached || winchCargo.consumed)) winchCargo = null;
-            if (winchCargo == null && world != null && (signalCount == 2 || diver == null || diver.onboard))
+            if (winchSignalAuthorized) winchCargo = null;
+            if (winchCargo == null && !winchSignalAuthorized && world != null && (signalCount != 1 || diver == null || diver.onboard))
             {
                 foreach (LootPickup pickup in world.pickups)
-                    if (pickup != null && pickup.isCrate && pickup.attached && !pickup.consumed) { winchCargo = pickup; break; }
+                    if (pickup != null && pickup.isCrate && pickup.attached && !pickup.consumed)
+                    { winchCargo = pickup; GetOrCreateLifeline(true).ResetRoute(); break; }
             }
             string kind = winchCargo != null ? "cargo" : diver != null && !diver.onboard ? "diver" : "";
             if (kind == "" && rescueVoyage && ship != null && ship.transform.position.x >= rescueArrivalX && day >= 4) kind = "survivors";
@@ -192,6 +194,7 @@ namespace Lifeline
             if (winchTargetKind != "diver" && winchTargetKind != "cargo") return;
             DiverRope route = GetOrCreateLifeline(winchCargo != null);
             route.UpdateRoute(BoatAnchor, WinchTargetPosition());
+            if (pullDistance > 0) route.TryBreakBlockingGate();
             float distance = route.PathLength;
             winchStartDistance = Mathf.Max(winchStartDistance, distance);
             if (pullDistance < 0) pullDistance = -Mathf.Min(-pullDistance, Mathf.Max(0, ropeLength - distance));
@@ -231,6 +234,7 @@ namespace Lifeline
         {
             signalCount = elapsed - lastSignalAt <= tuning.electricWinchSignalWindow ? signalCount + 1 : 1;
             lastSignalAt = elapsed;
+            if (signalCount == 1) { winchCargo = null; winchTargetKind = ""; }
             Tell(signalCount == 1 ? "潜水员信号：请求船长收绳。" : signalCount == 2 ? "潜水员双信号：优先吊运已挂载货箱。" : "潜水员紧急三信号：请船长立即操作绞盘！");
             AttractEnemies(diver != null ? diver.Position : BoatAnchor);
             if (signalCount >= tuning.electricWinchSignalCount && IsElectricWinch && diver != null && !diver.onboard && circuitRepaired && (power > 0 || infinitePower))

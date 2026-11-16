@@ -199,10 +199,16 @@ namespace Lifeline.Editor
             session.maps.InitializeForAuthoring(session);
             session.GetOrCreateLifeline(); session.GetOrCreateLifeline(true);
             var rig = UnityEngine.Object.FindAnyObjectByType<GameCameraRig>();
-            if (rig != null) rig.RefreshViewNow();
+            if (rig != null)
+            {
+                if (rig.underwaterSurfaceHeadroom <= 2.8f) rig.underwaterSurfaceHeadroom = 4.5f;
+                rig.RefreshViewNow();
+            }
             if (UnityEngine.Object.FindAnyObjectByType<UnderwaterShipProxy>() == null) CreateUnderwaterProxy(session, rig, PrefabLibraryBuilder.Build());
             if (UnityEngine.Object.FindAnyObjectByType<DiverLifelineView>() == null)
                 new GameObject("Diver lifeline presentation").AddComponent<DiverLifelineView>().Initialize(session);
+            foreach (var line in UnityEngine.Object.FindObjectsByType<DiverLifelineView>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (line.foregroundZ > -1.7f) line.foregroundZ = -1.7f;
             EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
             ExportCurrentTuning(); AssetDatabase.SaveAssets();
         }
@@ -406,6 +412,10 @@ namespace Lifeline.Editor
             var text = new StringBuilder("# 实际数值参考（编辑器从资产与场景导出）\n\n单位：米、秒、百分比点；初始值来自实际 ScriptableObject/场景组件。后续编辑 Inspector 后可重新导出。\n\n");
             AppendFields(text, tuning); AppendFields(text, session); AppendFields(text, session.captain); AppendFields(text, session.diver); AppendFields(text, session.ship); AppendFields(text, world); AppendFields(text, rig);
             AppendFields(text, session.craftingManager);
+            AppendFields(text, session.maps);
+            AppendFields(text, session.GetOrCreateLifeline());
+            AppendFields(text, session.GetOrCreateLifeline(true));
+            AppendFields(text, UnityEngine.Object.FindAnyObjectByType<UnderwaterShipProxy>());
             foreach (CrewStationPanel view in UnityEngine.Object.FindObjectsByType<CrewStationPanel>(FindObjectsInactive.Include, FindObjectsSortMode.None)) AppendFields(text, view);
             AppendFields(text, UnityEngine.Object.FindFirstObjectByType<NightVisibilityView>());
             AppendFields(text, UnityEngine.Object.FindAnyObjectByType<ShipRouteView>());

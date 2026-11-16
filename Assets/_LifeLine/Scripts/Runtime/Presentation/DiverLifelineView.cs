@@ -8,20 +8,23 @@ namespace Lifeline
     {
         public GameSession session;
         public LineRenderer rope;
+        public LineRenderer shipLead;
         public Material ropeMaterial;
         public Transform winchAttachment;
+        public LootPickup cargo;
+        public UnderwaterShipProxy shipProxy;
+        public Vector3 cargoAttachmentLocal = new Vector3(0, .25f, 0);
         [Min(.01f)] public float width = .055f;
-        [Min(3)] public int segmentCount = 18;
         public Color ropeColor = new Color(1, .79f, .32f);
-        [Min(0)] public float slackSag = .45f;
-        public float foregroundZ = -.65f;
+        public float foregroundZ = -1.7f;
         public int presentationLayer = 8;
         Material generatedMaterial;
+        DiverRope waitingCargoRoute;
 
         void Start()
         {
             Initialize(session);
-            if (session != null && session.maps != null) session.maps.MoveGameplayObject(gameObject, false);
+            if (cargo == null && session != null && session.maps != null) session.maps.MoveGameplayObject(gameObject, false);
         }
 
         public void Initialize(GameSession owner)
@@ -36,16 +39,20 @@ namespace Lifeline
             rope.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; rope.receiveShadows = false;
             if (winchAttachment == null && session != null && session.ship != null)
                 foreach (var anchor in session.ship.GetComponentsInChildren<StationAnchor>())
-                    if (anchor.kind == StationKind.Winch) { winchAttachment = anchor.interactionPoint; break; }
+                    if (anchor.kind == StationKind.Winch) { winchAttachment = anchor.interactionPoint != null ? anchor.interactionPoint : anchor.transform; break; }
             if (ropeMaterial != null) rope.sharedMaterial = ropeMaterial;
             RefreshNow();
         }
+
+        public void Initialize(GameSession owner, LootPickup container) { cargo = container; Initialize(owner); }
 
         void LateUpdate() => RefreshNow();
         public void RefreshNow()
         {
             if (rope == null) return;
-            bool visible = session != null && session.diver != null && !session.diver.onboard
+            if (cargo == null) RefreshShipLead();
+            bool visible = session != null && session.diver != null
+                && (cargo != null ? cargo.attached && !cargo.consumed : !session.diver.onboard)
                 && (session.phase == SessionPhase.Playing || session.phase == SessionPhase.Paused);
             rope.enabled = visible;
             if (!visible) return;
@@ -62,18 +69,71 @@ namespace Lifeline
                 }
             }
             rope.startColor = rope.endColor = ropeColor; rope.startWidth = rope.endWidth = width;
-            DiverRope route = session.GetOrCreateLifeline();
-            route.UpdateRoute(session.BoatAnchor, session.diver.Position);
+            DiverRope route;
+            if (cargo == null) route = session.GetOrCreateLifeline();
+            else if (session.winchCargo == cargo) route = session.GetOrCreateLifeline(true);
+            else
+            {
+                if (waitingCargoRoute == null)
+                {
+                    var routeObject = new GameObject("Waiting cargo collision route");
+                    routeObject.transform.SetParent(transform, false); waitingCargoRoute = routeObject.AddComponent<DiverRope>();
+                }
+                route = waitingCargoRoute; route.Configure(session.diver, session.ship != null ? session.ship.transform : null);
+                route.collisionMask = session.world != null ? 1 << session.world.geometryLayer : session.obstacleMask;
+            }
+            route.UpdateRoute(session.BoatAnchor, cargo != null ? cargo.transform.position : session.diver.Position);
             int count = route.Points.Count + 1;
             rope.positionCount = count;
             float surface = session.world != null ? session.world.WaterSurface : session.diver.waterSurfaceY;
-            rope.SetPosition(0, new Vector3(session.BoatAnchor.x, surface, foregroundZ));
+            if (shipProxy == null) shipProxy = FindFirstObjectByType<UnderwaterShipProxy>();
+            Vector3 winch = shipProxy != null ? shipProxy.WinchPoint : new Vector3(session.BoatAnchor.x, surface, foregroundZ);
+            winch.z = foregroundZ; rope.SetPosition(0, winch);
             for (int i = 1; i < count; i++)
             {
                 Vector3 point = route.Points[i - 1];
                 point.z = foregroundZ; rope.SetPosition(i, point);
             }
+            if (cargo != null)
+            {
+                Vector3 attachment = cargo.transform.TransformPoint(cargoAttachmentLocal);
+                attachment.z = foregroundZ; rope.SetPosition(count - 1, attachment);
+            }
         }
-        void OnDestroy() { if (generatedMaterial != null) Destroy(generatedMaterial); }
+
+        void RefreshShipLead()
+        {
+            bool visible = session != null && session.ship != null && session.diver != null
+                && (session.phase == SessionPhase.Playing || session.phase == SessionPhase.Paused);
+            bool hasTarget = session != null && session.diver != null && !session.diver.onboard;
+            if (!hasTarget && session != null && session.world != null)
+                foreach (var pickup in session.world.pickups)
+                    if (pickup != null && pickup.attached && !pickup.consumed) { hasTarget = true; break; }
+            visible &= hasTarget && winchAttachment != null;
+            if (shipLead == null && visible)
+            {
+                var lead = new GameObject("Winch outgoing cable - ship map");
+                lead.transform.SetParent(session.ship.transform, false); lead.layer = 12;
+                shipLead = lead.AddComponent<LineRenderer>(); shipLead.useWorldSpace = true;
+                shipLead.positionCount = 2; shipLead.numCapVertices = 2;
+                shipLead.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; shipLead.receiveShadows = false;
+            }
+            if (shipLead == null) return;
+            shipLead.enabled = visible;
+            if (!visible) return;
+            Material material = ropeMaterial != null ? ropeMaterial : rope.sharedMaterial;
+            if (material != null) shipLead.sharedMaterial = material;
+            shipLead.startColor = shipLead.endColor = ropeColor; shipLead.startWidth = shipLead.endWidth = width;
+            Vector3 from = winchAttachment.position, to = session.WaterToShipPoint(session.BoatAnchor);
+            from.z = to.z = foregroundZ;
+            shipLead.SetPosition(0, from); shipLead.SetPosition(1, to);
+        }
+
+        void OnDisable() { if (shipLead != null) shipLead.enabled = false; }
+        void OnDestroy()
+        {
+            if (shipLead != null) Destroy(shipLead.gameObject);
+            if (generatedMaterial != null) Destroy(generatedMaterial);
+        }
     }
 }

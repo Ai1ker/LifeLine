@@ -49,7 +49,7 @@ namespace Lifeline
                 }
                 data.world.pickups = pickups.ToArray();
                 var gates = new List<GateSaveState>();
-                foreach (TrapdoorGate gate in world.trapdoors) if (gate != null) gates.Add(new GateSaveState { id = gate.saveId, open = gate.open });
+                foreach (TrapdoorGate gate in world.trapdoors) if (gate != null) gates.Add(new GateSaveState { id = gate.saveId, open = gate.open, destroyed = gate.destroyed });
                 data.world.gates = gates.ToArray();
                 data.state.winchCargoId = winchCargo != null ? winchCargo.saveId : "";
             }
@@ -203,6 +203,7 @@ namespace Lifeline
             foreach (GateSaveState state in saved.gates)
             {
                 if (!gates.TryGetValue(state.id, out TrapdoorGate gate)) throw new InvalidOperationException("存档门ID与当前地图生成器不兼容：" + state.id);
+                gate.destroyed = state.destroyed;
                 gate.SetOpen(state.open);
             }
         }

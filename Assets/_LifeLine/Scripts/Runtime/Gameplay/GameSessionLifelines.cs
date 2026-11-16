@@ -4,6 +4,18 @@ namespace Lifeline
 {
     public partial class GameSession
     {
+        public void RegisterAttachedCargo(LootPickup cargo)
+        {
+            if (cargo == null || !cargo.isCrate || !cargo.attached || cargo.consumed) return;
+            if (winchCargo == null && !winchSignalAuthorized)
+            {
+                winchCargo = cargo; winchTargetKind = "";
+                GetOrCreateLifeline(true).ResetRoute();
+                GetOrCreateLifeline(true).UpdateRoute(BoatAnchor, cargo.transform.position);
+            }
+            Changed();
+        }
+
         public DiverRope GetOrCreateLifeline(bool cargo = false)
         {
             DiverRope route = cargo ? cargoRope : diverRope;

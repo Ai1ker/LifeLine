@@ -11,6 +11,8 @@ namespace Lifeline
         public Transform visualRoot;
         public TextMesh label;
         public bool horizontal, open;
+        [Tooltip("A winch-broken hatch stays open until this daily map is regenerated.")]
+        public bool destroyed;
         public float interactionDistance = 1.9f;
         public Vector3 sideA, sideB;
         public bool animatePlaceholder = true;
@@ -49,7 +51,7 @@ namespace Lifeline
             SetOpen(false);
         }
 
-        public bool InRange(CrewActor actor) => actor != null && !actor.onboard && !actor.downed
+        public bool InRange(CrewActor actor) => !destroyed && actor != null && !actor.onboard && !actor.downed
             && Vector2.Distance(actor.Position, transform.position) <= interactionDistance;
         public bool TryInteract(CrewActor actor)
         {
@@ -58,20 +60,31 @@ namespace Lifeline
         }
         public void SetOpen(bool value)
         {
-            // A door cannot sever a line which is already threaded through its opening.
-            if (!value && open && barrier != null && world != null && world.session != null)
-            {
-                Bounds closedBounds = new Bounds(transform.TransformPoint(barrier.center), Vector3.Scale(barrier.size, transform.lossyScale));
-                if (world.session.RopeCrossesBounds(closedBounds)) return;
-            }
-            open = value;
+            open = destroyed || value;
             if (barrier != null) barrier.enabled = !open;
-            if (visualRoot != null && animatePlaceholder)
+            if (visualRoot != null)
             {
-                visualRoot.localRotation = Quaternion.Euler(0, 0, open ? openAngle : 0);
-                visualRoot.localScale = closedScale;
+                visualRoot.gameObject.SetActive(!destroyed);
+                if (animatePlaceholder)
+                {
+                    visualRoot.localRotation = Quaternion.Euler(0, 0, open ? openAngle : 0);
+                    visualRoot.localScale = closedScale;
+                }
             }
-            if (label != null) label.text = open ? "OPEN / ENTER" : "HATCH / ENTER";
+            if (label != null)
+            {
+                label.gameObject.SetActive(!destroyed);
+                label.text = open ? "OPEN / ENTER" : "HATCH / ENTER";
+            }
+        }
+
+        /// <summary>Captain-authorized recovery can break an obstructing hatch. No loot or repair cost is generated.</summary>
+        public bool BreakByWinch()
+        {
+            if (destroyed) { SetOpen(true); return false; }
+            destroyed = true;
+            SetOpen(true);
+            return true;
         }
     }
 }

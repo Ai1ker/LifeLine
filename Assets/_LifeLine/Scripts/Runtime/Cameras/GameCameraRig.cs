@@ -57,7 +57,7 @@ namespace Lifeline
         public bool keepUnderwaterViewBelowSurface = true;
         [Min(0)] public float waterSurfaceViewPadding = .1f;
         [Tooltip("Room above the waterline for the small ship proxy, never the physical cabin map.")]
-        [Min(0)] public float underwaterSurfaceHeadroom = 2.8f;
+        [Min(0)] public float underwaterSurfaceHeadroom = 4.5f;
         public float horizontalLookAhead = .7f;
         public Vector3 followDamping = new Vector3(.24f, .2f, 0);
         [Min(0)] public float zoomDamping = .16f;

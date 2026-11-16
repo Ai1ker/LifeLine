@@ -28,6 +28,19 @@ namespace Lifeline
         [Range(.5f, .9f)] public float markerViewportHeight = .78f;
         public Vector2 markerSize = new Vector2(58, 30);
         public float markerHorizontalPadding = 24;
+        public Transform winchVisual;
+        public Vector3 winchLocalPosition = new Vector3(-.85f, .3f, -.25f);
+        public float shipToProxyScale = .14f;
+
+        public Vector3 WinchPoint
+        {
+            get
+            {
+                float surface = session != null && session.world != null ? session.world.WaterSurface : -1.5f;
+                Vector3 origin = session != null ? new Vector3(session.BoatAnchor.x, surface + surfaceHeight, foregroundZ) : transform.position;
+                return origin + Vector3.Scale(winchLocalPosition, proxyScale);
+            }
+        }
 
         public bool IsSurfaceProxyVisible => visualRoot != null && visualRoot.gameObject.activeSelf;
         public bool IsEdgeMarkerVisible => edgeMarker != null && edgeMarker.gameObject.activeSelf;
@@ -44,6 +57,20 @@ namespace Lifeline
             session = owner; cameraRig = rig;
             if (visualRoot == null) BuildGeometry();
             if (edgeMarker == null) BuildEdgeMarker();
+            if (session != null && session.ship != null)
+                foreach (var station in session.ship.GetComponentsInChildren<StationAnchor>())
+                    if (station.kind == StationKind.Winch)
+                    {
+                        Vector3 source = station.interactionPoint != null ? station.interactionPoint.position : station.transform.position;
+                        winchLocalPosition.x = (session.ShipToWaterPoint(source).x - session.BoatAnchor.x) * shipToProxyScale;
+                        break;
+                    }
+            if (winchVisual == null && visualRoot != null)
+            {
+                Part("Winch drum", winchLocalPosition, new Vector3(.3f, .27f, .22f), mastMaterial != null ? mastMaterial : MakeMaterial("Proxy winch", mastColor));
+                winchVisual = visualRoot.Find("Winch drum");
+            }
+            if (winchVisual != null) winchVisual.localPosition = winchLocalPosition;
             if (session != null)
             {
                 var maps = session.GetComponent<GameMapPartition>();

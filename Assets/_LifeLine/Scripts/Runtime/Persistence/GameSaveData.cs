@@ -104,7 +104,7 @@ namespace Lifeline
         public Vector3 position;
         public List<ResourceKind> contents;
     }
-    [Serializable] public sealed class GateSaveState { public string id; public bool open; }
+    [Serializable] public sealed class GateSaveState { public string id; public bool open, destroyed; }
     [Serializable] public sealed class EnemySaveState
     {
         public string id; public EnemyKind kind; public EnemyState state;

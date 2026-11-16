@@ -248,6 +248,37 @@ namespace Lifeline
 
         public bool IsSegmentClear(Vector3 from, Vector3 to) => SegmentClear(Planar(from), Planar(to), out _);
 
+        /// <summary>
+        /// An authorized winch can tear out a closed hatch pinching the rope. Merely swimming,
+        /// refreshing the route or hitting the length limit never calls this operation.
+        /// Tests each actual tension segment and its immediate pulley shortcut; a nearer solid
+        /// wall is never skipped to select some unrelated door behind it.
+        /// </summary>
+        public bool TryBreakBlockingGate()
+        {
+            if (points.Count < 2) return false;
+            for (int i = points.Count - 1; i > 0; i--)
+            {
+                RaycastHit obstruction;
+                if (!SegmentClear(points[i], points[i - 1], out obstruction))
+                    return BreakGate(obstruction.collider);
+                // A route may already wrap around this hatch. Check the shortcut that its
+                // neighbouring contacts prevent; no broad radius/nearest-door query is used.
+                if (i > 1 && !SegmentClear(points[i], points[i - 2], out obstruction)
+                    && BreakGate(obstruction.collider)) return true;
+            }
+            return false;
+        }
+
+        bool BreakGate(Collider obstruction)
+        {
+            if (obstruction == null) return false;
+            var gate = obstruction.GetComponentInParent<TrapdoorGate>();
+            if (gate == null || gate.open || gate.destroyed || !gate.BreakByWinch()) return false;
+            Physics.SyncTransforms();
+            UpdateRoute(points[0], points[points.Count - 1]); return true;
+        }
+
         bool SegmentClear(Vector3 from, Vector3 to, out RaycastHit closest)
         {
             closest = default; Vector3 difference = to - from; float distance = difference.magnitude;

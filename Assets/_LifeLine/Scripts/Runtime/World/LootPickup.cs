@@ -54,7 +54,7 @@ namespace Lifeline
             if (isCrate)
             {
                 attached = true;
-                // The captain's winch owns movement and final delivery after attachment.
+                if (actor.session != null) actor.session.RegisterAttachedCargo(this);
             }
             else if (isCabinet)
             {
@@ -112,6 +112,13 @@ namespace Lifeline
 
         public void RefreshVisual()
         {
+            if (isCrate && attached && !consumed && world != null && world.session != null)
+            {
+                var view = GetComponent<DiverLifelineView>();
+                if (view == null) view = gameObject.AddComponent<DiverLifelineView>();
+                view.cargo = this;
+                view.Initialize(world.session, this);
+            }
             RefreshLabel();
             if (cargoSlotRenderers == null) return;
             for (int i = 0; i < cargoSlotRenderers.Length; i++)
