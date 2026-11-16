@@ -1,0 +1,1778 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676bbd68bf11262498b8055580638c14, type: 3}
+  m_Name: DefaultLocalization
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.LocalizationTable
+  entries:
+  - key: combat.underwater.hit
+    zh: "\u6C34\u4E0B\u53D7\u51FB"
+    en: Underwater hit
+    fragment: 1
+  - key: resource.wood
+    zh: "\u6728\u6750"
+    en: Wood
+    fragment: 1
+  - key: resource.metal
+    zh: "\u91D1\u5C5E"
+    en: Metal
+    fragment: 1
+  - key: resource.fiber
+    zh: "\u7EA4\u7EF4"
+    en: Fiber
+    fragment: 1
+  - key: resource.fish
+    zh: "\u9C7C\u83B7"
+    en: Fish
+    fragment: 1
+  - key: resource.bait
+    zh: "\u8BF1\u9975"
+    en: Bait
+    fragment: 1
+  - key: resource.plank
+    zh: "\u6728\u677F"
+    en: Plank
+    fragment: 1
+  - key: resource.plate
+    zh: "\u94C1\u677F"
+    en: Iron Plate
+    fragment: 1
+  - key: resource.bundle
+    zh: "\u7EA4\u7EF4\u675F"
+    en: Fiber Bundle
+    fragment: 1
+  - key: resource.fuel
+    zh: "\u71C3\u6CB9"
+    en: Fuel
+    fragment: 1
+  - key: resource.eel
+    zh: "\u7535\u9CD7"
+    en: Electric Eel
+    fragment: 1
+  - key: role.captain
+    zh: "\u8239\u957F"
+    en: Captain
+    fragment: 1
+  - key: role.diver
+    zh: "\u6F5C\u6C34\u5458"
+    en: Diver
+    fragment: 1
+  - key: station.workbench
+    zh: "\u5236\u4F5C\u53F0"
+    en: Workbench
+    fragment: 1
+  - key: station.console
+    zh: "\u8BBE\u5907\u603B\u63A7"
+    en: Systems Console
+    fragment: 1
+  - key: station.helm
+    zh: "\u822A\u884C\u8239\u8235"
+    en: Helm
+    fragment: 1
+  - key: station.winch
+    zh: "\u6551\u63F4\u7EDE\u76D8"
+    en: Rescue Winch
+    fragment: 1
+  - key: station.prep
+    zh: "\u6F5C\u6C34\u51C6\u5907\u53F0"
+    en: Dive Preparation
+    fragment: 1
+  - key: station.light
+    zh: "\u63A2\u7167\u706F"
+    en: Searchlight
+    fragment: 1
+  - key: station.fishing
+    zh: "\u5782\u9493\u70B9"
+    en: Fishing Spot
+    fragment: 1
+  - key: station.hull
+    zh: "\u8239\u4F53\u7EF4\u4FEE\u53F0"
+    en: Hull Repair Bench
+    fragment: 1
+  - key: station.filter
+    zh: "\u6D77\u6C34\u8FC7\u6EE4\u5668"
+    en: Water Filter
+    fragment: 1
+  - key: station.circuit
+    zh: "\u7535\u8DEF\u7CFB\u7EDF"
+    en: Electrical System
+    fragment: 1
+  - key: station.generator
+    zh: "\u52A8\u529B\u53D1\u7535\u673A"
+    en: Generator
+    fragment: 1
+  - key: station.engine
+    zh: "\u8239\u7528\u5F15\u64CE"
+    en: Ship Engine
+    fragment: 1
+  - key: station.turret
+    zh: "\u7532\u677F\u70AE\u5854"
+    en: Deck Turret
+    fragment: 1
+  - key: copy.026
+    zh: "\u672A\u627E\u5230\u5BF9\u5E94\u7684\u5236\u4F5C\u914D\u65B9\u3002"
+    en: Crafting recipe not found.
+    fragment: 1
+  - key: copy.027
+    zh: "\u5236\u4F5C\u961F\u5217\u5DF2\u6EE1\uFF0CT3\u5236\u4F5C\u53F0\u53EF\u540C\u65F6\u8FD0\u884C\u4E24\u9879\u5DE5\u4F5C\u3002"
+    en: The crafting queue is full. A T3 workbench can run two jobs at once.
+    fragment: 1
+  - key: copy.028
+    zh: "\u8239\u4F53\u5B8C\u597D\uFF0C\u65E0\u9700\u6D88\u8017\u7EF4\u4FEE\u6750\u6599\u3002"
+    en: The hull is intact. Repair materials are not needed.
+    fragment: 1
+  - key: copy.029
+    zh: "\u8FD9\u4EF6\u5DE5\u5177\u5DF2\u7ECF\u5236\u4F5C\u5B8C\u6210\u3002"
+    en: You have already crafted this tool.
+    fragment: 1
+  - key: copy.030
+    zh: "\u5148\u5236\u4F5C\u8FD1\u6218\u9C7C\u53C9\uFF0C\u518D\u5236\u4F5C\u5C04\u77DB\u67AA\uFF1B\u9C7C\u53C9\u4F1A\u4FDD\u7559\u3002"
+    en: Craft a melee harpoon before making a speargun. You will keep the harpoon.
+    fragment: 1
+  - key: copy.031
+    zh: "\u8FD9\u9879\u5DE5\u5177\u6216\u7535\u53F0\u90E8\u4EF6\u5DF2\u5728\u5236\u4F5C\u961F\u5217\u4E2D\u3002"
+    en: This tool or radio component is already in the queue.
+    fragment: 1
+  - key: copy.032
+    zh: "\u6C42\u6551\u7535\u53F0\u9700\u8981\u4FEE\u590D\u7535\u8DEF\uFF0C\u5E76\u6309\u5929\u7EBF\u3001\u63A5\u6536\u5668\u3001\u653E\u5927\u5668\u987A\u5E8F\u5EFA\u9020\u3002"
+    en: Repair the electrical system, then build the antenna, receiver and amplifier in order.
+    fragment: 1
+  - key: copy.033
+    zh: "\u914D\u65B9\u6210\u672C\u914D\u7F6E\u65E0\u6548\u3002"
+    en: This recipe has an invalid material cost.
+    fragment: 1
+  - key: copy.034
+    zh: "\u5236\u4F5C\u6750\u6599\u4E0D\u8DB3\u3002"
+    en: Not enough crafting materials.
+    fragment: 1
+  - key: copy.035
+    zh: "\u5F00\u59CB\u81EA\u52A8\u5236\u4F5C\uFF0C\u79BB\u5F00\u5DE5\u4F5C\u53F0\u4ECD\u4F1A\u7EE7\u7EED\u3002"
+    en: ' is now crafting automatically. Work continues after you leave the bench.'
+    fragment: 1
+  - key: copy.036
+    zh: "\u5DF2\u53D6\u6D88"
+    en: 'Cancelled: '
+    fragment: 1
+  - key: copy.037
+    zh: "\u4F5C\u4E1A"
+    en: Job
+    fragment: 1
+  - key: copy.038
+    zh: "\uFF0C\u5DF2\u6295\u5165\u6750\u6599\u4E0D\u4E88\u8FD4\u8FD8\u3002"
+    en: . Materials already committed are not refunded.
+    fragment: 1
+  - key: copy.039
+    zh: "\u79D2"
+    en: s
+    fragment: 1
+  - key: copy.040
+    zh: "\u8282\u594F\u9519\u8FC7 \xB7 \u81EA\u52A8\u5236\u4F5C\u7EE7\u7EED"
+    en: "Missed beat \xB7 Automatic crafting continues"
+    fragment: 1
+  - key: story.radio.antenna
+    zh: "\u65E0\u7EBF\u75351/3\uFF1A\u300C\u2026\u2026\u6709\u4EBA\u5417\uFF1F\u6211\u4EEC\u5728\u4E1C\u8FB9\uFF0C\u6D6E\u7B4F\u4E0A\u8FD8\u6709\u5B69\u5B50\u2026\u2026\u300D"
+    en: 'Radio 1/3: ''...Can anyone hear us? We are to the east. There are children on our raft...'''
+    fragment: 1
+  - key: story.radio.receiver
+    zh: "\u65E0\u7EBF\u75352/3\uFF1A\u300C\u5750\u6807\u786E\u8BA4\uFF0C\u5411\u4E1C\u3002\u6D6E\u7B4F\u6491\u4E0D\u4E86\u591A\u4E45\u3002\u300D"
+    en: 'Radio 2/3: ''Coordinates confirmed. Head east. Our raft will not hold much longer.'''
+    fragment: 1
+  - key: story.radio.amplifier
+    zh: "\u65E0\u7EBF\u75353/3\uFF1A\u6211\u4EEC\u80FD\u547C\u6551\u81EA\u5DF1\u4E86\u3002\u4F46\u4ED6\u4EEC\u7684\u4FE1\u53F7\u5728\u53D8\u5F31\u3002\u53BB\u63A5\u4ED6\u4EEC\uFF01"
+    en: 'Radio 3/3: We can call for help now, but their signal is fading. Let''s bring them home!'
+    fragment: 1
+  - key: copy.044
+    zh: "\u5DF2\u5B8C\u6210\uFF0C\u4EA7\u7269\u8FDB\u5165\u5171\u4EAB\u4ED3\u5E93\u3002"
+    en: ' completed. Its output is in shared storage.'
+    fragment: 1
+  - key: copy.045
+    zh: "\u7B49\u5F85\u7B2C4\u65E5"
+    en: Wait for Day 4
+    fragment: 1
+  - key: story.day1
+    zh: "\u5931\u8054\u7B2C1\u5929\uFF1A\u6253\u635E\u7269\u8D44\uFF0C\u4FEE\u597D\u7535\u8DEF\u4E0E\u5F15\u64CE\u3002\u6F5C\u6C34\u5458\u53EA\u80FD\u7531\u8239\u957F\u7EDE\u76D8\u63A5\u56DE\u3002"
+    en: 'Day 1, lost at sea: Salvage supplies and repair the electrical system and engine. The captain must winch the diver aboard.'
+    fragment: 1
+  - key: story.day2
+    zh: "\u7B2C2\u5929\uFF1A\u5929\u6C14\u6B63\u5728\u6076\u5316\u3002\u8EB2\u5165\u8239\u8231\uFF0C\u96F7\u51FB\u4F1A\u4F7F\u8239\u5458\u5012\u5730\u3002"
+    en: 'Day 2: The weather is worsening. Take shelter in the cabin; lightning can knock crew members down.'
+    fragment: 1
+  - key: story.day3
+    zh: "\u7B2C3\u5929\uFF1A\u58F0\u5450\u4E0B\u65B9\u51FA\u73B0\u5DE8\u5F71\u3002\u51C6\u5907\u9C7C\u53C9\u3001\u5C04\u77DB\u67AA\u6216\u7532\u677F\u70AE\u5854\u3002"
+    en: 'Day 3: Sonar has detected a huge shape below. Prepare a harpoon, speargun or deck turret.'
+    fragment: 1
+  - key: story.day4
+    zh: "\u7B2C4\u5929\uFF1A\u641C\u6551\u9891\u9053\u5F00\u542F\u3002\u5B8C\u6210\u4E09\u7EA7\u7535\u53F0\uFF0C\u5411\u4E1C\u822A\u884C\u63A5\u56DE\u5E78\u5B58\u8005\u3002"
+    en: 'Day 4: The rescue channel is open. Finish the three radio components and sail east to recover the survivors.'
+    fragment: 1
+  - key: story.newday
+    zh: "\u65B0\u7684\u4E00\u5929\uFF1A\u7EE7\u7EED\u53D1\u9001\u6C42\u6551\u4FE1\u53F7\uFF0C\u5408\u4F5C\u5B88\u4F4F\u8FD9\u6761\u8239\u3002"
+    en: 'A new day: Keep sending the distress signal and work together to protect the boat.'
+    fragment: 1
+  - key: copy.051
+    zh: "\u8239\u4F53\u5931\u53BB\u6D6E\u529B\u3002\u6551\u63F4\u672A\u80FD\u62B5\u8FBE\u3002"
+    en: The hull has lost buoyancy. Rescue did not arrive in time.
+    fragment: 1
+  - key: copy.052
+    zh: "\u6F5C\u6C34\u5458\u85CF\u8EAB\u4E8E\u5E9F\u589F\u9634\u5F71\u3002"
+    en: The diver is hiding in the shadows of the ruins.
+    fragment: 1
+  - key: copy.053
+    zh: "\u6F5C\u6C34\u5458\u79BB\u5F00\u85CF\u8EAB\u5904\u3002"
+    en: The diver has left cover.
+    fragment: 1
+  - key: copy.054
+    zh: "\u5DF2\u7ECF\u62B5\u8FBE\u8239\u5E95\u3002\u8BF7\u8239\u957F\u6253\u5F00\u7EDE\u76D8\u63A5\u56DE\uFF1B\u6F5C\u6C34\u5458\u65E0\u6CD5\u81EA\u884C\u767B\u8239\u3002"
+    en: You are beneath the boat. Ask the captain to use the winch; the diver cannot climb aboard alone.
+    fragment: 1
+  - key: copy.055
+    zh: "\u540C\u4F34\u6B63\u5728\u638C\u8235\uFF0C\u5148\u8BF7\u5BF9\u65B9\u79BB\u5F00\u8239\u8235\u3002"
+    en: Your teammate is at the helm. Ask them to release it first.
+    fragment: 1
+  - key: copy.056
+    zh: "\u7EDE\u76D8\u9700\u8981\u8239\u957F\u64CD\u4F5C\u3002\u6F5C\u6C34\u5458\u53EF\u4F7F\u7528\u5176\u4ED6\u8239\u4E0A\u8BBE\u65BD\u3002"
+    en: The captain must operate the winch. The diver can use the other stations aboard.
+    fragment: 1
+  - key: copy.057
+    zh: "\u6F5C\u6C34\u5458\u5165\u6C34\u3002\u6309\u4F4F\u91C7\u96C6\u952E\u6253\u635E\uFF0CEnter \u5C06\u80CC\u5305\u6700\u540E\u4E00\u4EF6\u653E\u5165\u9644\u8FD1\u8D27\u7BB1\u3002"
+    en: Diver in the water. Hold Collect to salvage; press Enter to load the last backpack item into a nearby crate.
+    fragment: 1
+  - key: copy.058
+    zh: "\u5347\u7EA7\u6750\u6599\u4E0D\u8DB3\u3002\u5148\u6253\u635E\u5E76\u5236\u4F5C\u94C1\u677F\u4E0E\u6728\u677F\u3002"
+    en: Not enough upgrade materials. Salvage resources and craft iron plates and planks first.
+    fragment: 1
+  - key: copy.059
+    zh: "\u5347\u7EA7\u5B8C\u6210\uFF1A"
+    en: 'Upgrade complete: '
+    fragment: 1
+  - key: copy.060
+    zh: "\u6253\u635E \u2192 \u8239\u957F\u7EDE\u76D8\u63A5\u56DE\u5165\u5E93 \u2192 \u5236\u4F5C\u94C1\u677F/\u7EA4\u7EF4\u675F \u2192 \u4FEE\u590D\u7535\u8DEF"
+    en: "Salvage \u2192 Captain winches diver aboard \u2192 Craft iron plates / fiber bundles \u2192 Repair the electrical system"
+    fragment: 1
+  - key: copy.061
+    zh: "\u5236\u4F5C\u6C42\u6551\u5929\u7EBF \u2192 \u63A5\u6536\u5668 \u2192 \u4FE1\u53F7\u653E\u5927\u5668\uFF08"
+    en: "Build the antenna \u2192 Receiver \u2192 Amplifier ("
+    fragment: 1
+  - key: copy.062
+    zh: "/3\uFF09\uFF1B\u4FEE\u590D\u5F15\u64CE\u53EF\u63D0\u5347\u822A\u901F"
+    en: /3). Repairing the engine increases sailing speed.
+    fragment: 1
+  - key: copy.063
+    zh: "\u603B\u63A7\u542F\u52A8\u6551\u63F4\u822A\u7A0B\uFF1B\u51C6\u5907\u81F3\u5C1180%\u52A8\u529B\uFF0C\u63A5\u56DE\u6F5C\u6C34\u5458\u540E\u5411\u4E1C\u822A\u884C"
+    en: Start the rescue voyage at the systems console. Prepare at least 80% power, recover the diver and sail east.
+    fragment: 1
+  - key: copy.064
+    zh: "\u7B49\u5F85\u7B2C4\u65E5\u6551\u63F4\u9891\u9053\uFF0C\u5148\u4FEE\u8239\u5907\u7269\u8D44\uFF1B\u5F53\u524D\u7B2C"
+    en: 'Wait for the Day 4 rescue channel. Repair the boat and gather supplies; current day: '
+    fragment: 1
+  - key: copy.065
+    zh: "\u65E5"
+    en: ' day'
+    fragment: 1
+  - key: copy.066
+    zh: "\u6551\u63F4\u822A\u7A0B\uFF1A\u5411\u4E1C\u822A\u884C\u81F3\u4FE1\u53F7\u6D6E\u6807\uFF08"
+    en: 'Rescue voyage: Sail east to the signal buoy ('
+    fragment: 1
+  - key: copy.067
+    zh: "\u8239\u957F\u64CD\u4F5C\u7EDE\u76D8\u63A5\u56DE\u5E78\u5B58\u8005\uFF1A"
+    en: 'Captain: Use the winch to recover the survivors: '
+    fragment: 1
+  - key: copy.068
+    zh: "\u65B0\u7684\u4E00\u5929\uFF0C\u6D77\u5E95\u9057\u8FF9\u4E0E\u7269\u8D44\u5DF2\u5237\u65B0\u3002\u5DF2\u6302\u8F7D\u8D27\u7BB1\u3001\u80CC\u5305\u548C\u8239\u4E0A\u5347\u7EA7\u4FDD\u7559\u3002"
+    en: 'A new day: The ruins and supplies have refreshed. Attached cargo, backpacks and boat upgrades are preserved.'
+    fragment: 1
+  - key: copy.069
+    zh: "\u6DF1\u6E0A\u5DE8\u5F71\u6B63\u5728\u9760\u8FD1\u3002\u6BCF\u6B21\u6A2A\u626B\u524D\u90FD\u6709\u660E\u663E\u84C4\u529B\uFF0C\u547D\u4E2D20\u6B21\u53EF\u5C06\u5B83\u903C\u9000\u3002"
+    en: A huge abyssal shadow is approaching. Watch its windup before each sweep. Land 20 hits to drive it away.
+    fragment: 1
+  - key: copy.070
+    zh: "\u8BF1\u9975\u6295\u5165\u6C34\u4E2D\uFF0C\u9644\u8FD1\u9CA8\u9C7C\u6682\u65F6\u8F6C\u79FB\u6CE8\u610F\u529B\u3002"
+    en: Bait deployed. Nearby sharks are temporarily distracted.
+    fragment: 1
+  - key: copy.071
+    zh: "\u7532\u677F\u70AE\u5854\u5DF2\u5B89\u88C5\u3002\u6BCF3\u79D2\u6D88\u80171%\u7535\u529B\uFF0C\u81EA\u52A8\u9A71\u9E1F\u5E76\u5BF9\u6297\u6DF1\u6E0A\u5DE8\u5F71\u3002"
+    en: Deck turret installed. Uses 1% power every 3 seconds to drive away birds and fight the abyssal shadow.
+    fragment: 1
+  - key: copy.072
+    zh: "\u96F7\u51FB\u51FB\u5012\u4E86"
+    en: 'Lightning knocked down '
+    fragment: 1
+  - key: copy.073
+    zh: "\uFF01\u540C\u4F34\u9760\u8FD1\u6309\u4EA4\u4E92\u6551\u52A9\uFF0C\u8239\u8231\u53EF\u8EB2\u907F\u96F7\u51FB\u3002"
+    en: '! Hold Interact nearby to help them. The cabin provides shelter from lightning.'
+    fragment: 1
+  - key: copy.074
+    zh: "\u96F7\u51FB\u635F\u574F\u4E86\u5F15\u64CE"
+    en: Lightning damaged the engine
+    fragment: 1
+  - key: copy.075
+    zh: "\u96F7\u51FB\u9884\u8B66\uFF1A"
+    en: 'Lightning warning: '
+    fragment: 1
+  - key: copy.076
+    zh: "\u5C3D\u5FEB\u8FDB\u5165\u8239\u8231\uFF01"
+    en: ', get into the cabin now!'
+    fragment: 1
+  - key: copy.077
+    zh: "\u4F4E\u7535\u91CF\u822A\u884C\u4F7F\u5F15\u64CE\u8FC7\u8F7D"
+    en: Low-power sailing overloaded the engine
+    fragment: 1
+  - key: copy.078
+    zh: "\u624B\u6447\u53D1\u7535 +"
+    en: Hand crank +
+    fragment: 1
+  - key: copy.079
+    zh: "\u8282\u594F\u9519\u8FC7\uFF0C\u6CA1\u6709\u4EA7\u751F\u7535\u529B\u3002"
+    en: Missed beat. No electricity was generated.
+    fragment: 1
+  - key: copy.080
+    zh: "\u71C3\u6CB9\u673A\u5DF2\u5B89\u88C5\uFF0C\u53EF\u6D88\u8017\u71C3\u6CB9\u4E3A\u6574\u8239\u53D1\u7535\u3002"
+    en: Fuel generator installed. Burn fuel to power the boat.
+    fragment: 1
+  - key: copy.081
+    zh: "\u71C3\u6CB9\u53D1\u7535 +"
+    en: Fuel power +
+    fragment: 1
+  - key: copy.082
+    zh: "\u7535\u9CD7\u6210\u4E3A\u6574\u8239\u65E0\u9650\u7535\u6E90\uFF1A\u8239\u4F53\u4E0A\u9650\u63D0\u534730%\uFF0C\u822A\u901F\u63D0\u534720%\u3002"
+    en: 'The electric eel now powers the whole boat: unlimited electricity, +30% maximum hull and +20% sailing speed.'
+    fragment: 1
+  - key: copy.083
+    zh: "\u7535\u529B\u8017\u5C3D\uFF0C\u7535\u52A8\u7EDE\u76D8\u505C\u6B62\u3002\u8239\u957F\u4ECD\u53EF\u624B\u52A8\u6536\u7EF3\u3002"
+    en: Power depleted. The electric winch has stopped; the captain can still pull manually.
+    fragment: 1
+  - key: copy.084
+    zh: "\u4FEE\u590D\u7535\u8DEF\u540E\u624D\u80FD\u542F\u7528\u63A2\u7167\u706F\u3002"
+    en: Repair the electrical system before using the searchlight.
+    fragment: 1
+  - key: copy.085
+    zh: "\u63A2\u7167\u706F\u5F00\u542F\uFF0C\u7167\u4EAE\u8239\u4E0B\u6C34\u57DF\u3002"
+    en: Searchlight on. The water beneath the boat is illuminated.
+    fragment: 1
+  - key: copy.086
+    zh: "\u63A2\u7167\u706F\u5173\u95ED\u3002"
+    en: Searchlight off.
+    fragment: 1
+  - key: copy.087
+    zh: "\u4FEE\u7406\u6750\u6599\u4E0D\u8DB3\u3002\u5F15\u64CE\u9996\u6B21\u9700\u89813\u5757\u94C1\u677F\uFF0C\u4E4B\u540E\u635F\u574F\u53EF\u514D\u8D39\u91CD\u4FEE\u3002"
+    en: Not enough repair materials. The first engine repair costs 3 iron plates; later repairs are free.
+    fragment: 1
+  - key: copy.088
+    zh: "\u6D77\u6C34\u8FC7\u6EE4\u5668\u4FEE\u590D\uFF0C\u53CC\u65B9\u79FB\u52A8\u901F\u5EA6\u6C38\u4E45\u63D0\u534710%\u3002"
+    en: Water filter repaired. Both crew members permanently move 10% faster.
+    fragment: 1
+  - key: copy.089
+    zh: "\u7535\u8DEF\u4FEE\u590D\u3002\u63A2\u7167\u706F\u3001\u6C42\u6551\u7535\u53F0\u4E0E\u70AE\u5854\u73B0\u5728\u53EF\u4EE5\u5DE5\u4F5C\u3002"
+    en: Electrical system repaired. The searchlight, distress radio and turret are now available.
+    fragment: 1
+  - key: copy.090
+    zh: "\u56DB\u5904\u5F15\u64CE\u6545\u969C\u5DF2\u6392\u9664\uFF0C\u822A\u901F\u63D0\u534740%\u3002\u540E\u7EED\u53D7\u635F\u4E0D\u518D\u6D88\u8017\u6750\u6599\u3002"
+    en: All four engine faults are fixed. Sailing speed increased by 40%; future repairs cost no materials.
+    fragment: 1
+  - key: copy.091
+    zh: "\u3002\u56DB\u5904\u65B0\u6545\u969C\u5DF2\u51FA\u73B0\uFF0C\u53EF\u514D\u8D39\u91CD\u4FEE\u3002"
+    en: . Four new faults have appeared. Repair them without spending materials.
+    fragment: 1
+  - key: copy.092
+    zh: "\u7EF4\u4FEE\u90E8\u4EF6\u4E0D\u5339\u914D\uFF1B\u5148\u8BC6\u522B\u6CB9\u6C61\u4E0B\u7684\u6545\u969C\u7C7B\u578B\u3002"
+    en: Wrong replacement part. Identify the fault beneath the grease first.
+    fragment: 1
+  - key: copy.093
+    zh: "\u9493\u83B7\u666E\u901A\u9C7C\uFF0C\u53EF\u5728\u5236\u4F5C\u53F0\u52A0\u5DE5\u6210\u8BF1\u9975\u3002"
+    en: Caught an ordinary fish. Craft it into bait at the workbench.
+    fragment: 1
+  - key: copy.094
+    zh: "\u79FB\u52A8\u901F\u5EA6\u63D0\u534710%"
+    en: Move speed +10%
+    fragment: 1
+  - key: copy.095
+    zh: "\u5236\u4F5CQTE\u589E\u76CA\u63D0\u534720%"
+    en: Crafting QTE bonus +20%
+    fragment: 1
+  - key: copy.096
+    zh: "\u653B\u51FB\u529B\u63D0\u534710%"
+    en: Attack damage +10%
+    fragment: 1
+  - key: copy.097
+    zh: "\u6F5C\u6C34\u5458\u80CC\u5305\u5BB9\u91CF\u589E\u52A01\u683C"
+    en: Diver backpack capacity +1 slot
+    fragment: 1
+  - key: copy.098
+    zh: "\u8239\u4F53\u6062\u590D10%"
+    en: Hull restored by 10%
+    fragment: 1
+  - key: copy.099
+    zh: "\u6F5C\u6C34\u5458\u6C27\u6C14\u4E0A\u9650\u589E\u52A010%"
+    en: Diver oxygen capacity +10%
+    fragment: 1
+  - key: copy.100
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A"
+    en: 'Quality fish eaten: '
+    fragment: 1
+  - key: copy.101
+    zh: "\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: ' for 120 seconds.'
+    fragment: 1
+  - key: copy.102
+    zh: "\u6551\u63F4\u822A\u7A0B\u9700\u8981\u5B8C\u6574\u4E09\u7EA7\u7535\u53F0\u4E0E\u4FEE\u590D\u7535\u8DEF\uFF0C\u5E76\u63A5\u56DE\u6F5C\u6C34\u5458\u3002\u4FEE\u597D\u5F15\u64CE\u80FD\u52A0\u5FEB\u822A\u884C\u3002"
+    en: The rescue voyage requires all three radio components, a repaired electrical system and the diver aboard. Repairing the engine makes sailing faster.
+    fragment: 1
+  - key: copy.103
+    zh: "\u6551\u63F4\u822A\u7A0B\u5DF2\u767B\u8BB0\u3002\u7B49\u5F85\u7B2C4\u65E5\u6551\u63F4\u9891\u9053\uFF0C\u5148\u4FEE\u8239\u3001\u51C6\u5907\u7269\u8D44\u548C\u52A8\u529B\uFF1B\u6E38\u620F\u65F6\u95F4\u7EE7\u7EED\u81EA\u7136\u6D41\u901D\u3002"
+    en: Rescue voyage registered. Wait for the Day 4 channel; repair the boat and prepare supplies and power. Game time continues naturally.
+    fragment: 1
+  - key: copy.104
+    zh: "\u7B2C4\u7AE0\uFF1A\u641C\u6551\u9891\u9053\u9501\u5B9A\u4E1C\u4FA7\u4FE1\u53F7\u3002\u5411\u4E1C\u822A\u884C\uFF0C\u7528\u8239\u957F\u7EDE\u76D8\u63A5\u56DE\u5E78\u5B58\u8005\u3002"
+    en: 'Chapter 4: The rescue channel has locked onto an eastern signal. Sail east and use the captain''s winch to recover the survivors.'
+    fragment: 1
+  - key: story.ending.success
+    zh: "\u6551\u751F\u7D22\u63A5\u4F4F\u4E86\u6700\u540E\u4E00\u540D\u5E78\u5B58\u8005\u3002\u5931\u8054\u7ED3\u675F\u2014\u2014\u4F60\u4EEC\u5171\u540C\u6D3B\u5230\u4E86\u6551\u63F4\u5230\u6765\u3002"
+    en: 'The lifeline catches the final survivor. Lost no longer: together, you held on until rescue arrived.'
+    fragment: 1
+  - key: copy.106
+    zh: "\u6C27\u6C14\u8017\u5C3D"
+    en: Oxygen depleted
+    fragment: 1
+  - key: copy.107
+    zh: "\uFF0C\u6F5C\u6C34\u5458\u660F\u53A5\u3002\u7F13\u6162\u62D6\u5411\u8239\u5E95\uFF0C\u4ECD\u9700\u8239\u957F\u7528\u7EDE\u76D8\u63A5\u56DE\uFF1B\u4E00\u534A\u80CC\u5305\u7269\u8D44\u7559\u5728\u539F\u5904\u3002"
+    en: . The diver has fainted and is drifting slowly toward the boat, but the captain must finish the winch recovery. Half the backpack remains at the dive site.
+    fragment: 1
+  - key: copy.108
+    zh: "\u9CA8\u9C7C\u54AC\u4F24"
+    en: Shark bite
+    fragment: 1
+  - key: copy.109
+    zh: "\u6F5C\u6C34\u670D\u514D\u75AB\u4E86\u8FD9\u6B21\u653B\u51FB\u3002"
+    en: The diving suit blocked this attack.
+    fragment: 1
+  - key: copy.110
+    zh: "\u6389\u843D1\u4EF6\u80CC\u5305\u7269\u8D44\u3002"
+    en: One backpack item was lost.
+    fragment: 1
+  - key: copy.111
+    zh: "\u7528\u9C7C\u53C9\u53CD\u51FB\u6216\u6295\u653E\u8BF1\u9975\u3002"
+    en: Fight back with a harpoon or throw bait.
+    fragment: 1
+  - key: copy.112
+    zh: "\u6F5C\u6C34\u670D\u627F\u4F24\u6B21\u6570\u8017\u5C3D"
+    en: The diving suit has taken its maximum number of hits
+    fragment: 1
+  - key: copy.113
+    zh: "\u8239\u957F\u9700\u8981\u6765\u5230\u7EDE\u76D8\u65C1\u64CD\u4F5C\u3002"
+    en: The captain needs to stand beside the winch.
+    fragment: 1
+  - key: copy.114
+    zh: "\u8239\u957F\u542F\u52A8\u4E86\u7535\u52A8\u7EDE\u76D8\uFF0C\u5173\u95ED\u9762\u677F\u540E\u4ECD\u4F1A\u7EE7\u7EED\u63A5\u56DE\u76EE\u6807\u3002"
+    en: The captain started the electric winch. Recovery continues after closing this panel.
+    fragment: 1
+  - key: copy.115
+    zh: "\u624B\u52A8\u7EDE\u76D8\u7F13\u6162\u6536\u7EF3\u3002\u6210\u529F\u6821\u51C6\u52A0\u8FDB\u5EA6\uFF0C\u5931\u8D25\u4F1A\u56DE\u6ED1\u3002"
+    en: The manual winch pulls slowly. A correct QTE adds progress; a missed QTE slips backward.
+    fragment: 1
+  - key: copy.116
+    zh: "\u6821\u51C6\u6210\u529F +"
+    en: Calibration success +
+    fragment: 1
+  - key: copy.117
+    zh: "\u6821\u51C6\u5931\u8D25 \u2212"
+    en: "Calibration failed \u2212"
+    fragment: 1
+  - key: copy.118
+    zh: "\u8D27\u7BB1\u540A\u8FD0\u5B8C\u6210\uFF0C\u53EA\u6709\u5B9E\u9645\u88C5\u5165\u7684\u7269\u8D44\u8FDB\u5165\u4E86\u4ED3\u5E93\u3002"
+    en: Cargo recovered. Only the supplies actually loaded have entered storage.
+    fragment: 1
+  - key: copy.119
+    zh: "\u63A5\u56DE\u5B8C\u6210"
+    en: Recovery complete
+    fragment: 1
+  - key: copy.120
+    zh: "\u8239\u957F\u63A5\u56DE\u6F5C\u6C34\u5458\uFF0C"
+    en: 'The captain recovered the diver. '
+    fragment: 1
+  - key: copy.121
+    zh: "\u4EF6\u7269\u8D44\u5DF2\u5378\u5165\u5171\u4EAB\u4ED3\u5E93\u3002"
+    en: ' items have entered shared storage.'
+    fragment: 1
+  - key: copy.122
+    zh: "\u9760\u8FD1\u5012\u5730\u6F5C\u6C34\u5458\u6309\u4EA4\u4E92\u8FDB\u884C\u6551\u52A9\u3002"
+    en: Stand beside the downed diver and hold Interact to help them.
+    fragment: 1
+  - key: copy.123
+    zh: "\u6F5C\u6C34\u5458\u4FE1\u53F7\uFF1A\u8BF7\u6C42\u8239\u957F\u6536\u7EF3\u3002"
+    en: 'Diver signal: Captain, please pull the rope.'
+    fragment: 1
+  - key: copy.124
+    zh: "\u6F5C\u6C34\u5458\u53CC\u4FE1\u53F7\uFF1A\u4F18\u5148\u540A\u8FD0\u5DF2\u6302\u8F7D\u8D27\u7BB1\u3002"
+    en: 'Diver double signal: Prioritize attached cargo.'
+    fragment: 1
+  - key: copy.125
+    zh: "\u6F5C\u6C34\u5458\u7D27\u6025\u4E09\u4FE1\u53F7\uFF1A\u8BF7\u8239\u957F\u7ACB\u5373\u64CD\u4F5C\u7EDE\u76D8\uFF01"
+    en: 'Diver triple signal: Emergency! Captain, operate the winch now!'
+    fragment: 1
+  - key: copy.126
+    zh: "\u8FDE\u7EED\u6551\u751F\u4FE1\u53F7\u5DF2\u89E6\u53D1\u7535\u52A8\u7EDE\u76D8\uFF0C\u6B63\u5728\u81EA\u52A8\u63A5\u56DE\u6F5C\u6C34\u5458\u3002"
+    en: The signal sequence activated the electric winch. The diver is being recovered automatically.
+    fragment: 1
+  - key: copy.127
+    zh: "\u6309\u4F4F\u4EA4\u4E925\u79D2\uFF0C\u6276\u8D77"
+    en: 'Hold Interact for 5 seconds to revive '
+    fragment: 1
+  - key: copy.128
+    zh: "\uFF1B\u677E\u5F00\u6216\u79BB\u5F00\u4F1A\u4E2D\u65AD\u3002"
+    en: . Releasing or moving away interrupts the rescue.
+    fragment: 1
+  - key: copy.129
+    zh: "\u6276\u8D77\u4E86"
+    en: ' revived '
+    fragment: 1
+  - key: recovery.crew.wipe
+    zh: "\u4E24\u540D\u8239\u5458\u5728\u6551\u751F\u5E73\u53F0\u82CF\u9192\uFF1A\u4ED3\u5E93\u3001\u80CC\u5305\u3001\u6302\u8F7D\u8D27\u7269\u4E0E\u5236\u4F5C\u4E2D\u7684\u7269\u8D44\u9057\u5931\uFF1B\u5DF2\u5B89\u88C5\u8BBE\u5907\u4E0E\u5347\u7EA7\u4FDD\u7559\u3002"
+    en: Both crew members wake on the rescue platform. Storage, backpacks, attached cargo and unfinished jobs were lost. Installed equipment and upgrades remain.
+    fragment: 1
+  - key: copy.131
+    zh: "\u6DF1\u6E0A\u5DE8\u5F71\u6A2A\u626B"
+    en: Abyssal shadow sweep
+    fragment: 1
+  - key: combat.shadow.defeated
+    zh: "\u7B2C20\u6B21\u547D\u4E2D\uFF01\u6DF1\u6E0A\u5DE8\u5F71\u9000\u56DE\u4E86\u9ED1\u6697\uFF0C\u6551\u63F4\u822A\u9053\u6682\u65F6\u5B89\u5168\u3002"
+    en: Hit 20! The abyssal shadow retreats into darkness. The rescue route is safe for now.
+    fragment: 1
+  - key: copy.133
+    zh: "\u53D8\u5F02\u767D\u9CA8\u5DF2\u51FB\u9000\u3002"
+    en: Mutant white shark driven away.
+    fragment: 1
+  - key: copy.134
+    zh: "\u6D77\u9E1F\u5DF2\u9A71\u79BB\u3002"
+    en: Seabird driven away.
+    fragment: 1
+  - key: copy.135
+    zh: "\u9CA8\u9C7C\u5DF2\u9A71\u79BB\u3002"
+    en: Shark driven away.
+    fragment: 1
+  - key: copy.136
+    zh: "\u672A\u7ED1\u5B9A"
+    en: Unbound
+    fragment: 1
+  - key: copy.137
+    zh: "\u7ED1\u5B9A\u4E0D\u5B58\u5728"
+    en: Binding not found
+    fragment: 1
+  - key: copy.138
+    zh: "\u8BF7\u9009\u62E9\u4E0A\u3001\u4E0B\u3001\u5DE6\u3001\u53F3\u4E2D\u7684\u4E00\u4E2A\u65B9\u5411"
+    en: 'Choose one of the four movement directions: up, down, left or right'
+    fragment: 1
+  - key: copy.139
+    zh: "\u672C\u5730\u8239\u957F"
+    en: Local Captain
+    fragment: 1
+  - key: copy.140
+    zh: "\u672C\u5730\u6F5C\u6C34\u5458"
+    en: Local Diver
+    fragment: 1
+  - key: copy.141
+    zh: " \xB7 \u70B9\u51FB\u4E00\u4E2A\u7ED1\u5B9A\u540E\u6309\u65B0\u952E\uFF1BEsc \u53D6\u6D88\u3002"
+    en: " \xB7 Select a binding, then press the new key. Esc cancels."
+    fragment: 1
+  - key: copy.142
+    zh: "\u8BF7\u6309\u65B0\u952E \xB7 Esc \u53D6\u6D88"
+    en: "Press a new key \xB7 Esc cancels"
+    fragment: 1
+  - key: copy.143
+    zh: "\u666E\u901A\u4F5C\u4E1A "
+    en: 'Standard job: '
+    fragment: 1
+  - key: copy.144
+    zh: "\u79D2\uFF1B\u5FEB\u901F\u4FEE\u8865\u7528\u65F6\u51CF\u534A\u3002\u6821\u51C6\u6210\u529F\u52A0\u8FDB\u5EA6\uFF0C\u79BB\u5F00\u4ECD\u7EE7\u7EED\uFF0C\u4E0D\u8FD4\u8FD8\u5DF2\u6295\u5165\u6750\u6599\u3002"
+    en: s. Quick repairs take half as long. QTE hits add progress; work continues when you leave. Committed materials are not refunded.
+    fragment: 1
+  - key: copy.145
+    zh: "\u9009\u62E9\u6821\u51C6\uFF1A"
+    en: 'Calibrate: '
+    fragment: 1
+  - key: copy.146
+    zh: "\u8BBE\u65BD\u5347\u7EA7\u548C\u6551\u63F4\u822A\u7A0B\u3002\u822A\u884C\u8BF7\u524D\u5F80\u65C1\u8FB9\u72EC\u7ACB\u8239\u8235\u3002"
+    en: Equipment upgrades and rescue voyage. Use the separate helm nearby to sail.
+    fragment: 1
+  - key: copy.147
+    zh: " / T2\u5224\u5B9A\u518D+10%\uFF0CT3\u7535\u52A8"
+    en: ' / T2: +10% QTE window; T3: electric winch'
+    fragment: 1
+  - key: copy.148
+    zh: " / \u5236\u4F5C35\u219225\u219220s\uFF0CT3\u53CC\u4F5C\u4E1A"
+    en: " / Crafting: 35\u219225\u219220s; T3: two jobs"
+    fragment: 1
+  - key: copy.149
+    zh: "\u70AE\u5854 "
+    en: 'Turret '
+    fragment: 1
+  - key: copy.150
+    zh: "\u5173\u95ED"
+    en: Off
+    fragment: 1
+  - key: copy.151
+    zh: "\u5F00\u542F"
+    en: On
+    fragment: 1
+  - key: copy.152
+    zh: "\u5EFA\u9020\u70AE\u5854\uFF1A3\u6728\u677F 3\u94C1\u677F 1\u7EA4\u7EF4\u675F"
+    en: 'Build turret: 3 planks, 3 iron plates, 1 fiber bundle'
+    fragment: 1
+  - key: copy.153
+    zh: "\u5B8C\u6210\u7535\u53F0\u540E\uFF1A\u5411\u4E1C\u542F\u7A0B\u6551\u63F4"
+    en: 'Radio complete: Begin the rescue voyage east'
+    fragment: 1
+  - key: copy.154
+    zh: "\u57FA\u7840\u5224\u5B9A +10%\uFF1BT2\u7D2F\u8BA1 +20%\u3002\u6210\u529F\u7ACB\u5373\u6536\u7EF3\uFF0C\u5931\u8D25\u56DE\u6ED1\u3002"
+    en: Base QTE window +10%; T2 reaches +20%. Success pulls immediately; failure slips backward.
+    fragment: 1
+  - key: copy.155
+    zh: "\u8282\u594F\u6821\u51C6 ["
+    en: Calibrate rhythm [
+    fragment: 1
+  - key: copy.156
+    zh: "\u624B\u6447\u6BCF3\u79D2\u6210\u529F +1%\uFF1B1\u94C1\u677F\u5347\u7EA7\u71C3\u6CB9\u673A\uFF0C\u6BCF\u6876 +25%\u3002\u5347\u7EA7\u540E\u4ECD\u53EF\u624B\u6447\u3002"
+    en: 'Hand crank: +1% per correct 3-second beat. Upgrade with 1 iron plate; each fuel gives +25%. Cranking remains available.'
+    fragment: 1
+  - key: copy.157
+    zh: "\u8282\u594F\u53D1\u529B ["
+    en: Crank on the beat [
+    fragment: 1
+  - key: copy.158
+    zh: "\u3010\u5347\u7EA7\u3011\u71C3\u6CB9\u53D1\u7535\u673A\uFF1A1 \u94C1\u677F"
+    en: '[Upgrade] Fuel generator: 1 iron plate'
+    fragment: 1
+  - key: copy.159
+    zh: "\u6D88\u80171\u71C3\u6CB9 / +25%\u7535\u529B"
+    en: Use 1 fuel / +25% power
+    fragment: 1
+  - key: copy.160
+    zh: "\u5B89\u88C5\u7535\u9CD7\uFF1A\u65E0\u9650\u52A8\u529B / +30%\u8010\u4E45 / +20%\u822A\u901F"
+    en: 'Install eel: Unlimited power / +30% hull / +20% speed'
+    fragment: 1
+  - key: copy.161
+    zh: "\u7535\u8DEF\u4E0E\u7535\u91CF\u5145\u8DB3\u65F6\u6709\u6548\uFF1BT2\u591C\u95F4\u5168\u89C6\u91CE\uFF0C\u591C\u9E1F\u5237\u65B0\u51CF\u5C1140%\u3002"
+    en: Requires working electricity and power. T2 grants full night visibility and reduces night bird spawns by 40%.
+    fragment: 1
+  - key: copy.162
+    zh: "\u5173\u95ED\u63A2\u7167\u706F"
+    en: Switch searchlight off
+    fragment: 1
+  - key: copy.163
+    zh: "\u5F00\u542F\u63A2\u7167\u706F"
+    en: Switch searchlight on
+    fragment: 1
+  - key: copy.164
+    zh: "\u81EA\u52A8\u9501\u5B9A\u6D77\u9E25\u548C\u6DF1\u6E0A\u4E4B\u5F71\uFF1B\u6BCF3\u79D2\u6D88\u80171%\u7535\u529B\u3002"
+    en: Automatically targets seabirds and the abyssal shadow. Uses 1% power every 3 seconds.
+    fragment: 1
+  - key: copy.165
+    zh: "\u5173\u95ED\u70AE\u5854"
+    en: Switch turret off
+    fragment: 1
+  - key: copy.166
+    zh: "\u5F00\u542F\u70AE\u5854"
+    en: Switch turret on
+    fragment: 1
+  - key: copy.167
+    zh: "\u5EFA\u9020\uFF1A3\u6728\u677F 3\u94C1\u677F 1\u7EA4\u7EF4\u675F"
+    en: 'Build: 3 planks, 3 iron plates, 1 fiber bundle'
+    fragment: 1
+  - key: copy.168
+    zh: "\u5148\u5236\u4F5C\u9493\u9C7C\u7AFF\u3002\u4F18\u8D28\u6982\u7387\uFF1A\u6D45\u6EE910% / \u4E2D\u5C4220% / \u6DF1\u6C3430%\uFF1B\u9493\u8D77\u81EA\u52A8\u4EAB\u7528\u3002"
+    en: 'Craft a fishing rod first. Quality chance: Shallows 10% / Middle 20% / Deep 30%. Quality fish are eaten immediately.'
+    fragment: 1
+  - key: copy.169
+    zh: "\u629B\u7AFF / \u6536\u7EBF"
+    en: Cast / Reel in
+    fragment: 1
+  - key: copy.170
+    zh: "\u6309\u4F4F\u6536\u7EBF / "
+    en: 'Hold to reel / '
+    fragment: 1
+  - key: copy.171
+    zh: "\u7AD9\u70B9\u5DF2\u51C6\u5907\u3002"
+    en: Station ready.
+    fragment: 1
+  - key: copy.172
+    zh: "\u8BBE\u5907\u8FD0\u884C\u6B63\u5E38\u3002"
+    en: The device is working normally.
+    fragment: 1
+  - key: copy.173
+    zh: "\u6D88\u80171\u94C1\u677F\uFF0C\u65CB\u8F6C\u7BA1\u9053\u628A\u5DE6\u4FA7\u5165\u53E3\u8FDE\u5230\u53F3\u4FA7\u51FA\u53E3\u3002"
+    en: Spend 1 iron plate. Rotate pipes to connect the left inlet to the right outlet.
+    fragment: 1
+  - key: copy.174
+    zh: "\u6D88\u80171\u7EA4\u7EF4\u675F\uFF0C\u9010\u6761\u8FDE\u63A5\u56DB\u8DEF\u540C\u540D\u7AEF\u5B50\u3002"
+    en: Spend 1 fiber bundle. Connect all four pairs of matching terminals.
+    fragment: 1
+  - key: copy.175
+    zh: "\u514D\u8D39\u91CD\u65B0\u68C0\u4FEE\uFF1A\u6E05\u7406\u56DB\u5904\u6CB9\u6C61\u5E76\u5339\u914D\u56DB\u79CD\u6545\u969C\u96F6\u4EF6\u3002"
+    en: 'Free repeat repair: Clean all four grease patches and match the four replacement parts.'
+    fragment: 1
+  - key: copy.176
+    zh: "\u521D\u6B21\u6D88\u80173\u94C1\u677F\uFF1A\u6E05\u7406\u56DB\u5904\u6CB9\u6C61\u5E76\u5339\u914D\u56DB\u79CD\u6545\u969C\u96F6\u4EF6\u3002"
+    en: 'First repair costs 3 iron plates: Clean all four grease patches and match the four replacement parts.'
+    fragment: 1
+  - key: copy.177
+    zh: "\u5F00\u59CB\u7EF4\u4FEE"
+    en: Start repair
+    fragment: 1
+  - key: copy.178
+    zh: "\u5165\u53E3\u7B2C"
+    en: 'Inlet row '
+    fragment: 1
+  - key: copy.179
+    zh: "\u884C\uFF0C\u51FA\u53E3\u7B2C"
+    en: '; outlet row '
+    fragment: 1
+  - key: copy.180
+    zh: "\u884C\u3002\u9010\u683C\u987A\u65F6\u9488\u65CB\u8F6C\u540E\u8BD5\u6C34\u3002"
+    en: . Rotate each tile clockwise, then test the water flow.
+    fragment: 1
+  - key: copy.181
+    zh: "\u52A0\u538B\u8BD5\u6C34"
+    en: Pressure test
+    fragment: 1
+  - key: copy.182
+    zh: "\u5C1A\u672A\u8FDE\u901A\u51FA\u53E3\uFF0C\u7EE7\u7EED\u8C03\u6574\u3002"
+    en: The outlet is not connected yet. Keep adjusting the pipes.
+    fragment: 1
+  - key: copy.183
+    zh: "\u5148\u9009\u7535\u6E90\u7AEF\uFF0C\u518D\u9009\u5BF9\u5E94\u8BBE\u5907\u7AEF\uFF1B\u56DB\u8DEF\u90FD\u63A5\u597D\u624D\u80FD\u4F9B\u7535\u3002"
+    en: Select a power terminal, then its matching device terminal. All four pairs must be connected.
+    fragment: 1
+  - key: copy.184
+    zh: "\u7535\u6E90 "
+    en: 'Power '
+    fragment: 1
+  - key: copy.185
+    zh: "\u5DF2\u9009\u7535\u6E90 "
+    en: 'Selected power '
+    fragment: 1
+  - key: copy.186
+    zh: "\u8BBE\u5907 "
+    en: 'Device '
+    fragment: 1
+  - key: copy.187
+    zh: "\u7AEF\u5B50\u4E0D\u5339\u914D\u3002"
+    en: The terminals do not match.
+    fragment: 1
+  - key: copy.188
+    zh: "\u9009\u62E9\u6545\u969C\u540E\uFF0C\u957F\u6309\u4E92\u52A8\u6216\u4E0B\u65B9\u64E6\u62ED\u6309\u94AE\u6E05\u7406\u5C40\u90E8\u6CB9\u6C61\uFF0C\u518D\u9009\u6B63\u786E\u96F6\u4EF6\u3002"
+    en: Select a fault. Hold Interact or the scrub button to remove its grease, then choose the correct replacement part.
+    fragment: 1
+  - key: copy.189
+    zh: "\u71C3\u6CB9\u7BA1"
+    en: Fuel Hose
+    fragment: 1
+  - key: copy.190
+    zh: "\u70B9\u706B\u7EBF\u5708"
+    en: Ignition Coil
+    fragment: 1
+  - key: copy.191
+    zh: "\u9F7F\u8F6E"
+    en: Gear
+    fragment: 1
+  - key: copy.192
+    zh: "\u51B7\u5374\u9600"
+    en: Cooling Valve
+    fragment: 1
+  - key: copy.193
+    zh: "\u6CB9\u6C61\u906E\u6321"
+    en: Hidden by grease
+    fragment: 1
+  - key: copy.194
+    zh: "\u6545\u969C "
+    en: 'Fault '
+    fragment: 1
+  - key: copy.195
+    zh: "\u5DF2\u4FEE\u590D"
+    en: Repaired
+    fragment: 1
+  - key: copy.196
+    zh: "\u6309\u4F4F\u64E6\u62ED\u5F53\u524D\u6545\u969C / "
+    en: 'Hold to clean this fault / '
+    fragment: 1
+  - key: copy.197
+    zh: "\u5B89\u88C5 "
+    en: 'Install '
+    fragment: 1
+  - key: copy.198
+    zh: "\u6D6E\u6807\u7B49\u5F85\u9C7C\u8BAF\u2026"
+    en: "Waiting for a bite\u2026"
+    fragment: 1
+  - key: copy.199
+    zh: "\u4F18\u8D28\u9C7C"
+    en: Quality fish
+    fragment: 1
+  - key: copy.200
+    zh: "\u666E\u901A\u9C7C"
+    en: Ordinary fish
+    fragment: 1
+  - key: copy.201
+    zh: " \xB7 \u533A\u57DF "
+    en: " \xB7 Zone "
+    fragment: 1
+  - key: copy.202
+    zh: " / \u9C7C "
+    en: ' / Fish '
+    fragment: 1
+  - key: copy.203
+    zh: "\n\u6355\u83B7 "
+    en: '
+
+      Catch '
+    fragment: 1
+  - key: copy.204
+    zh: " \xB7 \u6309\u4F4F\u4E92\u52A8\u4E0A\u5347\uFF0C\u677E\u5F00\u4E0B\u964D"
+    en: " \xB7 Hold Interact to rise; release to fall"
+    fragment: 1
+  - key: copy.205
+    zh: "\u9C7C\u513F\u9003\u8131\uFF0C\u91CD\u65B0\u629B\u7AFF\u3002"
+    en: The fish escaped. Cast again.
+    fragment: 1
+  - key: copy.206
+    zh: "\u4F5C\u4E1A\u69FD "
+    en: 'Job slots '
+    fragment: 1
+  - key: copy.207
+    zh: "\u4E0B\u4E2A\u97F3\u7B26 ["
+    en: Next note [
+    fragment: 1
+  - key: copy.208
+    zh: "\u6307\u9488\u8FDB\u5165\u7EFF\u8272\u533A\u57DF\u65F6\u6309\u952E"
+    en: Press when the pointer enters the green zone
+    fragment: 1
+  - key: copy.209
+    zh: "\u6210\u529F"
+    en: Success
+    fragment: 1
+  - key: copy.210
+    zh: "\n\u6307\u9488 "
+    en: '
+
+      Pointer '
+    fragment: 1
+  - key: copy.211
+    zh: " / \u7EFF\u8272\u7A97\u53E3 "
+    en: ' / Green window '
+    fragment: 1
+  - key: copy.212
+    zh: "\u7535\u529B "
+    en: 'Power '
+    fragment: 1
+  - key: copy.213
+    zh: "\u7535\u9CD7\u4F9B\u80FD"
+    en: Eel power
+    fragment: 1
+  - key: copy.214
+    zh: "\u71C3\u6CB9 / \u624B\u6447\u53CC\u6A21\u5F0F"
+    en: Fuel / Hand crank
+    fragment: 1
+  - key: copy.215
+    zh: "\u624B\u6447"
+    en: Hand crank
+    fragment: 1
+  - key: copy.216
+    zh: "\n\u6307\u9488\u8FDB\u5165\u7EFF\u8272\u533A\u57DF\u65F6\u53D1\u529B / \u5F53\u524D "
+    en: '
+
+      Crank in the green zone / Now '
+    fragment: 1
+  - key: copy.217
+    zh: " \u6E05\u7406 "
+    en: ' Cleaned '
+    fragment: 1
+  - key: copy.218
+    zh: "\u7EF3\u7D22 / \u7EDE\u76D8"
+    en: Rope / Winch
+    fragment: 1
+  - key: copy.219
+    zh: "\u6C27\u6C14\u8BBE\u5907"
+    en: Oxygen Equipment
+    fragment: 1
+  - key: copy.220
+    zh: "\u8239\u4F53\u52A0\u56FA"
+    en: Hull Reinforcement
+    fragment: 1
+  - key: copy.221
+    zh: "\u8239\u5E06 / \u8235"
+    en: Sail / Rudder
+    fragment: 1
+  - key: copy.222
+    zh: "\u6F5C\u6C34\u80CC\u5305 / +1\u683C\u3001+1\u683C\u3001\u91C7\u96C6+25%"
+    en: Dive Backpack / +1 slot, +1 slot, +25% collection speed
+    fragment: 1
+  - key: copy.223
+    zh: "\u6F5C\u6C34\u670D / \u4E8C\u6B21\u627F\u4F24\u300125%\u514D\u75AB"
+    en: Diving Suit / Two-hit capacity, 25% immunity
+    fragment: 1
+  - key: ending.victory
+    zh: "\u4ECE\u83B7\u6551\u8005\uFF0C\u6210\u4E3A\u6551\u63F4\u8005\n\u5E78\u5B58\u8005\u5DF2\u767B\u8239\u3002\u4F60\u4EEC\u5B88\u4F4F\u4E86\u540C\u4E00\u6839\u7EF3\u3002"
+    en: 'From survivors to rescuers
+
+      The survivors are aboard. Together, you held the same lifeline.'
+    fragment: 1
+  - key: ending.defeat
+    zh: "\u8239\u4F53\u5931\u53BB\u6D6E\u529B\n\u5E26\u7740\u8FD9\u6B21\u7ECF\u9A8C\uFF0C\u91CD\u65B0\u4E00\u8D77\u51FA\u53D1\u3002"
+    en: 'The hull has lost buoyancy
+
+      Use what you learned and set out together again.'
+    fragment: 1
+  - key: copy.226
+    zh: "\u8239\u4F53 "
+    en: 'Hull '
+    fragment: 1
+  - key: copy.227
+    zh: "   \u7535\u529B "
+    en: '   Power '
+    fragment: 1
+  - key: copy.228
+    zh: "%   \u822A\u7EBF "
+    en: '%   Route '
+    fragment: 1
+  - key: copy.229
+    zh: "\u591C\u665A"
+    en: Night
+    fragment: 1
+  - key: copy.230
+    zh: "\u9EC4\u660F"
+    en: Dusk
+    fragment: 1
+  - key: copy.231
+    zh: "\u767D\u663C"
+    en: Daylight
+    fragment: 1
+  - key: copy.232
+    zh: " \xB7 \u6276\u8D77\u540C\u4F34 "
+    en: " \xB7 Reviving teammate "
+    fragment: 1
+  - key: copy.233
+    zh: "s \xB7 \u6301\u7EED\u6309\u4F4F\u4E92\u52A8"
+    en: "s \xB7 Hold Interact"
+    fragment: 1
+  - key: copy.234
+    zh: " \xB7 \u5012\u5730\uFF0C\u7B49\u5F85\u540C\u4F34\u6276\u8D77"
+    en: " \xB7 Downed, waiting for a teammate"
+    fragment: 1
+  - key: copy.235
+    zh: " \xB7 \u8239\u4E0A  "
+    en: " \xB7 Aboard  "
+    fragment: 1
+  - key: copy.236
+    zh: "\u884C\u8D70 / \u8DF3\u8DC3 / \u68AF\u5B50"
+    en: Walk / Jump / Ladder
+    fragment: 1
+  - key: copy.237
+    zh: " \xB7 \u6C34\u4E0B  O\u2082 "
+    en: " \xB7 Underwater  O\u2082 "
+    fragment: 1
+  - key: copy.238
+    zh: "s  \u80CC\u5305 "
+    en: 's  Backpack '
+    fragment: 1
+  - key: copy.239
+    zh: "  \u7EF3\u957F "
+    en: '  Rope '
+    fragment: 1
+  - key: copy.240
+    zh: "\u540C\u4F34\u6B63\u5728\u64CD\u4F5C\u8FD9\u4E2A\u7AD9\u70B9\u3002"
+    en: Your teammate is using this station.
+    fragment: 1
+  - key: menu.title
+    zh: "\u4E00\u7EBF\u751F\u673A / LIFELINE"
+    en: LIFELINE
+    fragment: 1
+  - key: menu.description
+    zh: "\u672C\u5730\u53CC\u4EBA\u5408\u4F5C\n\u8239\u957F\u5B88\u4F4F\u8239\u4F53\uFF0C\u6F5C\u6C34\u5458\u63A2\u7D22\u5E9F\u589F\u3002\n\u8FD4\u822A\u65F6\uFF0C\u53EA\u6709\u540C\u4F34\u80FD\u62C9\u7D27\u90A3\u6839\u7EF3\u3002"
+    en: 'Local two-player co-op
+
+      The captain protects the boat; the diver explores the ruins.
+
+      On the way back, only your partner can hold the lifeline.'
+    fragment: 1
+  - key: menu.start
+    zh: "\u5F00\u59CB\u672C\u5730\u53CC\u4EBA"
+    en: Start Local Co-op
+    fragment: 1
+  - key: menu.bindings
+    zh: "\u952E\u4F4D / \u6362\u7ED1"
+    en: Controls / Rebind
+    fragment: 1
+  - key: menu.quit
+    zh: "\u9000\u51FA"
+    en: Quit
+    fragment: 1
+  - key: copy.246
+    zh: "P1\uFF1AWASD / E\u4E92\u52A8 / \u7A7A\u683C\u8FD1\u6218 / Q\u9C7C\u67AA   P2\uFF1A\u65B9\u5411\u952E / Enter\u4E92\u52A8 / 1\u91C7\u96C6 / 2\u9C7C\u67AA\n\u6240\u6709\u89D2\u8272\u952E\u4F4D\u53EF\u5728\u6362\u7ED1\u754C\u9762\u8C03\u6574\uFF1BEsc \u6682\u505C\u3002"
+    en: 'P1: WASD / E Interact / Space Melee / Q Speargun   P2: Arrows / Enter Interact / 1 Collect / 2 Speargun
+
+      All crew bindings can be changed in Controls. Esc pauses.'
+    fragment: 1
+  - key: copy.247
+    zh: "\u8239\u4F53 / \u52A8\u529B / \u822A\u7EBF"
+    en: Hull / Power / Route
+    fragment: 1
+  - key: copy.248
+    zh: "\u5171\u4EAB\u4ED3\u5E93"
+    en: Shared Storage
+    fragment: 1
+  - key: menu.pause
+    zh: "\u6682\u505C"
+    en: Pause
+    fragment: 1
+  - key: copy.250
+    zh: "\u952E\u4F4D"
+    en: Controls
+    fragment: 1
+  - key: hud.quest
+    zh: "\u5F53\u524D\u4E3B\u7EBF"
+    en: Current Objective
+    fragment: 1
+  - key: menu.paused
+    zh: "\u822A\u7A0B\u6682\u505C"
+    en: Voyage Paused
+    fragment: 1
+  - key: menu.resume
+    zh: "\u7EE7\u7EED\u822A\u7A0B"
+    en: Resume Voyage
+    fragment: 1
+  - key: menu.restart
+    zh: "\u91CD\u65B0\u5F00\u59CB"
+    en: Restart
+    fragment: 1
+  - key: menu.main
+    zh: "\u8FD4\u56DE\u4E3B\u83DC\u5355"
+    en: Main Menu
+    fragment: 1
+  - key: menu.ended
+    zh: "\u822A\u7A0B\u7ED3\u675F"
+    en: Voyage Ended
+    fragment: 1
+  - key: menu.retry
+    zh: "\u518D\u8BD5\u4E00\u5C40"
+    en: Try Again
+    fragment: 1
+  - key: copy.258
+    zh: "\u4F5C\u4E1A\u7AD9"
+    en: Workstation
+    fragment: 1
+  - key: copy.259
+    zh: "\u89D2\u8272\u952E\u4F4D / INPUT SYSTEM"
+    en: Crew Controls / INPUT SYSTEM
+    fragment: 1
+  - key: bindings.reset
+    zh: "\u6062\u590D\u8BE5\u89D2\u8272\u9ED8\u8BA4\u952E\u4F4D"
+    en: Reset This Crew Member's Bindings
+    fragment: 1
+  - key: menu.back
+    zh: "\u8FD4\u56DE"
+    en: Back
+    fragment: 1
+  - key: copy.262
+    zh: "# \u5B9E\u9645\u6570\u503C\u53C2\u8003\uFF08\u7F16\u8F91\u5668\u4ECE\u8D44\u4EA7\u4E0E\u573A\u666F\u5BFC\u51FA\uFF09\n\n\u5355\u4F4D\uFF1A\u7C73\u3001\u79D2\u3001\u767E\u5206\u6BD4\u70B9\uFF1B\u521D\u59CB\u503C\u6765\u81EA\u5B9E\u9645 ScriptableObject/\u573A\u666F\u7EC4\u4EF6\u3002\u540E\u7EED\u7F16\u8F91 Inspector \u540E\u53EF\u91CD\u65B0\u5BFC\u51FA\u3002\n\n"
+    en: '# Current Values (exported from scene and assets)
+
+
+      Units: metres, seconds and percentage points. Starting values come from the actual ScriptableObjects and scene components. Export again after changing the Inspector.
+
+
+'
+    fragment: 1
+  - key: copy.263
+    zh: "\n## \u914D\u65B9 "
+    en: '
+
+      ## Recipe '
+    fragment: 1
+  - key: copy.264
+    zh: "\u6210\u672C\uFF1A"
+    en: 'Cost: '
+    fragment: 1
+  - key: copy.265
+    zh: "\uFF1B\u4EA7\u51FA\uFF1A"
+    en: '; Output: '
+    fragment: 1
+  - key: copy.266
+    zh: "\uFF1B\u5DE5\u5177="
+    en: ; Tool=
+    fragment: 1
+  - key: copy.267
+    zh: "\uFF1B\u7535\u53F0\u9636\u6BB5="
+    en: ; Radio stage=
+    fragment: 1
+  - key: copy.268
+    zh: "\uFF1B\u8239\u4F53\u6062\u590D="
+    en: ; Hull restored=
+    fragment: 1
+  - key: copy.269
+    zh: "\uFF1B\u5236\u4F5C\u65F6\u95F4\u500D\u7387="
+    en: ; Crafting duration multiplier=
+    fragment: 1
+  - key: copy.270
+    zh: "/Documentation/02_\u5B9E\u9645\u6570\u503C\u53C2\u8003.md"
+    en: /Documentation/02_Current_Values.md
+    fragment: 1
+  - key: copy.271
+    zh: "\u8BF7\u5148\u6253\u5F00 Gameplay \u573A\u666F\u3002"
+    en: Open the Gameplay scene first.
+    fragment: 1
+  - key: copy.272
+    zh: "\n\n| public\u5B57\u6BB5 | \u5F53\u524D\u503C |\n| --- | --- |\n"
+    en: '
+
+
+      | Public field | Current value |
+
+      | --- | --- |
+
+'
+    fragment: 1
+  - key: copy.273
+    zh: "\u65E0"
+    en: None
+    fragment: 1
+  - key: copy.274
+    zh: "\u7F16\u8F91\u5668\u6D4B\u8BD5\u8865\u7ED9\u5DF2\u52A0\u5165\uFF08\u975E\u6B63\u5F0F\u521D\u59CB\u8D44\u6E90\uFF09\u3002"
+    en: Editor test supplies added. These are not normal starting resources.
+    fragment: 1
+  - key: recipe.quick_hull.name
+    zh: "\u5FEB\u901F\u4FEE\u8865"
+    en: Quick Hull Patch
+    fragment: 1
+  - key: copy.276
+    zh: "1\u6728\u677F\u6062\u590D10\u8239\u4F53\uFF0C\u8017\u65F6\u4E3A\u666E\u901A\u4FEE\u8865\u7684\u4E00\u534A\u3002"
+    en: 1 plank restores 10 hull. Takes half the standard repair time.
+    fragment: 1
+  - key: copy.277
+    zh: "\u64CD\u4F5C"
+    en: Action
+    fragment: 1
+  - key: copy.278
+    zh: "2\u4EFD\u6728\u6750\u52A0\u5DE5\u4E3A1\u5757\u6728\u677F\u3002"
+    en: Process 2 wood into 1 plank.
+    fragment: 1
+  - key: copy.279
+    zh: "2\u4EFD\u91D1\u5C5E\u52A0\u5DE5\u4E3A1\u5757\u94C1\u677F\u3002"
+    en: Process 2 metal into 1 iron plate.
+    fragment: 1
+  - key: copy.280
+    zh: "2\u4EFD\u7EA4\u7EF4\u52A0\u5DE5\u4E3A1\u675F\u3002"
+    en: Process 2 fiber into 1 bundle.
+    fragment: 1
+  - key: copy.281
+    zh: "\u9CA8\u9C7C\u8BF1\u9975"
+    en: Shark Bait
+    fragment: 1
+  - key: copy.282
+    zh: "\u6295\u653E\u540E\u5C06\u9644\u8FD1\u9CA8\u9C7C\u5F15\u5F008\u79D2\u3002"
+    en: Distracts nearby sharks for 8 seconds.
+    fragment: 1
+  - key: recipe.rod.name
+    zh: "\u9493\u9C7C\u7AFF"
+    en: Fishing Rod
+    fragment: 1
+  - key: copy.284
+    zh: "\u89E3\u9501\u5782\u9493\u4E0E\u4F18\u8D28\u9C7C\u3002"
+    en: Unlocks fishing and quality catches.
+    fragment: 1
+  - key: recipe.harpoon.name
+    zh: "\u9C7C\u53C9"
+    en: Harpoon
+    fragment: 1
+  - key: copy.286
+    zh: "\u6C38\u4E45\u8FD1\u6218\u5DE5\u5177\uFF0C\u5236\u4F5C\u9C7C\u67AA\u65F6\u4FDD\u7559\u3002"
+    en: Permanent melee tool. Kept when crafting a speargun.
+    fragment: 1
+  - key: recipe.speargun.name
+    zh: "\u5C04\u77DB\u67AA"
+    en: Speargun
+    fragment: 1
+  - key: copy.288
+    zh: "\u5148\u5236\u4F5C\u9C7C\u53C9\uFF1B\u72EC\u7ACB\u9C7C\u67AA\u952E\u53D1\u5C04\uFF0C\u518D\u6309\u53EC\u56DE\u3002"
+    en: Requires a harpoon. Fire with the separate speargun key; press again to recall.
+    fragment: 1
+  - key: recipe.antenna.name
+    zh: "\u65E0\u7EBF\u7535\xB7\u5929\u7EBF"
+    en: "Radio \xB7 Antenna"
+    fragment: 1
+  - key: copy.290
+    zh: "\u5148\u4FEE\u590D\u8239\u8231\u7535\u8DEF\u3002"
+    en: Repair the cabin electrical system first.
+    fragment: 1
+  - key: recipe.receiver.name
+    zh: "\u65E0\u7EBF\u7535\xB7\u63A5\u6536\u5668"
+    en: "Radio \xB7 Receiver"
+    fragment: 1
+  - key: copy.292
+    zh: "\u63A5\u6536\u5E76\u5B9A\u4F4D\u6C42\u6551\u4FE1\u53F7\u3002"
+    en: Receive and locate the distress signal.
+    fragment: 1
+  - key: recipe.amplifier.name
+    zh: "\u65E0\u7EBF\u7535\xB7\u653E\u5927\u5668"
+    en: "Radio \xB7 Amplifier"
+    fragment: 1
+  - key: copy.294
+    zh: "\u5B8C\u6210\u7535\u53F0\u540E\u4ECE\u603B\u63A7\u53D1\u8D77\u6551\u63F4\u3002"
+    en: Finish the radio, then begin the rescue voyage at the systems console.
+    fragment: 1
+  - key: recipe.patch_hull.name
+    zh: "\u8239\u4F53\u8865\u5F3A"
+    en: Hull Patch
+    fragment: 1
+  - key: copy.296
+    zh: "\u6D88\u8017\u6728\u677F\u3001\u94C1\u677F\u6062\u590D40\u8239\u4F53\u3002"
+    en: Spend a plank and iron plate to restore 40 hull.
+    fragment: 1
+  - key: recipe.restore_hull.name
+    zh: "\u8239\u4F53\u5927\u4FEE"
+    en: Hull Overhaul
+    fragment: 1
+  - key: copy.298
+    zh: "\u6D88\u8017\u6728\u677F\u3001\u94C1\u677F\u6062\u590D90\u8239\u4F53\u3002"
+    en: Spend planks and iron plates to restore 90 hull.
+    fragment: 1
+  - key: settings.language.system
+    zh: "\u8BED\u8A00\uFF1A\u8DDF\u968F\u7CFB\u7EDF"
+    en: 'Language: System Default'
+    fragment: 1
+  - key: settings.language.chinese
+    zh: "\u8BED\u8A00\uFF1A\u7B80\u4F53\u4E2D\u6587"
+    en: 'Language: Chinese (Simplified)'
+    fragment: 1
+  - key: settings.language.english
+    zh: "\u8BED\u8A00\uFF1A\u82F1\u8BED"
+    en: 'Language: English'
+    fragment: 1
+  - key: settings.camera.split
+    zh: "\u8239\u4E0A\u955C\u5934\uFF1A\u53CC\u4EBA\u5206\u5C4F"
+    en: 'Aboard Camera: Split Screen'
+    fragment: 1
+  - key: settings.camera.shared
+    zh: "\u8239\u4E0A\u955C\u5934\uFF1A\u53CC\u4EBA\u540C\u5C4F"
+    en: 'Aboard Camera: Shared View'
+    fragment: 1
+  - key: settings.title
+    zh: "\u8BBE\u7F6E"
+    en: Settings
+    fragment: 1
+  - key: settings.bindings
+    zh: "\u89D2\u8272\u952E\u4F4D / \u6362\u7ED1"
+    en: Crew Controls / Rebind
+    fragment: 1
+  - key: language.system
+    zh: "\u8DDF\u968F\u7CFB\u7EDF"
+    en: System
+    fragment: 1
+  - key: language.chinese
+    zh: "\u4E2D\u6587"
+    en: Chinese
+    fragment: 1
+  - key: language.english
+    zh: "\u82F1\u8BED"
+    en: English
+    fragment: 1
+  - key: input.move
+    zh: "\u79FB\u52A8"
+    en: Move
+    fragment: 1
+  - key: input.jump
+    zh: "\u8DF3\u8DC3"
+    en: Jump
+    fragment: 1
+  - key: input.interact
+    zh: "\u4E92\u52A8"
+    en: Interact
+    fragment: 1
+  - key: input.collect
+    zh: "\u91C7\u96C6"
+    en: Collect
+    fragment: 1
+  - key: input.melee
+    zh: "\u8FD1\u6218"
+    en: Melee
+    fragment: 1
+  - key: input.fire
+    zh: "\u9C7C\u67AA"
+    en: Fire
+    fragment: 1
+  - key: input.sprint
+    zh: "\u51B2\u523A"
+    en: Sprint
+    fragment: 1
+  - key: input.signal
+    zh: "\u6551\u751F\u4FE1\u53F7"
+    en: Signal
+    fragment: 1
+  - key: input.bait
+    zh: "\u6295\u9975"
+    en: Bait
+    fragment: 1
+  - key: input.hide
+    zh: "\u85CF\u8EAB"
+    en: Hide
+    fragment: 1
+  - key: input.pause
+    zh: "\u6682\u505C"
+    en: Pause
+    fragment: 1
+  - key: input.up
+    zh: "\u4E0A"
+    en: up
+    fragment: 1
+  - key: input.down
+    zh: "\u4E0B"
+    en: down
+    fragment: 1
+  - key: input.left
+    zh: "\u5DE6"
+    en: left
+    fragment: 1
+  - key: input.right
+    zh: "\u53F3"
+    en: right
+    fragment: 1
+  - key: hud.ship.template
+    zh: "\u8239\u4F53 {0}/{1}   \u7535\u529B {2}%   \u822A\u7EBF {3}"
+    en: Hull {0}/{1}   Power {2}%   Route {3}
+    fragment: 1
+  - key: hud.clock.night
+    zh: "DAY {0} \xB7 \u591C\u665A  {1}s"
+    en: "DAY {0} \xB7 Night  {1}s"
+    fragment: 1
+  - key: hud.clock.dusk
+    zh: "DAY {0} \xB7 \u9EC4\u660F  {1}s"
+    en: "DAY {0} \xB7 Dusk  {1}s"
+    fragment: 1
+  - key: hud.clock.day
+    zh: "DAY {0} \xB7 \u767D\u663C  {1}s"
+    en: "DAY {0} \xB7 Daylight  {1}s"
+    fragment: 1
+  - key: quest.wait.day4
+    zh: "\u7B49\u5F85\u7B2C4\u65E5\u6551\u63F4\u9891\u9053\uFF0C\u5148\u4FEE\u8239\u5907\u7269\u8D44\uFF1B\u5F53\u524D\u7B2C{0}\u65E5"
+    en: 'Wait for the Day 4 rescue channel. Repair the boat and gather supplies. Current day: {0}'
+    fragment: 1
+  - key: quest.radio.progress
+    zh: "\u5236\u4F5C\u6C42\u6551\u5929\u7EBF \u2192 \u63A5\u6536\u5668 \u2192 \u4FE1\u53F7\u653E\u5927\u5668\uFF08{0}/3\uFF09\uFF1B\u4FEE\u590D\u5F15\u64CE\u53EF\u63D0\u5347\u822A\u901F"
+    en: "Build the antenna \u2192 Receiver \u2192 Amplifier ({0}/3). Repairing the engine increases sailing speed."
+    fragment: 1
+  - key: quest.voyage.progress
+    zh: "\u6551\u63F4\u822A\u7A0B\uFF1A\u5411\u4E1C\u822A\u884C\u81F3\u4FE1\u53F7\u6D6E\u6807\uFF08{0}/{1}m\uFF09"
+    en: 'Rescue voyage: Sail east to the signal buoy ({0}/{1}m)'
+    fragment: 1
+  - key: quest.rescue.progress
+    zh: "\u8239\u957F\u64CD\u4F5C\u7EDE\u76D8\u63A5\u56DE\u5E78\u5B58\u8005\uFF1A{0}%"
+    en: 'Captain: Winch the survivors aboard: {0}%'
+    fragment: 1
+  - key: status.upgrade.complete
+    zh: "\u5347\u7EA7\u5B8C\u6210\uFF1A{0} T{1}"
+    en: 'Upgrade complete: {0} T{1}'
+    fragment: 1
+  - key: status.bank.diver
+    zh: "\u8239\u957F\u63A5\u56DE\u6F5C\u6C34\u5458\uFF0C{0}\u4EF6\u7269\u8D44\u5DF2\u5378\u5165\u5171\u4EAB\u4ED3\u5E93\u3002"
+    en: The captain recovered the diver. {0} items entered shared storage.
+    fragment: 1
+  - key: status.bank.downed
+    zh: "\u8239\u957F\u63A5\u56DE\u6F5C\u6C34\u5458\uFF0C{0}\u4EF6\u7269\u8D44\u5DF2\u5378\u5165\u5171\u4EAB\u4ED3\u5E93\u3002\u9760\u8FD1\u5012\u5730\u6F5C\u6C34\u5458\u6309\u4EA4\u4E92\u8FDB\u884C\u6551\u52A9\u3002"
+    en: The captain recovered the diver. {0} items entered shared storage. Hold Interact beside the downed diver to help them.
+    fragment: 1
+  - key: qte.craft.bonus
+    zh: "+{0}\u79D2"
+    en: +{0}s
+    fragment: 1
+  - key: qte.winch.good
+    zh: "\u6821\u51C6\u6210\u529F +{0}m"
+    en: Calibration success +{0}m
+    fragment: 1
+  - key: qte.winch.bad
+    zh: "\u6821\u51C6\u5931\u8D25 \u2212{0}m"
+    en: "Calibration failed \u2212{0}m"
+    fragment: 1
+  - key: qte.crank.power
+    zh: "\u624B\u6447\u53D1\u7535 +{0}%"
+    en: Hand crank +{0}% power
+    fragment: 1
+  - key: qte.fuel.power
+    zh: "\u71C3\u6CB9\u53D1\u7535 +{0}%"
+    en: Fuel power +{0}%
+    fragment: 1
+  - key: repair.pipe.rows
+    zh: "\u5165\u53E3\u7B2C{0}\u884C\uFF0C\u51FA\u53E3\u7B2C{1}\u884C\u3002\u9010\u683C\u987A\u65F6\u9488\u65CB\u8F6C\u540E\u8BD5\u6C34\u3002"
+    en: Inlet row {0}; outlet row {1}. Rotate tiles clockwise, then test the flow.
+    fragment: 1
+  - key: repair.engine.cleaned
+    zh: "\u6545\u969C {0} \u6E05\u7406 {1}"
+    en: Fault {0} cleaned {1}
+    fragment: 1
+  - key: craft.slots
+    zh: "\u4F5C\u4E1A\u69FD {0}/{1}"
+    en: Job slots {0}/{1}
+    fragment: 1
+  - key: revive.captain
+    zh: "\u6309\u4F4F\u4EA4\u4E925\u79D2\uFF0C\u6276\u8D77\u8239\u957F\uFF1B\u677E\u5F00\u6216\u79BB\u5F00\u4F1A\u4E2D\u65AD\u3002"
+    en: Hold Interact for 5 seconds to revive the captain. Releasing or moving away interrupts the rescue.
+    fragment: 1
+  - key: revive.diver
+    zh: "\u6309\u4F4F\u4EA4\u4E925\u79D2\uFF0C\u6276\u8D77\u6F5C\u6C34\u5458\uFF1B\u677E\u5F00\u6216\u79BB\u5F00\u4F1A\u4E2D\u65AD\u3002"
+    en: Hold Interact for 5 seconds to revive the diver. Releasing or moving away interrupts the rescue.
+    fragment: 1
+  - key: revive.captain.saved.diver
+    zh: "\u8239\u957F\u6276\u8D77\u4E86\u6F5C\u6C34\u5458\u3002"
+    en: The captain revived the diver.
+    fragment: 1
+  - key: revive.diver.saved.captain
+    zh: "\u6F5C\u6C34\u5458\u6276\u8D77\u4E86\u8239\u957F\u3002"
+    en: The diver revived the captain.
+    fragment: 1
+  - key: lightning.captain.warning
+    zh: "\u96F7\u51FB\u9884\u8B66\uFF1A\u8239\u957F\u5C3D\u5FEB\u8FDB\u5165\u8239\u8231\uFF01"
+    en: 'Lightning warning: Captain, get into the cabin now!'
+    fragment: 1
+  - key: lightning.diver.warning
+    zh: "\u96F7\u51FB\u9884\u8B66\uFF1A\u6F5C\u6C34\u5458\u5C3D\u5FEB\u8FDB\u5165\u8239\u8231\uFF01"
+    en: 'Lightning warning: Diver, get into the cabin now!'
+    fragment: 1
+  - key: fish.effect.0.0
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u8239\u957F\u79FB\u52A8\u901F\u5EA6\u63D0\u534710%\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Captain \u2014 Move speed +10% for 120 seconds."
+    fragment: 1
+  - key: fish.effect.0.1
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u8239\u957F\u5236\u4F5CQTE\u589E\u76CA\u63D0\u534720%\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Captain \u2014 Crafting QTE bonus +20% for 120 seconds."
+    fragment: 1
+  - key: fish.effect.0.2
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u8239\u957F\u653B\u51FB\u529B\u63D0\u534710%\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Captain \u2014 Attack damage +10% for 120 seconds."
+    fragment: 1
+  - key: fish.effect.0.3
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u8239\u957F\u6F5C\u6C34\u5458\u80CC\u5305\u5BB9\u91CF\u589E\u52A01\u683C\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Diver \u2014 Diver backpack capacity +1 slot for 120 seconds."
+    fragment: 1
+  - key: fish.effect.0.4
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u8239\u957F\u8239\u4F53\u6062\u590D10%\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Boat \u2014 Hull restored by 10%."
+    fragment: 1
+  - key: fish.effect.0.5
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u8239\u957F\u6F5C\u6C34\u5458\u6C27\u6C14\u4E0A\u9650\u589E\u52A010%\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Diver \u2014 Diver oxygen capacity +10% for 120 seconds."
+    fragment: 1
+  - key: fish.effect.1.0
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u6F5C\u6C34\u5458\u79FB\u52A8\u901F\u5EA6\u63D0\u534710%\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Diver \u2014 Move speed +10% for 120 seconds."
+    fragment: 1
+  - key: fish.effect.1.1
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u6F5C\u6C34\u5458\u5236\u4F5CQTE\u589E\u76CA\u63D0\u534720%\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Diver \u2014 Crafting QTE bonus +20% for 120 seconds."
+    fragment: 1
+  - key: fish.effect.1.2
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u6F5C\u6C34\u5458\u653B\u51FB\u529B\u63D0\u534710%\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Diver \u2014 Attack damage +10% for 120 seconds."
+    fragment: 1
+  - key: fish.effect.1.3
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u6F5C\u6C34\u5458\u6F5C\u6C34\u5458\u80CC\u5305\u5BB9\u91CF\u589E\u52A01\u683C\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Diver \u2014 Diver backpack capacity +1 slot for 120 seconds."
+    fragment: 1
+  - key: fish.effect.1.4
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u6F5C\u6C34\u5458\u8239\u4F53\u6062\u590D10%\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Boat \u2014 Hull restored by 10%."
+    fragment: 1
+  - key: fish.effect.1.5
+    zh: "\u54C1\u8D28\u9C7C\u5DF2\u98DF\u7528\uFF1A\u6F5C\u6C34\u5458\u6F5C\u6C34\u5458\u6C27\u6C14\u4E0A\u9650\u589E\u52A010%\uFF0C\u6301\u7EED120\u79D2\u3002"
+    en: "Quality fish eaten: Diver \u2014 Diver oxygen capacity +10% for 120 seconds."
+    fragment: 1
+  - key: world.cargo.attached
+    zh: "\u8D27\u7BB1 / \u5DF2\u6302\u7EF3"
+    en: CARGO / ATTACHED
+    fragment: 1
+  - key: world.cargo.count
+    zh: "\u8D27\u7BB1 {0}/{1}"
+    en: CARGO {0}/{1}
+    fragment: 1
+  - key: world.salvage.count
+    zh: "\u6253\u635E\u67DC {0}"
+    en: SALVAGE {0}
+    fragment: 1
+  - key: world.resource.wood
+    zh: "\u6728\u6750"
+    en: WOOD
+    fragment: 1
+  - key: world.resource.metal
+    zh: "\u91D1\u5C5E"
+    en: METAL
+    fragment: 1
+  - key: world.resource.fiber
+    zh: "\u7EA4\u7EF4"
+    en: FIBER
+    fragment: 1
+  - key: world.resource.fish
+    zh: "\u9C7C\u83B7"
+    en: FISH
+    fragment: 1
+  - key: world.resource.bait
+    zh: "\u8BF1\u9975"
+    en: BAIT
+    fragment: 1
+  - key: world.resource.plank
+    zh: "\u6728\u677F"
+    en: PLANK
+    fragment: 1
+  - key: world.resource.plate
+    zh: "\u94C1\u677F"
+    en: PLATE
+    fragment: 1
+  - key: world.resource.bundle
+    zh: "\u7EA4\u7EF4\u675F"
+    en: FIBERBUNDLE
+    fragment: 1
+  - key: world.resource.fuel
+    zh: "\u71C3\u6CB9"
+    en: FUEL
+    fragment: 1
+  - key: world.resource.eel
+    zh: "\u7535\u9CD7"
+    en: EEL
+    fragment: 1
+  - key: world.area
+    zh: "\u6D77\u533A {0} / \u6C34\u6DF1 {1}\u7C73"
+    en: AREA {0} / DEPTH {1}m
+    fragment: 1
+  - key: world.cave
+    zh: "\u652F\u8DEF\u6D1E\u7A74"
+    en: 04 / BRANCH CAVE
+    fragment: 1
+  - key: world.hatch.open
+    zh: "\u9677\u9631\u95E8 / \u5DF2\u6253\u5F00"
+    en: HATCH / OPEN
+    fragment: 1
+  - key: world.hatch.closed
+    zh: "\u9677\u9631\u95E8 / \u6309\u4E92\u52A8\u6253\u5F00"
+    en: HATCH / INTERACT TO OPEN
+    fragment: 1
+  - key: world.hatch.enter.open
+    zh: "\u5DF2\u6253\u5F00 / \u4E92\u52A8\u5173\u95E8"
+    en: OPEN / ENTER
+    fragment: 1
+  - key: world.hatch.enter.closed
+    zh: "\u9677\u9631\u95E8 / \u4E92\u52A8\u5F00\u95E8"
+    en: HATCH / ENTER
+    fragment: 1
+  - key: route.shallows
+    zh: "\u6D45\u6EE9"
+    en: Shallows
+    fragment: 1
+  - key: route.city
+    zh: "\u57CE\u533A"
+    en: Flooded City
+    fragment: 1
+  - key: route.deep
+    zh: "\u6DF1\u6C34\u533A"
+    en: Deep Sea
+    fragment: 1
+  - key: route.position
+    zh: "\u8239\u4F4D"
+    en: Ship Position
+    fragment: 1
+  - key: route.reach
+    zh: "\u53EF\u8FBE\u8303\u56F4"
+    en: Powered Range
+    fragment: 1
+  - key: menu.continue
+    zh: "\u7EE7\u7EED\u6E38\u620F"
+    en: Continue Game
+    fragment: 1
+  - key: menu.save
+    zh: "\u624B\u52A8\u5B58\u6863"
+    en: Save Game
+    fragment: 1
+  - key: quest.chapter
+    zh: "\u4E3B\u7EBF \xB7 \u7B2C{0}\u7AE0"
+    en: "Story \xB7 Chapter {0}"
+    fragment: 1
+  - key: save.error.save
+    zh: "\u4FDD\u5B58\u6E38\u620F\u5931\u8D25\uFF1A"
+    en: 'Could not save the game: '
+    fragment: 1
+  - key: save.error.scene
+    zh: "\u573A\u666F\u7F3A\u5C11\u8BFB\u6863\u6240\u9700\u7684\u89D2\u8272\u3001\u8239\u8236\u6216\u8C03\u53C2\u8D44\u4EA7\u3002"
+    en: The scene is missing a crew member, ship or tuning asset required to load.
+    fragment: 1
+  - key: save.error.version
+    zh: "\u5B58\u6863\u7248\u672C\u4E0D\u53D7\u652F\u6301\u3002"
+    en: This save version is not supported.
+    fragment: 1
+  - key: save.error.finite
+    zh: "\u5B58\u6863\u5305\u542B\u65E0\u6548\u6570\u503C\u3002"
+    en: The save contains invalid numeric values.
+    fragment: 1
+  - key: save.error.bag
+    zh: "\u5B58\u6863\u80CC\u5305\u7C7B\u578B\u65E0\u6548\u3002"
+    en: The save contains an invalid backpack item type.
+    fragment: 1
+  - key: save.error.ship
+    zh: "\u5B58\u6863\u8239\u8236\u72B6\u6001\u65E0\u6548\u3002"
+    en: The saved ship state is invalid.
+    fragment: 1
+  - key: save.error.crew
+    zh: "\u5B58\u6863\u8239\u5458\u72B6\u6001\u65E0\u6548\u3002"
+    en: The saved crew state is invalid.
+    fragment: 1
+  - key: save.error.pipes
+    zh: "\u5B58\u6863\u5BFC\u6D41\u62FC\u56FE\u6570\u636E\u65E0\u6548\u3002"
+    en: The saved pipe puzzle is invalid.
+    fragment: 1
+  - key: save.error.enemies
+    zh: "\u5B58\u6863\u654C\u4EBA\u6570\u636E\u65E0\u6548\u3002"
+    en: The saved enemy data is invalid.
+    fragment: 1
+  - key: save.error.enemy.config
+    zh: "\u5B58\u6863\u654C\u4EBA\u4F4D\u7F6E\u6216\u6570\u91CF\u4E0E\u5F53\u524D\u914D\u7F6E\u4E0D\u517C\u5BB9\u3002"
+    en: The saved enemy positions or count do not match the current configuration.
+    fragment: 1
+  - key: save.error.format
+    zh: "\u5B58\u6863\u683C\u5F0F\u6216\u7248\u672C\u4E0D\u53D7\u652F\u6301\u3002"
+    en: This save format or version is not supported.
+    fragment: 1
+  - key: save.error.cargo.type
+    zh: "\u5B58\u6863\u8D27\u7269\u7C7B\u578B\u65E0\u6548\u3002"
+    en: The save contains an invalid cargo item type.
+    fragment: 1
+  - key: save.error.cargo
+    zh: "\u5B58\u6863\u8D27\u7269\u6570\u636E\u65E0\u6548\u3002"
+    en: The saved cargo data is invalid.
+    fragment: 1
+  - key: save.error.repairs
+    zh: "\u5B58\u6863\u89D2\u8272\u4E0E\u7EF4\u4FEE\u6570\u636E\u4E0D\u5B8C\u6574\u3002"
+    en: Crew or repair data is missing from the save.
+    fragment: 1
+  - key: save.error.winch
+    zh: "\u5B58\u6863\u7EDE\u76D8\u76EE\u6807\u4E0D\u5B58\u5728\u3002"
+    en: The saved winch target is missing.
+    fragment: 1
+  - key: save.error.economy
+    zh: "\u5B58\u6863\u7ECF\u6D4E\u6570\u636E\u4E0D\u5B8C\u6574\u3002"
+    en: Inventory or upgrade data is missing from the save.
+    fragment: 1
+  - key: save.error.gate
+    zh: "\u5B58\u6863\u95E8\u6570\u636E\u65E0\u6548\u3002"
+    en: The saved trapdoor data is invalid.
+    fragment: 1
+  - key: save.error.gate.id
+    zh: "\u5B58\u6863\u95E8ID\u4E0E\u5F53\u524D\u5730\u56FE\u751F\u6210\u5668\u4E0D\u517C\u5BB9\uFF1A"
+    en: 'The saved trapdoor ID does not match the current generator: '
+    fragment: 1
+  - key: save.error.recipe
+    zh: "\u5B58\u6863\u914D\u65B9\u4E0D\u5B58\u5728\uFF1A"
+    en: 'A saved recipe is missing: '
+    fragment: 1
+  - key: save.error.quest
+    zh: "\u5B58\u6863\u4EFB\u52A1\u6570\u636E\u65E0\u6548\u3002"
+    en: The saved quest data is invalid.
+    fragment: 1
+  - key: save.error.calendar
+    zh: "\u5B58\u6863\u65E5\u671F\u4E0E\u5F53\u524D\u663C\u591C\u914D\u7F6E\u4E0D\u517C\u5BB9\u3002"
+    en: The saved date does not match the current day and night configuration.
+    fragment: 1
+  - key: save.error.devices
+    zh: "\u5B58\u6863\u8BBE\u5907\u72B6\u6001\u65E0\u6548\u3002"
+    en: The saved equipment state is invalid.
+    fragment: 1
+  - key: save.error.upgrades
+    zh: "\u5B58\u6863\u5347\u7EA7\u7B49\u7EA7\u65E0\u6548\u3002"
+    en: The saved upgrade levels are invalid.
+    fragment: 1
+  - key: save.error.time
+    zh: "\u5B58\u6863\u65F6\u95F4\u65E0\u6548\u3002"
+    en: The saved time is invalid.
+    fragment: 1
+  - key: save.error.world
+    zh: "\u5B58\u6863\u4E16\u754C\u6570\u636E\u4E0D\u5B8C\u6574\u3002"
+    en: World data is missing from the save.
+    fragment: 1
+  - key: save.error.world.seed
+    zh: "\u5B58\u6863\u4E16\u754C\u79CD\u5B50\u4E0E\u5F53\u524D\u5730\u56FE\u914D\u7F6E\u4E0D\u517C\u5BB9\u3002"
+    en: The saved world seed does not match the current map configuration.
+    fragment: 1
+  - key: save.error.projectiles
+    zh: "\u5B58\u6863\u6295\u5C04\u7269\u6570\u636E\u65E0\u6548\u3002"
+    en: The saved projectile data is invalid.
+    fragment: 1
+  - key: save.error.puzzle
+    zh: "\u5B58\u6863\u7EF4\u4FEE\u5C0F\u6E38\u620F\u6570\u636E\u4E0D\u5B8C\u6574\u3002"
+    en: Repair puzzle data is missing from the save.
+    fragment: 1
+  - key: save.error.size
+    zh: "\u5B58\u6863\u6587\u4EF6\u8FC7\u5927\uFF0C\u65E0\u6CD5\u8BFB\u53D6\u3002"
+    en: The save file is too large to read.
+    fragment: 1
+  - key: save.error.amount
+    zh: "\u5B58\u6863\u7269\u8D44\u6570\u91CF\u65E0\u6548\u3002"
+    en: The saved material amounts are invalid.
+    fragment: 1
+  - key: save.error.pickup.id
+    zh: "\u5B58\u6863\u7269\u8D44ID\u4E0E\u5F53\u524D\u5730\u56FE\u751F\u6210\u5668\u4E0D\u517C\u5BB9\uFF1A"
+    en: 'The saved pickup ID does not match the current generator: '
+    fragment: 1
+  - key: save.error.checksum
+    zh: "\u5B58\u6863\u6821\u9A8C\u5931\u8D25\u3002\u539F\u6587\u4EF6\u548C\u5907\u4EFD\u5747\u672A\u4FEE\u6539\u3002"
+    en: Save verification failed. The original file and backup were preserved.
+    fragment: 1
+  - key: save.error.faults
+    zh: "\u5B58\u6863\u5F15\u64CE\u6545\u969C\u6570\u636E\u4E0D\u5B8C\u6574\u3002"
+    en: Engine fault data is missing from the save.
+    fragment: 1
+  - key: save.error.combat
+    zh: "\u5B58\u6863\u6218\u6597\u6570\u636E\u4E0D\u5B8C\u6574\u3002"
+    en: Combat data is missing from the save.
+    fragment: 1
+  - key: save.error.queue
+    zh: "\u5B58\u6863\u5236\u4F5C\u961F\u5217\u65E0\u6548\u3002"
+    en: The saved crafting queue is invalid.
+    fragment: 1
+  - key: save.error.job
+    zh: "\u5B58\u6863\u4F5C\u4E1A\u6570\u636E\u65E0\u6548\u3002"
+    en: A saved crafting job is invalid.
+    fragment: 1
+  - key: save.error.phase
+    zh: "\u5F53\u524D\u72B6\u6001\u4E0D\u80FD\u4FDD\u5B58\u3002"
+    en: The game cannot be saved in its current state.
+    fragment: 1
+  - key: save.error.continue
+    zh: "\u8BFB\u6863\u5931\u8D25\uFF1A"
+    en: 'Could not load the game: '
+    fragment: 1
+  - key: save.error.read
+    zh: "\u8BFB\u53D6\u5B58\u6863\u5931\u8D25\uFF1A"
+    en: 'Could not read the save: '
+    fragment: 1
+  - key: save.error.restore
+    zh: "\u6062\u590D\u5B58\u6863\u5931\u8D25\uFF1A"
+    en: 'Could not restore the save: '
+    fragment: 1
+  - key: save.manual.complete
+    zh: "\u624B\u52A8\u5B58\u6863\u5DF2\u4FDD\u5B58\u3002"
+    en: Game saved.
+    fragment: 1
+  - key: save.error.missing
+    zh: "\u672A\u627E\u5230\u5B58\u6863\u3002"
+    en: No save was found.
+    fragment: 1
+  - key: save.error.session
+    zh: "\u672A\u627E\u5230\u6E38\u620F\u4F1A\u8BDD\u3002"
+    en: No game session was found.
+    fragment: 1
+  - key: save.error.write
+    zh: "\u5199\u5165\u5B58\u6863\u5931\u8D25\uFF1A"
+    en: 'Could not write the save: '
+    fragment: 1
+  - key: save.auto.complete
+    zh: "\u5DF2\u5B8C\u6210\u4ECA\u65E5\u81EA\u52A8\u5B58\u6863\u3002"
+    en: Today's automatic save is complete.
+    fragment: 1

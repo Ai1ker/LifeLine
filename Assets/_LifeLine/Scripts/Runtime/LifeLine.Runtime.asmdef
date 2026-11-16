@@ -1,0 +1,6 @@
+{
+  "name": "LifeLine.Runtime",
+  "rootNamespace": "Lifeline",
+  "references": ["Unity.InputSystem", "Unity.Cinemachine", "Unity.ugui"],
+  "autoReferenced": true
+}

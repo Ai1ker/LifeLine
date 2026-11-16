@@ -1,0 +1,7 @@
+{
+  "name": "LifeLine.Editor",
+  "rootNamespace": "Lifeline.Editor",
+  "references": ["LifeLine.Runtime", "Unity.InputSystem", "Unity.Cinemachine", "Unity.ugui"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

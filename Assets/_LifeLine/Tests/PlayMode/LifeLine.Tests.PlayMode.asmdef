@@ -1,0 +1,7 @@
+{
+    "name": "LifeLine.Tests.PlayMode",
+    "rootNamespace": "Lifeline.Tests",
+    "references": ["LifeLine.Runtime", "Unity.InputSystem", "Unity.Cinemachine"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}
