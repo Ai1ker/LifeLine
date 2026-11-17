@@ -33,7 +33,7 @@ namespace Lifeline
 
         public bool InRange(CrewActor actor)
         {
-            return actor != null && !actor.onboard && !actor.downed && !consumed
+            return actor != null && !actor.onboard && !actor.downed && (actor.session==null||!actor.session.IsHidden(actor)&&!actor.session.IsFainted(actor)) && !consumed
                 && Vector2.Distance(actor.Position, transform.position) <= interactionDistance;
         }
 

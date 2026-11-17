@@ -1916,3 +1916,51 @@ MonoBehaviour:
     zh: "\u6309\u4F4F\u6CB9\u6C61\u64E6\u62ED\uFF0C\u6216\u6309\u4F4F\u4E92\u52A8\u952E\u6E05\u7406\u5F53\u524D\u6545\u969C\uFF1B\u9732\u51FA\u7B26\u53F7\u540E\u5B89\u88C5\u5BF9\u5E94\u96F6\u4EF6\u3002"
     en: Hold over an oil patch to scrub it, or hold Interact to clean the selected fault. Reveal its symbol, then fit the correct part.
     fragment: 1
+  - key: crew.water.01
+    zh: "\u8239\u957F\u53D7\u4F24"
+    en: Captain injured
+    fragment: 1
+  - key: crew.water.02
+    zh: "\u5165\u6C34\u3002"
+    en: ' entered the water.'
+    fragment: 1
+  - key: crew.water.03
+    zh: "\u660F\u53A5\uFF0C\u9700\u8981\u540C\u4F34\u7528\u7EDE\u76D8\u63A5\u56DE\u3002"
+    en: ' is unconscious. A teammate must use the winch.'
+    fragment: 1
+  - key: crew.water.04
+    zh: "\u8239\u957F\u5DF2\u56DE\u8239\uFF0C\u80CC\u5305\u7269\u8D44\u5DF2\u5378\u5165\u5171\u4EAB\u4ED3\u5E93\u3002"
+    en: Captain aboard. Backpack materials unloaded into shared storage.
+    fragment: 1
+  - key: crew.water.05
+    zh: "\u8239\u957F\u53D1\u51FA\u6536\u7EF3\u4FE1\u53F7\u3002"
+    en: Captain signals for winch recovery.
+    fragment: 1
+  - key: crew.water.06
+    zh: "\u64CD\u4F5C\u7EDE\u76D8\u7684\u8239\u5458\u9700\u8981\u7559\u5728\u7EDE\u76D8\u65C1\u3002"
+    en: The winch operator must stay beside the winch.
+    fragment: 1
+  - key: crew.water.07
+    zh: " \xB7 \u56DE\u8239 "
+    en: " \xB7 Boarding "
+    fragment: 1
+  - key: crew.water.08
+    zh: " \xB7 \u85CF\u533F\u4E2D\uFF0C\u4E92\u52A8\u79BB\u5F00"
+    en: " \xB7 Hidden, Interact to leave"
+    fragment: 1
+  - key: crew.water.09
+    zh: "\u6C27\u6C14"
+    en: ' oxygen'
+    fragment: 1
+  - key: crew.water.10
+    zh: "\u79BB\u5F00\u85CF\u533F\u5904\u3002"
+    en: ' left the hiding spot.'
+    fragment: 1
+  - key: crew.water.11
+    zh: "\u8FDB\u5165\u85CF\u533F\u5904\uFF0C\u518D\u6309\u4E92\u52A8\u952E\u79BB\u5F00\u3002"
+    en: ' entered the hiding spot. Press Interact again to leave.'
+    fragment: 1
+  - key: enemy.piranha.defeated
+    zh: "\u98DF\u4EBA\u9C7C\u5DF2\u51FB\u6740\u3002"
+    en: Piranha defeated.
+    fragment: 1

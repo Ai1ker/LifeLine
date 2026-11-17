@@ -17,6 +17,9 @@ namespace Lifeline
         public Transform visualRoot;
         public Animator animator;
         public bool onboard = true, downed, controlsCaptured;
+        public bool hidden, fainted;
+        public Vector3 hidingPosition;
+        bool visibleBeforeHiding;
         public float oxygen, oxygenMax;
         public float health = 100f, maxHealth = 100f;
         public List<ResourceKind> backpack = new List<ResourceKind>();
@@ -99,7 +102,8 @@ namespace Lifeline
 
         public void Initialize(GameSession game, CrewRole crewRole, Vector3 spawn)
         {
-            session = game;
+            SetHidden(false);
+            fainted=false; session = game;
             role = crewRole;
             if (body == null) ConfigureBody();
             if (input == null) input = GetComponent<CrewInputReader>();
@@ -162,6 +166,7 @@ namespace Lifeline
             var command = ReadCommand();
             session.HandleCommand(this, command);
             if (session.phase != SessionPhase.Playing) { body.linearVelocity = Vector3.zero; return; }
+            if(session.IsHidden(this)) { body.position=hidingPosition;transform.position=hidingPosition;body.linearVelocity=Vector3.zero;return; }
             var blocked = downed || controlsCaptured || session.IsActorInputBlocked(this);
             var atHelm = session.ship != null && session.ship.helmOperator == this;
             if (atHelm) session.ship.Drive(blocked ? 0f : command.move.x);
@@ -267,6 +272,7 @@ namespace Lifeline
 
         public void SetOnboard(bool value, Vector3 worldPosition)
         {
+            if(value)SetHidden(false);
             var changed = onboard != value;
             onboard = value;
             IsClimbing = IsAtLadder = false;
@@ -319,6 +325,17 @@ namespace Lifeline
             EmitPresentationEvent(CrewVisualEvent.Winched, distance);
         }
 
+        public void SetHidden(bool value)
+        {
+            if(hidden==value)return;
+            if(value){hidingPosition=Position;visibleBeforeHiding=visualRoot!=null&&visualRoot.gameObject.activeSelf;}
+            hidden=value;
+            if(visualRoot!=null)visualRoot.gameObject.SetActive(value?false:visibleBeforeHiding);
+            if(body!=null)body.linearVelocity=Vector3.zero;
+            if(session!=null&&this==session.diver){session.diverHidden=value;if(value)session.diverSprinting=false;}
+            if(session!=null&&this==session.captain&&value)session.captainSprinting=false;
+        }
+
         public void SetDowned(bool value)
         {
             if (downed == value) return;
@@ -330,6 +347,7 @@ namespace Lifeline
 
         public void Revive()
         {
+            fainted=false;
             health = Mathf.Max(health, maxHealth * .5f);
             oxygen = Mathf.Max(oxygen, oxygenMax * .5f);
             SetDowned(false);
@@ -337,11 +355,17 @@ namespace Lifeline
 
         public void ReceiveDamage(float amount)
         {
-            if (amount <= 0f || downed) return;
-            if (role == CrewRole.Captain) { health=0; SetDowned(true); EmitPresentationEvent(CrewVisualEvent.Hit, amount); return; }
+            if (amount <= 0f || downed || (session!=null?session.IsFainted(this)||session.IsHidden(this):fainted)) return;
+            if (role == CrewRole.Captain)
+            {
+                // Damage is measured in hit-capacity units. Piranhas deal half a unit.
+                health = Mathf.Max(0, health - maxHealth * amount);
+                if (health <= 0) { if (!onboard && session != null) session.FaintCrew(this, "船长受伤"); else SetDowned(true); }
+                EmitPresentationEvent(CrewVisualEvent.Hit, amount); return;
+            }
             if (role == CrewRole.Diver && session != null)
             {
-                if (session.ReceiveDiverHit("水下受击", false)) EmitPresentationEvent(CrewVisualEvent.Hit, amount);
+                if (session.ReceiveDiverHit("水下受击", false, amount)) EmitPresentationEvent(CrewVisualEvent.Hit, amount);
                 return;
             }
             health = Mathf.Max(0f, health - amount);

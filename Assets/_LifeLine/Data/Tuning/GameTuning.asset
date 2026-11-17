@@ -97,18 +97,34 @@ MonoBehaviour:
   sharkWindup: 0.68
   sharkPursuitSeconds: 4
   sharkPatrolSpeed: 1.25
-  sharkDetectionRange: 6.7
-  sharkNightDetectionRange: 9.6
+  sharkDetectionRange: 3.6
+  sharkNightDetectionRange: 1.8
+  sharkChaseSpeed: 3.36
   sharkBiteCooldown: 3.6
   sharkReacquireDelay: 3
   sharkMinimumDepth: 25
-  maximumSharks: 6
+  maximumSharks: 8
   mutationStartDay: 3
   armoredBirdChance: 0.35
   sharkHealth: 2
-  whiteSharkHealth: 4
+  whiteSharkHealth: 3
   birdHealth: 1
   armoredBirdHealth: 2
+  sharkHitRetreatSeconds: 3
+  maximumPiranhas: 6
+  piranhaSpawnChance: 0.6
+  piranhaDepths: {x: 20, y: 35}
+  piranhaDamage: 0.5
+  piranhaScaleMultiplier: 0.5
+  piranhaAttackDistance: 0.84
+  piranhaWarningDistance: 1.54
+  piranhaWindup: 0.544
+  piranhaChaseSpeed: 3.696
+  piranhaPatrolSpeed: 1.375
+  caveGuardMaximum: 2
+  extraCaveGuardChance: 0.75
+  underwaterFishChance: 0.12
+  minimumFishPerArea: 1
   shadowWindup: 1.76
   shadowHitsRequired: 20
   shadowSpeedMultiplier: 0.9

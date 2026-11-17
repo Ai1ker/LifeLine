@@ -20,9 +20,9 @@ namespace Lifeline.Editor
             public GameTuning tuning;
             public InputActionAsset input;
             public RecipeDefinition[] recipes;
-            public GameObject captain, diver, ship, loot, crate, trapdoor, shark, bird, shadow, spear;
+            public GameObject captain, diver, ship, loot, crate, trapdoor, shark, bird, shadow, spear, piranha;
             public Material[] worldPalette, resourcePalette;
-            public Material sharkMaterial, whiteSharkMaterial, birdMaterial, shadowMaterial, spearMaterial;
+            public Material sharkMaterial, whiteSharkMaterial, birdMaterial, shadowMaterial, spearMaterial, piranhaMaterial;
             public Button actionButton;
             public Material nightMaskMaterial;
         }
@@ -237,6 +237,7 @@ namespace Lifeline.Editor
             library.resourcePalette = Materials("Resource", BrightResourceColors);
             library.sharkMaterial = Material("Shark", new Color(.25f,.47f,.55f));
             library.whiteSharkMaterial = Material("WhiteShark", new Color(.83f,.91f,.94f));
+            library.piranhaMaterial = Material("Piranha", new Color(.95f,.40f,.25f));
             library.birdMaterial = Material("Bird", new Color(.66f,.67f,.69f));
             library.shadowMaterial = Material("Shadow", new Color(.16f,.07f,.23f));
             library.spearMaterial = Material("Spear", Gold);
@@ -259,6 +260,7 @@ namespace Lifeline.Editor
             library.crate = Prefab("World/Crate", () => Pickup(true, library.resourcePalette));
             library.trapdoor = Prefab("World/Trapdoor", () => Trapdoor(library.worldPalette[2], brass));
             library.shark = Prefab("Enemies/Shark", () => Enemy("Shark", EnemyKind.Shark, library.sharkMaterial, dark, brass));
+            library.piranha = Prefab("Enemies/Piranha", () => Enemy("Piranha", EnemyKind.Piranha, library.piranhaMaterial, dark, brass));
             library.bird = Prefab("Enemies/Bird", () => Enemy("Bird", EnemyKind.Bird, library.birdMaterial, dark, brass));
             library.shadow = Prefab("Enemies/Shadow", () => Enemy("Shadow", EnemyKind.Shadow, library.shadowMaterial, dark, brass));
             library.spear = Prefab("Enemies/Spear", () => Spear(library.spearMaterial));

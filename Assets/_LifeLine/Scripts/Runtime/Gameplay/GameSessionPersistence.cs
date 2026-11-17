@@ -24,6 +24,7 @@ namespace Lifeline
                 areaStrikes=areaStrikes.ToArray(), coordinateVersion = 1, savedUtc = DateTime.UtcNow.ToString("O"), state = new SessionSaveState(),
                 cycleSeconds = tuning.daySeconds, daylightSeconds = tuning.daySeconds * tuning.dayFraction, duskSeconds = tuning.daySeconds * tuning.duskFraction,
                 shipPosition = ship != null ? ShipToWaterPoint(ship.Position) : Vector3.zero,
+                captainRopeContacts=captainRope!=null?captainRope.CaptureContacts():Array.Empty<Vector3>(),
                 diverRopeContacts = diverRope != null ? diverRope.CaptureContacts() : Array.Empty<Vector3>(),
                 cargoRopeContacts = cargoRope != null ? cargoRope.CaptureContacts() : Array.Empty<Vector3>()
             };
@@ -39,6 +40,7 @@ namespace Lifeline
             data.jobs = work.ToArray();
             if (world != null)
             {
+                data.world.forceCaveDay=world.forceCaveDay;
                 data.world.present = true; data.world.activeDay = world.activeDay; data.world.generatedSeed = world.generatedSeed;
                 var pickups = new List<PickupSaveState>();
                 string prefix = world.generatedSeed + ":" + world.activeDay + ":";
@@ -90,7 +92,7 @@ namespace Lifeline
         CrewSaveState CaptureCrew(CrewActor actor)
         {
             if (actor == null) return null;
-            return new CrewSaveState { role = actor.role, onboard = actor.onboard, downed = actor.downed, position = actor.onboard && ship != null ? ship.transform.InverseTransformPoint(actor.Position) : actor.Position, velocity = actor.body != null ? actor.body.linearVelocity : Vector3.zero, facing = actor.Facing, health = actor.health, maxHealth = actor.maxHealth, oxygen = actor.oxygen, oxygenMax = actor.oxygenMax, backpack = actor.backpack };
+            return new CrewSaveState { role = actor.role, onboard = actor.onboard, downed = actor.downed,hidden=IsHidden(actor),fainted=IsFainted(actor),hidingPosition=actor.hidingPosition, position = actor.onboard && ship != null ? ship.transform.InverseTransformPoint(actor.Position) : actor.Position, velocity = actor.body != null ? actor.body.linearVelocity : Vector3.zero, facing = actor.Facing, health = actor.health, maxHealth = actor.maxHealth, oxygen = actor.oxygen, oxygenMax = actor.oxygenMax, backpack = actor.backpack };
         }
         public bool TryRestoreSaveData(GameSaveData data, out string error, GameHUDController hud = null)
         {
@@ -128,7 +130,7 @@ namespace Lifeline
                 {
                     foreach (LootPickup old in world.pickups.ToArray())
                         if (old != null && (world.generatedRoot == null || !old.transform.IsChildOf(world.generatedRoot))) RemoveSavedObject(old.gameObject);
-                    world.session = this; world.tuning = tuning; world.Generate(worldSeed);
+                    world.session = this; world.tuning = tuning;world.forceCaveDay=data.world.forceCaveDay; world.Generate(worldSeed);
                     RestoreWorld(data.world);
                 }
                 RestoreCrew(captain, data.captain); RestoreCrew(diver, data.diver); IgnoreCrewCollision();
@@ -162,13 +164,14 @@ namespace Lifeline
                 winchCargo = null;
                 if (world != null && !string.IsNullOrEmpty(data.state.winchCargoId)) winchCargo = world.pickups.Find(pickup => pickup != null && pickup.saveId == data.state.winchCargoId);
                 RestoreLifelines(data.diverRopeContacts, data.cargoRopeContacts);
+                if(!captain.onboard)GetCrewLifeline(captain).RestoreContacts(BoatAnchor,captain.Position,data.captainRopeContacts);
                 if (world != null) foreach (var savedPickup in data.world.pickups)
                     if (savedPickup.attached && !savedPickup.consumed && savedPickup.ropeContacts != null && savedPickup.ropeContacts.Length > 0)
                     {
                         var cargo = world.pickups.Find(p => p != null && p.saveId == savedPickup.id);
                         if (cargo != null) GetCargoLifeline(cargo).RestoreContacts(BoatAnchor, cargo.transform.position, savedPickup.ropeContacts);
                     }
-                winchActive = false; diverSprinting = false;
+                winchActive = false; diverSprinting = false;captainBoardProgress=0;captainBoardHeld=false;
                 reviveHeld = new bool[2]; reviveTargets = new CrewActor[2]; reviveProgress = new float[2];
                 if (hud != null && data.repairUI != null && data.repairUI.present) { hud.filterPuzzle = data.repairUI.filterPuzzle; hud.circuitConnected = data.repairUI.circuitConnected; }
                 previousDay = day; initialized = true; notifyClock = 0;
@@ -195,7 +198,12 @@ namespace Lifeline
             }
             actor.backpack = saved.backpack;
             actor.RestorePose(saved.onboard, saved.onboard ? ShipPoint(saved.position) : saved.position, saved.velocity, saved.facing);
-            actor.SetDowned(saved.downed);
+            actor.SetDowned(saved.downed);actor.fainted=actor==captain&&saved.fainted;if(actor==diver)diverFainted|=saved.fainted;
+            if(actor==captain){actor.oxygenMax=GetOxygenMax(actor);actor.oxygen=Mathf.Min(actor.oxygen,actor.oxygenMax);}
+            bool restoreHidden=saved.hidden||actor==diver&&diverHidden;
+            if(actor==diver)diverHidden=false;
+            if(restoreHidden&&!actor.onboard&&world!=null&&world.IsAtHideSpot(actor)){actor.SetHidden(true);actor.hidingPosition=actor.Position;}
+            EnsureCaptainLifelineView();
         }
         void RestoreWorld(WorldSaveState saved)
         {

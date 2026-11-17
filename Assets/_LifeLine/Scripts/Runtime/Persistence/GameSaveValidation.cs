@@ -38,6 +38,8 @@ namespace Lifeline
                 Require(state.repairAuthorized != null && state.repairAuthorized.Length == Enum.GetValues(typeof(StationKind)).Length && state.meleeCooldowns != null && state.meleeCooldowns.Length == 2, "存档角色与维修数据不完整。");
                 Require(state.storyLog != null && state.shadowHits >= 0 && state.rescueProgress >= 0 && state.rescueProgress <= 1, "存档任务数据无效。");
                 ValidateCrew(data.captain, CrewRole.Captain); ValidateCrew(data.diver, CrewRole.Diver);
+                Require(data.captainRopeContacts==null||data.captainRopeContacts.Length<=256,"存档世界数据不完整。");
+                Require(EnumValue(state.winchOperatorRole),"存档角色与维修数据不完整。");
                 Require(data.jobs != null && data.jobs.Length <= (state.upgradeLevels[(int)UpgradeKind.Workbench] >= 3 ? 2 : 1) && data.nextJobId >= 1, "存档制作队列无效。");
                 var jobIds = new HashSet<int>();
                 foreach (CraftSaveState job in data.jobs)

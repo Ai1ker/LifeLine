@@ -14,7 +14,14 @@ namespace Lifeline
 
         void SpawnInitialSharks()
         {
+            // Reserve the shared shark slots for nearby cave guards before ordinary patrols.
+            if (world != null) foreach (Vector3 point in world.caveGuardSpawnPoints)
+            {
+                var guard = SpawnEnemy(EnemyKind.WhiteShark, point);
+                if (guard != null) { guard.caveGuard = true; guard.patrolRadius = .6f; }
+            }
             foreach (Vector3 point in SelectInitialSharkSpawnPoints()) SpawnEnemy(EnemyKind.Shark, point);
+            if (world != null) foreach (Vector3 point in world.piranhaSpawnPoints) SpawnEnemy(EnemyKind.Piranha, point);
         }
 
         // Pure selection, shared by initial and daily spawning. World appends whole areas in order,
@@ -79,7 +86,7 @@ namespace Lifeline
             if (world == null) return;
             foreach (LifelineEnemy enemy in enemies.ToArray())
             {
-                if (enemy == null || !enemy.IsShark) continue;
+                if (enemy == null || !enemy.IsAquaticHunter) continue;
                 enemies.Remove(enemy); enemy.gameObject.SetActive(false);
                 if (Application.isPlaying) Destroy(enemy.gameObject); else DestroyImmediate(enemy.gameObject);
             }
@@ -97,8 +104,15 @@ namespace Lifeline
                 int count = 0; foreach (LifelineEnemy existing in enemies) if (existing != null && existing.IsShark && existing.IsAlive) count++;
                 if (count >= tuning.maximumSharks) return null;
             }
-            GameObject prefab = kind == EnemyKind.Shadow ? shadowPrefab : kind == EnemyKind.Bird || kind == EnemyKind.ArmoredBird ? birdPrefab : sharkPrefab;
-            if (prefab == null && world != null) prefab = kind == EnemyKind.Shadow ? world.shadowPrefab : kind == EnemyKind.Shark || kind == EnemyKind.WhiteShark ? world.sharkPrefab : null;
+            if (kind == EnemyKind.Piranha)
+            {
+                float depth = (world != null ? world.WaterSurface : -1.5f) - position.y;
+                if (!restoreExisting && (position.x < tuning.shallowBoundary || position.x >= tuning.deepBoundary || depth < tuning.piranhaDepths.x || depth > tuning.piranhaDepths.y)) return null;
+                int count = 0; foreach (var existing in enemies) if (existing != null && existing.kind == EnemyKind.Piranha && existing.IsAlive) count++;
+                if (count >= Mathf.Clamp(tuning.maximumPiranhas, 0, 6)) return null;
+            }
+            GameObject prefab = kind == EnemyKind.Piranha ? piranhaPrefab : kind == EnemyKind.Shadow ? shadowPrefab : kind == EnemyKind.Bird || kind == EnemyKind.ArmoredBird ? birdPrefab : sharkPrefab;
+            if (prefab == null && world != null) prefab = kind == EnemyKind.Piranha ? world.piranhaPrefab : kind == EnemyKind.Shadow ? world.shadowPrefab : kind == EnemyKind.Shark || kind == EnemyKind.WhiteShark ? world.sharkPrefab : null;
             GameObject root = prefab != null ? Instantiate(prefab, position, Quaternion.identity) : GameObject.CreatePrimitive(kind == EnemyKind.Bird || kind == EnemyKind.ArmoredBird ? PrimitiveType.Capsule : PrimitiveType.Sphere);
             root.name = kind + "_Gameplay";
             root.transform.position = position;
@@ -136,7 +150,7 @@ namespace Lifeline
         public void AttractEnemies(Vector3 point)
         {
             foreach (LifelineEnemy enemy in enemies)
-                if (enemy != null && (enemy.kind == EnemyKind.Shark || enemy.kind == EnemyKind.WhiteShark) && Vector3.Distance(enemy.transform.position, point) < tuning.sharkNightDetectionRange * 1.5f) enemy.Alert(point);
+                if (enemy != null && enemy.IsAquaticHunter && Vector3.Distance(enemy.transform.position, point) < tuning.sharkNightDetectionRange * 1.5f) enemy.Alert(point);
         }
 
         public bool ThrowBait(CrewActor actor)

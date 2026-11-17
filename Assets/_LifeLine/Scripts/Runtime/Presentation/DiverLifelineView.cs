@@ -12,6 +12,8 @@ namespace Lifeline
         public Material ropeMaterial;
         public Transform winchAttachment;
         public LootPickup cargo;
+        public CrewActor swimmer;
+        CrewActor Swimmer=>swimmer!=null?swimmer:session!=null?session.diver:null;
         public UnderwaterShipProxy shipProxy;
         public Vector3 cargoAttachmentLocal = new Vector3(0, .25f, 0);
         [Min(.01f)] public float width = .055f;
@@ -49,12 +51,6 @@ namespace Lifeline
         public void RefreshNow()
         {
             if (rope == null) return;
-            if (cargo == null) RefreshShipLead();
-            bool visible = session != null && session.diver != null
-                && (cargo != null ? cargo.attached && !cargo.consumed : !session.diver.onboard)
-                && (session.phase == SessionPhase.Playing || session.phase == SessionPhase.Paused);
-            rope.enabled = visible;
-            if (!visible) return;
             if (rope.sharedMaterial == null)
             {
                 var shader = Shader.Find("Universal Render Pipeline/Unlit");
@@ -67,14 +63,20 @@ namespace Lifeline
                     rope.sharedMaterial = generatedMaterial;
                 }
             }
+            if (cargo == null && (swimmer==null||swimmer==session?.diver)) RefreshShipLead();
+            bool visible = session != null && Swimmer != null
+                && (cargo != null ? cargo.attached && !cargo.consumed : !Swimmer.onboard)
+                && (session.phase == SessionPhase.Playing || session.phase == SessionPhase.Paused);
+            rope.enabled = visible;
+            if (!visible) return;
             rope.startColor = rope.endColor = ropeColor; rope.startWidth = rope.endWidth = width;
             DiverRope route;
-            if (cargo == null) route = session.GetOrCreateLifeline();
+            if (cargo == null) route = session.GetCrewLifeline(Swimmer);
             else route = session.GetCargoLifeline(cargo);
-            route.UpdateRoute(session.BoatAnchor, cargo != null ? cargo.transform.position : session.diver.Position);
+            route.UpdateRoute(session.BoatAnchor, cargo != null ? cargo.transform.position : Swimmer.Position);
             int count = route.Points.Count + 1;
             rope.positionCount = count;
-            float surface = session.world != null ? session.world.WaterSurface : session.diver.waterSurfaceY;
+            float surface = session.world != null ? session.world.WaterSurface : Swimmer.waterSurfaceY;
             if (shipProxy == null) shipProxy = FindFirstObjectByType<UnderwaterShipProxy>();
             Vector3 winch = shipProxy != null ? shipProxy.WinchPoint : new Vector3(session.BoatAnchor.x, surface, foregroundZ);
             winch.z = foregroundZ; rope.SetPosition(0, winch);
@@ -94,7 +96,7 @@ namespace Lifeline
         {
             bool visible = session != null && session.ship != null && session.diver != null
                 && (session.phase == SessionPhase.Playing || session.phase == SessionPhase.Paused);
-            bool hasTarget = session != null && session.diver != null && !session.diver.onboard;
+            bool hasTarget = session != null && session.AnyCrewUnderwater;
             if (!hasTarget && session != null && session.world != null)
                 foreach (var pickup in session.world.pickups)
                     if (pickup != null && pickup.attached && !pickup.consumed) { hasTarget = true; break; }

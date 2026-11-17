@@ -49,7 +49,7 @@ namespace Lifeline
             set { GetOrCreateCraftingManager().ReplaceJobs(value); legacyJobs = new List<CraftJob>(); }
         }
         [Tooltip("Editable collision roots with a replaceable VisualRoot child. Null uses geometric fallback.")]
-        public GameObject sharkPrefab, birdPrefab, shadowPrefab, spearPrefab;
+        public GameObject sharkPrefab, birdPrefab, shadowPrefab, spearPrefab, piranhaPrefab;
         public bool autoStart = true;
         public int worldSeed = 8417;
 
@@ -115,7 +115,7 @@ namespace Lifeline
         public Vector3 bankArrivalLocal = new Vector3(6, .9f, 0);
         public float boardDistance = 1.15f;
         public bool diverFainted;
-        public int diverBites;
+        public float diverBites;
         public float diverInvulnerable;
         public float biteInvulnerabilitySeconds = 2.8f;
         public bool diverSprinting;
@@ -167,6 +167,7 @@ namespace Lifeline
         [Header("战斗配置 / public balance and collision masks")]
         public List<LifelineEnemy> enemies = new List<LifelineEnemy>();
         public LayerMask obstacleMask = ~0;
+        public Material piranhaMaterial;
         public Material sharkMaterial;
         public Material whiteSharkMaterial;
         public Material birdMaterial;
@@ -284,7 +285,9 @@ namespace Lifeline
             if (captain != null) captain.Initialize(this, CrewRole.Captain, ShipPoint(captainSpawnLocal));
             if (diver != null) diver.Initialize(this, CrewRole.Diver, ShipPoint(diverSpawnLocal));
             IgnoreCrewCollision(); ClearAreaStrikes(); turretTier=0; forceStormDay=-1;
+            captainSprinting=false;captainBoardHeld=false;captainBoardProgress=0;winchOperatorRole=CrewRole.Captain;
             ResetLifelines();
+            EnsureCaptainLifelineView();
             if (world != null) { world.session = this; world.tuning = tuning; world.Generate(worldSeed); }
             SpawnInitialSharks();
             phase = SessionPhase.Playing; initialized = true;
@@ -293,7 +296,7 @@ namespace Lifeline
         }
 
         public void StartGame() { if (!initialized) Initialize(); else { phase = SessionPhase.Playing; Time.timeScale = 1; Changed(); } }
-        public void Pause(bool paused) { if (phase == SessionPhase.Won || phase == SessionPhase.Lost) return; phase = paused ? SessionPhase.Paused : SessionPhase.Playing; Time.timeScale = paused ? 0 : 1; Changed(); }
+        public void Pause(bool paused) { if (phase == SessionPhase.Won || phase == SessionPhase.Lost) return; if(paused){captainBoardHeld=false;captainBoardProgress=0;captainSprinting=diverSprinting=false;}phase = paused ? SessionPhase.Paused : SessionPhase.Playing; Time.timeScale = paused ? 0 : 1; Changed(); }
         public void ReturnToMenu() { Time.timeScale = 1; phase = SessionPhase.Menu; winchActive = winchElectric = false; Changed(); }
 
         void Update()
@@ -310,7 +313,7 @@ namespace Lifeline
             captainBuffs.Tick(dt); diverBuffs.Tick(dt);
             for (int i = 0; i < meleeCooldowns.Length; i++) meleeCooldowns[i] = Mathf.Max(0, meleeCooldowns[i] - dt);
             baitTime = Mathf.Max(0, baitTime - dt);
-            UpdateCrafts(dt); UpdateOxygen(dt); UpdateWinch(dt); UpdateElectricity(dt);
+            UpdateCrafts(dt); UpdateOxygen(dt); UpdateCaptainOxygen(dt); UpdateCaptainBoard(dt); UpdateWinch(dt); UpdateElectricity(dt);
             UpdateWeather(dt); UpdateAreaStrikes(dt); UpdateEncounters(dt); UpdateRecovery(dt); UpdateRescue(dt);
             bool dayAdvanced = day != previousDay;
             if (dayAdvanced)
@@ -329,7 +332,7 @@ namespace Lifeline
             if (dayAdvanced && phase == SessionPhase.Playing) DayReady?.Invoke(day);
         }
 
-        void FixedUpdate() { if (phase == SessionPhase.Playing && diver != null && !diver.onboard) ApplyDiverLeash(diver); }
+        void FixedUpdate() { if(phase==SessionPhase.Playing)foreach(var actor in Crew)if(actor!=null&&!actor.onboard)ApplyDiverLeash(actor); }
 
         public void HandleCommand(CrewActor actor, CrewCommand command)
         {
@@ -337,16 +340,30 @@ namespace Lifeline
             bool capturedBeforeEvent = actor.controlsCaptured;
             CommandReceived?.Invoke(actor, command);
             if (phase != SessionPhase.Playing) return;
+            if(IsHidden(actor))
+            {
+                if(command.interact||command.hide)world?.TryHide(actor);
+                return;
+            }
+            if(actor==captain)
+            {
+                captainSprinting=command.sprint;
+                captainBoardHeld=!actor.onboard&&!IsIncapacitated(actor)&&!actor.controlsCaptured
+                    &&(command.interactHeld||command.interact)&&command.move.sqrMagnitude<.01f&&!command.melee&&!command.fire&&Vector3.Distance(actor.Position,BoatAnchor)<=3;
+                if(captainBoardHeld)return;
+                captainBoardProgress=0;
+            }
             reviveHeld[(int)actor.role] = command.interactHeld || command.interact;
             if (reviveHeld[(int)actor.role] && TryReviveTeammate(actor)) return;
             if (IsActorInputBlocked(actor)) return;
-            if (actor == diver) { diverSprinting = command.sprint; if (command.hide && !diver.onboard) world?.TryHide(diver); }
+            if(actor==diver)diverSprinting=command.sprint;
+            if(command.hide&&!actor.onboard&&world!=null&&world.TryHide(actor))return;
             if (capturedBeforeEvent || actor.controlsCaptured) return;
             if (command.melee) MeleeAttack(actor);
             if (command.fire) FireSpear(actor);
-            if (actor == diver && !actor.onboard)
+            if (!actor.onboard)
             {
-                if (command.signal) SignalCaptain();
+                if (command.signal) SignalWinch(actor);
                 if (command.bait) ThrowBait(actor);
                 if (command.collect && world != null) world.TryCollect(actor);
                 if (command.interact)
@@ -361,27 +378,31 @@ namespace Lifeline
             if (!command.interact || !actor.onboard) return;
             StationAnchor station = actor.NearbyStation;
             if (station == null) return;
-            if (station.kind == StationKind.DivePreparation && actor == diver) { BeginDive(); return; }
+            if (station.kind == StationKind.DivePreparation) { BeginDive(actor); return; }
             if (station.kind == StationKind.Helm && ship != null)
             {
                 if (ship.helmOperator != null && ship.helmOperator != actor) { Tell("同伴正在掌舵，先请对方离开船舵。"); return; }
                 ship.SetHelm(actor); return;
             }
-            if (station.kind == StationKind.Winch && actor != captain) { Tell("绞盘需要船长操作。潜水员可使用其他船上设施。"); return; }
             StationRequested?.Invoke(station.kind, actor);
         }
 
-        public bool BeginDive()
+        public bool BeginDive()=>BeginDive(diver);
+        public bool BeginDive(CrewActor actor)
         {
-            if (phase != SessionPhase.Playing || diver == null || !diver.onboard || diver.downed) return false;
-            if (ship != null && ship.helmOperator == diver) ship.SetHelm(diver);
-            diver.oxygenMax = GetOxygenMax(); diver.oxygen = diver.oxygenMax;
-            diverBites = 0; diverInvulnerable = 0; diverFainted = diverHidden = false;
-            diver.SetOnboard(false, BoatAnchor + Vector3.down * .5f);
-            ResetLifelines();
-            winchStartDistance = 0; winchProgress = 0;
-            Tell("潜水员入水。按住采集键打捞，Enter 将背包最后一件放入附近货箱。");
-            Changed(); return true;
+            if(phase!=SessionPhase.Playing||IsIncapacitated(actor)||!actor.onboard)return false;
+            if(ship!=null&&ship.helmOperator==actor)ship.SetHelm(actor);
+            // Entering water is an explicit new operation. A powered rescue left running for
+            // the fainted teammate must not immediately bank the new swimmer at the anchor.
+            winchActive=winchElectric=winchSignalAuthorized=false;
+            winchCargo=null;winchTargetKind="";signalCount=0;
+            actor.controlsCaptured=false;
+            actor.SetHidden(false);actor.fainted=false;actor.oxygenMax=GetOxygenMax(actor);actor.oxygen=actor.oxygenMax;
+            if(actor==diver){diverBites=0;diverInvulnerable=0;diverFainted=diverHidden=false;}
+            else{captainBoardHeld=false;captainBoardProgress=0;}
+            actor.SetOnboard(false,BoatAnchor+Vector3.down*.5f);
+            GetCrewLifeline(actor).ResetRoute();winchStartDistance=0;winchProgress=0;
+            EnsureCaptainLifelineView();Tell(GameNames.Role(actor.role)+"入水。");Changed();return true;
         }
 
         public int GetResource(ResourceKind kind)
@@ -459,9 +480,9 @@ namespace Lifeline
         public int GetMaxDiverBites() => GetUpgrade(UpgradeKind.DivingSuit) >= 1 ? tuning.upgradedDiverHitCapacity : tuning.baseDiverHitCapacity;
         public int DiverHitCapacity => GetMaxDiverBites();
         public float GetMoveMultiplier(CrewActor actor) => (filterRepaired ? filterMoveMultiplier : 1) * (Buffs(actor).move > 0 ? 1 + tuning.fishMoveBonus : 1);
-        public float GetBoatSpeedMultiplier() => (diver != null && !diver.onboard ? tuning.diveBoatMultiplier : 1) * (engineRepaired ? repairedEngineSpeedMultiplier : 1) * (GetUpgrade(UpgradeKind.Sail) >= 1 ? 1 + sailSpeedBonus : 1) * (infinitePower ? tuning.eelSpeedMultiplier : 1);
+        public float GetBoatSpeedMultiplier() => (AnyCrewUnderwater ? tuning.diveBoatMultiplier : 1) * (engineRepaired ? repairedEngineSpeedMultiplier : 1) * (GetUpgrade(UpgradeKind.Sail) >= 1 ? 1 + sailSpeedBonus : 1) * (infinitePower ? tuning.eelSpeedMultiplier : 1);
         public float GetOxygenMax() => tuning.oxygenLevels[Mathf.Min(GetUpgrade(UpgradeKind.Oxygen), tuning.oxygenLevels.Length - 1)] * (diverBuffs.oxygen > 0 ? 1 + tuning.fishOxygenBonus : 1);
-        public bool IsActorInputBlocked(CrewActor actor) => actor == null || phase != SessionPhase.Playing || actor.downed || (actor == diver && diverFainted) || (reviveTargets[(int)actor.role] != null && reviveHeld[(int)actor.role]);
+        public bool IsActorInputBlocked(CrewActor actor) => actor == null || phase != SessionPhase.Playing || actor.downed || IsFainted(actor) || IsHidden(actor) || (actor==captain&&captainBoardHeld) || (reviveTargets[(int)actor.role] != null && reviveHeld[(int)actor.role]);
         public Vector3 ShipPoint(Vector3 local) => ship != null ? ship.LocalToWorld(local) : local;
 
         public void Tell(string text)

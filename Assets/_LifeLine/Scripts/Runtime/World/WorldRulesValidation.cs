@@ -38,7 +38,7 @@ namespace Lifeline
                 var actualCounts = new int[9];
                 foreach (var pickup in world.pickups)
                 {
-                    if (pickup.mazeIndex < 0 || pickup.mazeIndex >= 9 || pickup.isCrate) continue;
+                    if (pickup.mazeIndex < 0 || pickup.mazeIndex >= 9 || pickup.isCrate || pickup.resource == ResourceKind.Fish) continue;
                     actualCounts[pickup.mazeIndex]++;
                     ResourceKind expected = world.weightedResourceKinds[pickup.mazeIndex / 3];
                     if (pickup.isCabinet) foreach (var item in pickup.contents) Require(item == expected, "cabinet uses sea-area weights at every depth");

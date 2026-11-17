@@ -21,7 +21,7 @@ namespace Lifeline
         [Range(0, 1)] public float nightOpacity = 1;
         [Tooltip("T2 or higher with an effective powered searchlight. Zero disables the overlay.")]
         [Range(0, 1)] public float upgradedLightOpacity;
-        public Color darknessColor = new Color(.006f, .014f, .025f, .98f);
+        public Color darknessColor = new Color(.006f, .014f, .025f, 1f);
         [Tooltip("Move the image to the first sibling, behind HUD and menus. Leave off if its Canvas has a dedicated background container.")]
         public bool placeBehindHud = true;
         public Vector3 focusWorldOffset;
@@ -44,6 +44,17 @@ namespace Lifeline
             RefreshNow();
         }
 
+        void Start()
+        {
+            if(session==null||session.captain==null||diver==session.captain||maskImage==null)return;
+            foreach(var peer in FindObjectsByType<NightVisibilityView>())if(peer!=this&&peer.session==session&&peer.diver==session.captain)return;
+            var obj=new GameObject("Captain underwater night visibility");obj.transform.SetParent(transform,false);
+            var view=obj.AddComponent<NightVisibilityView>();
+            var image=Instantiate(maskImage,maskImage.transform.parent);image.name="Captain underwater night mask";
+            view.personalRadiusPixels=personalRadiusPixels;view.searchlightRadiusPixels=searchlightRadiusPixels;view.featherPixels=featherPixels;
+            view.nightOpacity=nightOpacity;view.upgradedLightOpacity=upgradedLightOpacity;view.darknessColor=darknessColor;
+            view.Initialize(session,cameraRig,session.captain,image,maskMaterial);
+        }
         void OnEnable() => RefreshNow();
         void LateUpdate() => RefreshNow();
         void OnDisable() { if (maskImage != null) maskImage.enabled = false; }
@@ -55,9 +66,9 @@ namespace Lifeline
             // This is a generated shader quad, not an atlas sprite: its UVs must span 0..1.
             maskImage.sprite = null; maskImage.overrideSprite = null; maskImage.type = Image.Type.Simple;
             CrewActor actor = diver != null ? diver : session != null ? session.diver : null;
-            Camera camera = cameraRig != null ? cameraRig.diverCamera : null;
+            Camera camera = cameraRig != null ? actor!=null&&actor.role==CrewRole.Captain?cameraRig.captainCamera:cameraRig.diverCamera : null;
             bool gameplay = session != null && (session.phase == SessionPhase.Playing || session.phase == SessionPhase.Paused);
-            bool localDiverVisible = cameraRig != null && (!cameraRig.onlineView || cameraRig.localRole == CrewRole.Diver);
+            bool localDiverVisible = cameraRig != null && (!cameraRig.onlineView || actor!=null&&cameraRig.localRole == actor.role);
             bool night = gameplay && session.IsNight && actor != null && !actor.onboard
                 && localDiverVisible && camera != null && camera.enabled;
             float opacity = session != null && session.LightEffective && session.GetUpgrade(UpgradeKind.Searchlight) >= 1

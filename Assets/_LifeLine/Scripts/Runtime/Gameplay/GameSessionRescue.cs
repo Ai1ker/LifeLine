@@ -8,9 +8,9 @@ namespace Lifeline
         {
             if (ship == null || ropeLength <= 0) return proposedBoatX;
             Vector3 proposedAnchor = BoatAnchor + Vector3.right * (proposedBoatX - ship.Position.x);
-            if (diver != null && !diver.onboard)
+            foreach(var actor in Crew)if(actor!=null&&!actor.onboard)
             {
-                var route = GetOrCreateLifeline(); route.UpdateRoute(BoatAnchor, diver.Position);
+                var route = GetCrewLifeline(actor); route.UpdateRoute(BoatAnchor, actor.Position);
                 proposedAnchor = route.ClampAnchorMove(proposedAnchor, ropeLength);
             }
             if (world != null) foreach (var cargo in world.pickups)
@@ -24,8 +24,8 @@ namespace Lifeline
 
         public void ApplyDiverLeash(CrewActor actor)
         {
-            if (actor == null || actor != diver || actor.onboard || ropeLength <= 0) return;
-            DiverRope route = GetOrCreateLifeline();
+            if (actor == null || (actor != diver && actor != captain) || actor.onboard || IsHidden(actor) || ropeLength <= 0) return;
+            DiverRope route = GetCrewLifeline(actor);
             route.UpdateRoute(BoatAnchor, actor.Position);
             route.ApplyLengthLimit(actor, ropeLength);
         }
@@ -33,7 +33,6 @@ namespace Lifeline
         void UpdateOxygen(float dt)
         {
             if (diver == null) return;
-            if(diverHidden && (world==null||!world.IsAtHideSpot(diver)))diverHidden=false;
             diverInvulnerable = Mathf.Max(0, diverInvulnerable - dt);
             diver.oxygenMax = GetOxygenMax();
             diver.oxygen = Mathf.Min(diver.oxygen, diver.oxygenMax);
@@ -59,6 +58,7 @@ namespace Lifeline
         public void FaintDiver(string reason)
         {
             if (diver == null || diver.onboard || diverFainted) return;
+            diver.SetHidden(false);
             diverFainted = true; diverHidden = false;
             if (diver.body != null) diver.body.linearVelocity = Vector3.zero;
             int dropCount = diver.backpack.Count / 2;
@@ -82,15 +82,15 @@ namespace Lifeline
             return ReceiveDiverHit("鲨鱼咬伤", true);
         }
 
-        public bool ReceiveDiverHit(string reason, bool dropResource = true)
+        public bool ReceiveDiverHit(string reason, bool dropResource = true, float hitAmount = 1f)
         {
-            if (diver == null || diverFainted || diver.downed || diverInvulnerable > 0) return false;
+            if (hitAmount <= 0 || diver == null || IsHidden(diver) || diverFainted || diver.downed || diverInvulnerable > 0) return false;
             if (GetUpgrade(UpgradeKind.DivingSuit) >= 2 && UnityEngine.Random.value < tuning.upgradedSuitImmunity)
             {
                 diverInvulnerable = biteInvulnerabilitySeconds;
                 Tell("潜水服免疫了这次攻击。"); Changed(); return false;
             }
-            diverBites++; diverInvulnerable = biteInvulnerabilitySeconds;
+            diverBites += hitAmount; diverInvulnerable = biteInvulnerabilitySeconds;
             if (dropResource && diver.backpack.Count > 0) diver.backpack.RemoveAt(diver.backpack.Count - 1);
             Tell(reason + "（" + diverBites + "/" + GetMaxDiverBites() + "）。" + (dropResource ? "掉落1件背包物资。" : "") + "用鱼叉反击或投放诱饵。");
             if (diverBites >= GetMaxDiverBites()) { if (diver.onboard) diver.SetDowned(true); else FaintDiver("潜水服承伤次数耗尽"); }
@@ -99,10 +99,9 @@ namespace Lifeline
 
         public bool CaptainCanWinch()
         {
-            if (winchElectric && winchSignalAuthorized) return true;
-            if (captain == null || captain.downed || !captain.onboard) return false;
-            if (winchElectric) return true;
-            return IsNearStation(captain, StationKind.Winch);
+            if(winchElectric&&IsElectricWinch&&circuitRepaired&&(power>0||infinitePower))return true;
+            CrewActor owner=winchOperatorRole==CrewRole.Captain?captain:diver;
+            return owner!=null&&!IsIncapacitated(owner)&&owner.onboard&&IsNearStation(owner,StationKind.Winch);
         }
 
         public bool IsNearStation(CrewActor actor, StationKind kind)
@@ -119,12 +118,13 @@ namespace Lifeline
             return false;
         }
 
-        public void SetWinchActive(bool active)
+        public void SetWinchActive(bool active)=>SetWinchActive(active,captain);
+        public void SetWinchActive(bool active,CrewActor actor)
         {
             if (!active) { winchActive = false; if (!IsElectricWinch) winchElectric = false; Changed(); return; }
-            if (phase != SessionPhase.Playing || captain == null || captain.downed || !IsNearStation(captain, StationKind.Winch))
-            { Tell("船长需要来到绞盘旁操作。"); return; }
-            winchActive = true;
+            if (phase != SessionPhase.Playing || IsIncapacitated(actor) || !actor.onboard || !IsNearStation(actor, StationKind.Winch))
+            { Tell("操作绞盘的船员需要留在绞盘旁。"); return; }
+            winchOperatorRole=actor.role;winchActive = true;
             winchSignalAuthorized = false;
             winchElectric = IsElectricWinch && circuitRepaired && (power > 0 || infinitePower);
             winchCycleTime = 0; winchAttemptedThisCycle = false;
@@ -136,7 +136,7 @@ namespace Lifeline
         {
             get
             {
-                int count = diver != null && !diver.onboard ? 1 : 0;
+                int count = 0;foreach(var actor in Crew)if(actor!=null&&!actor.onboard)count++;
                 if (world != null) foreach (var cargo in world.pickups) if (IsWinchCargo(cargo)) count++;
                 return count;
             }
@@ -148,9 +148,9 @@ namespace Lifeline
         {
             winchCargo = null;
             float distance = 0;
-            if (diver != null && !diver.onboard)
+            foreach(var actor in Crew)if(actor!=null&&!actor.onboard)
             {
-                var route = GetOrCreateLifeline(); route.UpdateRoute(BoatAnchor, diver.Position); distance += route.PathLength;
+                var route = GetCrewLifeline(actor); route.UpdateRoute(BoatAnchor, actor.Position); distance += route.PathLength;
             }
             if (world != null) foreach (var cargo in world.pickups)
             {
@@ -216,17 +216,18 @@ namespace Lifeline
                 route.UpdateRoute(BoatAnchor, cargo.transform.position);
                 if (share > 0 && !route.IsBlocked && route.PathLength <= boardDistance) cargo.Deliver(this);
             }
-            if (diver != null && !diver.onboard)
+            foreach(var actor in Crew)
             {
-                var route = GetOrCreateLifeline(); route.UpdateRoute(BoatAnchor, diver.Position);
-                if (share > 0) route.TryBreakBlockingGate();
-                float movement = share < 0 ? -Mathf.Min(-share, Mathf.Max(0, ropeLength - route.PathLength)) : share;
-                route.Pull(diver, movement); route.UpdateRoute(BoatAnchor, diver.Position);
-                if (share > 0 && !route.IsBlocked && route.PathLength <= boardDistance) BankDiver();
+                if(actor==null||actor.onboard||IsHidden(actor))continue;
+                var route=GetCrewLifeline(actor);route.UpdateRoute(BoatAnchor,actor.Position);
+                if(share>0)route.TryBreakBlockingGate();
+                float movement=share<0?-Mathf.Min(-share,Mathf.Max(0,ropeLength-route.PathLength)):share;
+                route.Pull(actor,movement);route.UpdateRoute(BoatAnchor,actor.Position);
+                if(share>0&&!route.IsBlocked&&route.PathLength<=boardDistance)BankCrew(actor);
             }
             PrepareWinchTarget();
             float remaining = 0;
-            if (diver != null && !diver.onboard) remaining += GetOrCreateLifeline().PathLength;
+            foreach(var actor in Crew)if(actor!=null&&!actor.onboard)remaining+=GetCrewLifeline(actor).PathLength;
             if (world != null) foreach (var cargo in world.pickups) if (IsWinchCargo(cargo)) remaining += GetCargoLifeline(cargo).PathLength;
             winchProgress = Mathf.Clamp01(1 - remaining / Mathf.Max(boardDistance, winchStartDistance));
             if (WinchTargetCount == 0)
@@ -243,6 +244,7 @@ namespace Lifeline
             if (diver == null || diver.onboard) return;
             foreach (ResourceKind item in diver.backpack) AddResource(item, 1);
             int delivered = diver.backpack.Count; diver.backpack.Clear();
+            diver.SetHidden(false);diver.fainted=false;
             diver.SetOnboard(true, ShipPoint(bankArrivalLocal));
             if (diverRope != null) diverRope.ResetRoute();
             diverFainted = false; diverHidden = false; diverSprinting = false; diverBites = 0; diverInvulnerable = 0;
@@ -267,7 +269,7 @@ namespace Lifeline
 
         public bool TryReviveTeammate(CrewActor actor)
         {
-            if (actor == null || actor.downed || actor == diver && diverFainted) return false;
+            if (actor == null || actor.downed || IsFainted(actor)) return false;
             CrewActor other = actor == captain ? diver : captain;
             if (other == null || !other.downed) return false;
             if (!CanReviveFrom(actor, other)) return false;
@@ -281,7 +283,7 @@ namespace Lifeline
             bool nearby = actor.onboard == other.onboard && Vector3.Distance(actor.Position, other.Position) <= tuning.reviveDistance;
             // Do not deadlock when the captain is down on deck and the only conscious teammate is submerged.
             // The diver can assist from the nearby outer rail without being permitted to self-board.
-            if (!nearby && actor == diver && !actor.onboard && other.onboard && ship != null)
+            if (!nearby && !actor.onboard && other.onboard && ship != null)
             {
                 Vector3 rail = new Vector3(other.Position.x, BoatAnchor.y, 0);
                 nearby = Vector3.Distance(actor.Position, rail) <= tuning.reviveDistance;
@@ -296,7 +298,7 @@ namespace Lifeline
                 CrewActor actor = i == (int)CrewRole.Captain ? captain : diver;
                 CrewActor target = reviveTargets[i];
                 if (target == null) continue;
-                if (!reviveHeld[i] || actor == null || actor.downed || actor == diver && diverFainted || !target.downed || !CanReviveFrom(actor, target))
+                if (!reviveHeld[i] || actor == null || actor.downed || IsFainted(actor) || !target.downed || !CanReviveFrom(actor, target))
                 { reviveTargets[i] = null; reviveProgress[i] = 0; continue; }
                 reviveProgress[i] += dt;
                 if (reviveProgress[i] >= tuning.reviveSeconds)
@@ -305,7 +307,7 @@ namespace Lifeline
                     Tell(GameNames.Role(actor.role) + "扶起了" + GameNames.Role(target.role) + "。"); Changed();
                 }
             }
-            bool wipe = captain != null && diver != null && captain.downed && (diver.downed || diverFainted);
+            bool wipe = captain != null && diver != null && IsIncapacitated(captain) && IsIncapacitated(diver);
             crewWipeTimer = wipe ? crewWipeTimer + dt : 0;
             if (crewWipeTimer < Mathf.Min(crewWipeDelay,.15f)) return;
             crewWipeTimer = 0;

@@ -2894,6 +2894,7 @@ MonoBehaviour:
   sharkPrefab: {fileID: 5332596500574162975, guid: 0a21417bb338efc40afbe221affa7177, type: 3}
   shadowPrefab: {fileID: 2674319572309409376, guid: 346b7168086fe4845a96065238a9d2af, type: 3}
   trapdoorPrefab: {fileID: 92020189876845132, guid: 8fece4493db2df04d9259a158b80516d, type: 3}
+  piranhaPrefab: {fileID: 3722056366180666359, guid: c8fda61ea2e3f63478c92a84cf48dad6, type: 3}
   pickups:
   - {fileID: 762045494}
   - {fileID: 2034092831}
@@ -3141,6 +3142,12 @@ MonoBehaviour:
   - {x: 58, y: -41, z: 0}
   - {x: 86, y: -44.5, z: 0}
   - {x: 58, y: -48, z: 0}
+  piranhaSpawnPoints: []
+  caveGuardSpawnPoints: []
+  caveWallMaterial: {fileID: 2100000, guid: f46b729bc48222e4bb02c0ebed5aa616, type: 2}
+  caveBackgroundMaterial: {fileID: 2100000, guid: 470cc1e17570af54aaeb7ed83d8bfb12, type: 2}
+  caveWallColor: {r: 0.9, g: 0.6, b: 0.3, a: 1}
+  caveBackgroundColor: {r: 0.18, g: 0.13, b: 0.24, a: 1}
   layouts:
   - name: AREA 1 / DEPTH 10m
     columns: 5
@@ -3789,6 +3796,9 @@ MonoBehaviour:
   validationRadius: 0.32
   validationHeight: 1.8
   validationReport: 'PASS: 9 connected ruins/caves, 264 reachable rooms, 292 physical capsule-clear doorways, 12 inter-region routes, 231 reachable pickups. Empty crates contain no rewards.'
+  forceCaveDay: -1
+  nightOceanColor: {r: 0.025, g: 0.075, b: 0.14, a: 1}
+  duskOceanColor: {r: 0.07, g: 0.19, b: 0.27, a: 1}
 --- !u!4 &20026271
 Transform:
   m_ObjectHideFlags: 0
@@ -6262,6 +6272,9 @@ MonoBehaviour:
   cameraBoundsLayer: 2
   obstructionAvoidance: 1
   preventCameraPenetration: 1
+  dayBackground: {r: 0.55, g: 0.8, b: 0.88, a: 1}
+  duskBackground: {r: 0.34, g: 0.38, b: 0.52, a: 1}
+  nightBackground: {r: 0.035, g: 0.075, b: 0.14, a: 1}
 --- !u!4 &39955527
 Transform:
   m_ObjectHideFlags: 0
@@ -140155,6 +140168,7 @@ MonoBehaviour:
   ropeMaterial: {fileID: 0}
   winchAttachment: {fileID: 468405057}
   cargo: {fileID: 0}
+  swimmer: {fileID: 0}
   shipProxy: {fileID: 0}
   cargoAttachmentLocal: {x: 0, y: 0.25, z: 0}
   width: 0.055
@@ -192651,6 +192665,7 @@ MonoBehaviour:
   birdPrefab: {fileID: 7749473915290231239, guid: ff79271c37957ce45aaf9e70c8ddc80d, type: 3}
   shadowPrefab: {fileID: 2674319572309409376, guid: 346b7168086fe4845a96065238a9d2af, type: 3}
   spearPrefab: {fileID: 476717912021920239, guid: 29a60b1c2db992a4aad881acb4c3ee5e, type: 3}
+  piranhaPrefab: {fileID: 3722056366180666359, guid: c8fda61ea2e3f63478c92a84cf48dad6, type: 3}
   autoStart: 0
   worldSeed: 8417
   bank: []
@@ -192812,6 +192827,7 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 1280
+  piranhaMaterial: {fileID: 2100000, guid: 97cf2e47b8d77884a92c6932396ea9c2, type: 2}
   sharkMaterial: {fileID: 2100000, guid: 79e83e6933312394b878d2143afb2895, type: 2}
   whiteSharkMaterial: {fileID: 2100000, guid: d8cad9ad614028842a2ad38e77984695, type: 2}
   birdMaterial: {fileID: 2100000, guid: eebe7b664b742d04bb61dc441aac9c91, type: 2}
@@ -192838,6 +192854,12 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   forceStormDay: -1
+  captainRope: {fileID: 0}
+  winchOperatorRole: 0
+  captainBoardProgress: 0
+  captainBoardSeconds: 3
+  captainBoardHeld: 0
+  captainSprinting: 0
 --- !u!114 &1594206555
 MonoBehaviour:
   m_ObjectHideFlags: 0

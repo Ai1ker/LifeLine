@@ -25,6 +25,8 @@ namespace Lifeline
         public Vector3 home;
         public Vector3 spawnPoint;
         public bool variantApplied;
+        public bool caveGuard, damagedRetreat;
+        public Vector3 fleeDirection;
         public Vector3 targetPoint;
         public Vector3 facing = Vector3.right;
 
@@ -46,6 +48,13 @@ namespace Lifeline
         public bool IsAlive => state != EnemyState.Defeated && health > 0;
         public bool IsAirborne => kind == EnemyKind.Bird || kind == EnemyKind.ArmoredBird;
         public bool IsShark => kind == EnemyKind.Shark || kind == EnemyKind.WhiteShark;
+        public bool IsAquaticHunter => IsShark || kind == EnemyKind.Piranha;
+        public float AttackRange => kind == EnemyKind.Piranha ? session.tuning.piranhaAttackDistance : sharkAttackDistance;
+        public float WarningRange => kind == EnemyKind.Piranha ? session.tuning.piranhaWarningDistance : sharkWarningDistance;
+        public float AttackWindup => kind == EnemyKind.Piranha ? session.tuning.piranhaWindup : session.tuning.sharkWindup;
+        public float PatrolSpeed => kind == EnemyKind.Piranha ? session.tuning.piranhaPatrolSpeed : session.tuning.sharkPatrolSpeed;
+        public float ChaseSpeed => kind == EnemyKind.Piranha ? session.tuning.piranhaChaseSpeed : session.tuning.sharkChaseSpeed;
+        public float DetectionRadius => session.IsNight && !session.LightEffective ? session.tuning.sharkNightDetectionRange : session.tuning.sharkDetectionRange;
         Vector3 originalVisualScale;
         Renderer visualRenderer;
         Color baseColor;
@@ -54,8 +63,10 @@ namespace Lifeline
         {
             session = owner; kind = type; home = spawnPoint = transform.position; state = EnemyState.Patrol;
             variantApplied = type == EnemyKind.WhiteShark;
-            health = maxHealth = type == EnemyKind.WhiteShark ? owner.tuning.whiteSharkHealth : type == EnemyKind.ArmoredBird ? owner.tuning.armoredBirdHealth : type == EnemyKind.Shadow ? owner.tuning.shadowHitsRequired : type == EnemyKind.Shark ? owner.tuning.sharkHealth : owner.tuning.birdHealth;
-            hitRadius = type == EnemyKind.Shadow ? 2.8f : IsAirborne ? .5f : 1;
+            health = maxHealth = type == EnemyKind.WhiteShark ? owner.tuning.whiteSharkHealth : type == EnemyKind.ArmoredBird ? owner.tuning.armoredBirdHealth : type == EnemyKind.Shadow ? owner.tuning.shadowHitsRequired : type == EnemyKind.Shark ? owner.tuning.sharkHealth : type == EnemyKind.Piranha ? 1 : owner.tuning.birdHealth;
+            hitRadius = type == EnemyKind.Shadow ? 2.8f : IsAirborne ? .5f : type == EnemyKind.Piranha ? owner.tuning.piranhaScaleMultiplier : 1;
+            damagedRetreatSeconds = owner.tuning.sharkHitRetreatSeconds;
+            damagedRetreat = false; fleeDirection = Vector3.zero;
             body = GetComponent<Rigidbody>(); if (body == null) body = gameObject.AddComponent<Rigidbody>();
             body.isKinematic = true; body.useGravity = false; body.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionZ;
             hitCollider = GetComponent<Collider>();
@@ -64,9 +75,11 @@ namespace Lifeline
             SphereCollider sphere = hitCollider as SphereCollider; if (sphere != null) sphere.radius = hitRadius;
             Transform existing = transform.Find("VisualRoot");
             visualRoot = existing != null ? existing : BuildVisual();
+            if (type == EnemyKind.Piranha) visualRoot.localScale *= owner.tuning.piranhaScaleMultiplier;
             originalVisualScale = visualRoot.localScale;
+            if (type == EnemyKind.Piranha) collisionRadius *= owner.tuning.piranhaScaleMultiplier;
             visualRenderer = visualRoot.GetComponentInChildren<Renderer>();
-            Material material = kind == EnemyKind.Shadow ? owner.shadowMaterial : kind == EnemyKind.WhiteShark ? owner.whiteSharkMaterial : IsAirborne ? owner.birdMaterial : owner.sharkMaterial;
+            Material material = kind == EnemyKind.Piranha ? owner.piranhaMaterial : kind == EnemyKind.Shadow ? owner.shadowMaterial : kind == EnemyKind.WhiteShark ? owner.whiteSharkMaterial : IsAirborne ? owner.birdMaterial : owner.sharkMaterial;
             if (visualRenderer != null)
             {
                 if (material != null) visualRenderer.sharedMaterial = material;
@@ -76,7 +89,7 @@ namespace Lifeline
                     if (shader != null)
                     {
                         Material placeholder = new Material(shader);
-                        placeholder.color = kind == EnemyKind.Shadow ? new Color(.14f, .05f, .2f) : kind == EnemyKind.WhiteShark ? new Color(.8f, .88f, .9f) : IsAirborne ? new Color(.25f, .2f, .24f) : new Color(.25f, .45f, .52f);
+                        placeholder.color = kind == EnemyKind.Piranha ? new Color(.95f,.4f,.25f) : kind == EnemyKind.Shadow ? new Color(.14f, .05f, .2f) : kind == EnemyKind.WhiteShark ? new Color(.8f, .88f, .9f) : IsAirborne ? new Color(.25f, .2f, .24f) : new Color(.25f, .45f, .52f);
                         visualRenderer.sharedMaterial = placeholder;
                     }
                 }
@@ -99,10 +112,10 @@ namespace Lifeline
             return visual.transform;
         }
 
-        void Update()
+        void Update() => StepEnemy(Time.deltaTime);
+        public void StepEnemy(float dt)
         {
-            if (session == null || session.phase != SessionPhase.Playing || !IsAlive) return;
-            float dt = Time.deltaTime;
+            if (session == null || session.phase != SessionPhase.Playing || !IsAlive || dt <= 0) return;
             if (kind == EnemyKind.Shark && !variantApplied && session.day >= session.tuning.mutationStartDay && spawnPoint.x >= session.tuning.deepBoundary)
             {
                 variantApplied = true; kind = EnemyKind.WhiteShark; health = maxHealth = session.tuning.whiteSharkHealth;
@@ -122,24 +135,34 @@ namespace Lifeline
 
         void TickShark(float dt)
         {
-            CrewActor diver = session.diver;
+            CrewActor diver = session.FindWaterTarget(transform.position);
             float surface = session.world != null ? session.world.WaterSurface : -1.5f;
-            bool available = diver != null && !diver.onboard && !diver.downed && !session.diverFainted && surface - diver.Position.y >= 0;
+            bool available = diver != null && !diver.onboard && !diver.downed && !session.IsFainted(diver) && surface - diver.Position.y >= 0;
             float distance = available ? Vector3.Distance(transform.position, diver.Position) : float.MaxValue;
-            float detection = session.IsNight ? session.tuning.sharkNightDetectionRange : session.tuning.sharkDetectionRange;
-            if (session.diverHidden) detection *= .4f;
+            float detection = DetectionRadius;
+            if (state == EnemyState.Retreat)
+            {
+                if (damagedRetreat)
+                {
+                    if (available) { var away = transform.position - diver.Position; away.z = 0; if (away.sqrMagnitude > .001f) fleeDirection = away.normalized; }
+                    if (fleeDirection.sqrMagnitude < .001f) fleeDirection = Vector3.right;
+                    Move(transform.position + fleeDirection * 10, ChaseSpeed * dt);
+                }
+                else Move(home, PatrolSpeed * 1.5f * dt);
+                if (stateTime >= (damagedRetreat ? session.tuning.sharkHitRetreatSeconds : 1.2f))
+                {
+                    reacquireTime = damagedRetreat ? 0 : session.tuning.sharkReacquireDelay; damagedRetreat = false;
+                    if (!caveGuard) home = transform.position;
+                    ChangeState(EnemyState.Patrol);
+                }
+                return;
+            }
             if (session.baitTime > 0 && Vector3.Distance(transform.position, session.baitPosition) < detection * 1.5f)
             {
                 targetPoint = session.baitPosition;
-                Move(targetPoint, session.tuning.sharkPatrolSpeed * dt);
+                Move(targetPoint, PatrolSpeed * dt);
                 if (state != EnemyState.Patrol) ChangeState(EnemyState.Patrol);
                 reacquireTime = Mathf.Max(reacquireTime, .5f); return;
-            }
-            if (state == EnemyState.Retreat)
-            {
-                Move(home, session.tuning.sharkPatrolSpeed * 1.5f * dt);
-                if (stateTime >= damagedRetreatSeconds) ChangeState(EnemyState.Patrol);
-                return;
             }
             if (!available || distance > detection * 1.7f)
             {
@@ -154,17 +177,17 @@ namespace Lifeline
             if (state == EnemyState.Patrol)
             {
                 Vector3 patrol = home + new Vector3(Mathf.Sin(session.elapsed * .33f + home.x) * patrolRadius, Mathf.Sin(session.elapsed * .21f) * .6f, 0);
-                Move(patrol, session.tuning.sharkPatrolSpeed * dt);
+                Move(patrol, PatrolSpeed * dt);
                 if (available && distance <= detection && reacquireTime <= 0 && HasLineOfSight(diver.Position)) ChangeState(EnemyState.Detecting);
             }
             else if (state == EnemyState.Detecting && stateTime >= session.tuning.sharkDetectDelay) { pursuitTime = 0; ChangeState(EnemyState.Pursuit); }
-            else if (state == EnemyState.Telegraph && stateTime >= session.tuning.sharkWindup) ChangeState(EnemyState.Lunge);
+            else if (state == EnemyState.Telegraph && stateTime >= AttackWindup) ChangeState(EnemyState.Lunge);
             else if (state == EnemyState.Pursuit)
             {
                 targetPoint = diver.Position;
-                float speed = session.tuning.playerSwimSpeed * session.GetMoveMultiplier(diver) * session.tuning.sprintMultiplier;
+                float speed = ChaseSpeed;
                 Move(targetPoint, speed * dt);
-                if (Vector3.Distance(transform.position, diver.Position) <= sharkWarningDistance && attackCooldown <= 0)
+                if (Vector3.Distance(transform.position, diver.Position) <= WarningRange && attackCooldown <= 0)
                 {
                     attackCooldown = session.tuning.sharkBiteCooldown;
                     // Hold the point before the windup. The diver can dodge instead of the lunge tracking them forever.
@@ -173,11 +196,13 @@ namespace Lifeline
             }
             else if (state == EnemyState.Lunge)
             {
-                float speed = session.tuning.playerSwimSpeed * session.GetMoveMultiplier(diver) * session.tuning.sprintMultiplier;
+                float speed = ChaseSpeed;
                 Move(targetPoint, speed * dt);
-                if (Vector3.Distance(transform.position, diver.Position) <= sharkAttackDistance)
+                if (Vector3.Distance(transform.position, diver.Position) <= AttackRange)
                 {
-                    session.RegisterSharkBite(); GiveUp();
+                    if (kind == EnemyKind.Piranha) diver.ReceiveDamage(session.tuning.piranhaDamage);
+                    else if (diver == session.diver) session.RegisterSharkBite(); else diver.ReceiveDamage(1);
+                    GiveUp();
                 }
                 else if (stateTime >= sharkLungeSeconds) ChangeState(EnemyState.Pursuit);
             }
@@ -185,8 +210,8 @@ namespace Lifeline
 
         void GiveUp()
         {
-            reacquireTime = session.tuning.sharkReacquireDelay;
-            home = transform.position + new Vector3(-Mathf.Sign(facing.x) * 2, -1, 0);
+            damagedRetreat = false; reacquireTime = session.tuning.sharkReacquireDelay;
+            if (!caveGuard) home = transform.position + new Vector3(-Mathf.Sign(facing.x) * 2, -1, 0);
             ChangeState(EnemyState.Retreat);
         }
 
@@ -199,8 +224,6 @@ namespace Lifeline
                 if (stateTime >= .55f)
                 {
                     session.DamageHull(session.tuning.birdHullDamage);
-                    CrewActor actor = session.captain;
-                    if (actor != null && actor.onboard && Vector3.Distance(actor.Position, transform.position) < 2) actor.ReceiveDamage(12);
                     ChangeState(EnemyState.Retreat);
                 }
             }
@@ -225,7 +248,7 @@ namespace Lifeline
                 if (stateTime > shadowRetreatSeconds) Destroy(gameObject);
                 return;
             }
-            CrewActor diver=session.diver;
+            CrewActor diver=session.FindWaterTarget(transform.position);
             float length=diver!=null&&diver.GetComponent<CapsuleCollider>()!=null?diver.GetComponent<CapsuleCollider>().height*diver.transform.lossyScale.y:1.8f;
             float normal=session.tuning.playerSwimSpeed*session.tuning.shadowSpeedMultiplier;
             Vector3 target=diver!=null&&!diver.onboard&&!diver.downed?diver.Position:session.BoatAnchor+Vector3.down*2;
@@ -262,12 +285,12 @@ namespace Lifeline
         public void Alert(Vector3 position)
         {
             targetPoint = position;
-            if (IsShark && state == EnemyState.Patrol && reacquireTime <= 0) ChangeState(EnemyState.Detecting);
+            if (IsAquaticHunter && state == EnemyState.Patrol && reacquireTime <= 0) ChangeState(EnemyState.Detecting);
         }
 
         public void ReceiveHit(float damage, CrewActor source)
         {
-            if (!IsAlive || session == null || session.phase != SessionPhase.Playing) return;
+            if (!IsAlive || session == null || session.phase != SessionPhase.Playing || damage <= 0) return;
             damageFlash = .2f;
             if (kind == EnemyKind.Shadow)
             {
@@ -277,9 +300,19 @@ namespace Lifeline
             }
             else
             {
-                health = Mathf.Max(0, health - Mathf.Max(0, damage));
+                // Sharks survive a fixed count of successful hits; weapon damage buffs do not bypass the count.
+                health = kind == EnemyKind.Piranha ? 0 : Mathf.Max(0, health - (IsShark ? 1 : damage));
                 if (health <= 0) Defeat();
-                else if (IsShark) GiveUp();
+                else if (IsShark)
+                {
+                    Vector3 threat = source != null && !source.onboard ? source.Position : session.BoatAnchor;
+                    fleeDirection = transform.position - threat; fleeDirection.z = 0;
+                    if (fleeDirection.sqrMagnitude < .001f) fleeDirection = -facing;
+                    fleeDirection.Normalize(); damagedRetreat = true; pursuitTime = 0;
+                    attackCooldown = Mathf.Max(attackCooldown, session.tuning.sharkHitRetreatSeconds);
+                    reacquireTime = session.tuning.sharkHitRetreatSeconds;
+                    ChangeState(EnemyState.Retreat);
+                }
             }
         }
 
@@ -287,12 +320,13 @@ namespace Lifeline
         {
             state = EnemyState.Defeated;
             if (hitCollider != null) hitCollider.enabled = false;
-            if (kind != EnemyKind.Shadow) session.Tell(kind == EnemyKind.WhiteShark ? "变异白鲨已击退。" : IsAirborne ? "海鸟已驱离。" : "鲨鱼已驱离。");
-            Destroy(gameObject, destroyDelay);
+            if (kind != EnemyKind.Shadow) session.Tell(kind == EnemyKind.WhiteShark ? "变异白鲨已击退。" : IsAirborne ? "海鸟已驱离。" : kind == EnemyKind.Piranha ? "食人鱼已击杀。" : "鲨鱼已驱离。");
+            if (Application.isPlaying) Destroy(gameObject, destroyDelay);
         }
 
         bool HasLineOfSight(Vector3 target)
         {
+            if (!IsAirborne) return true; // Underwater enemies deliberately pass through architecture.
             RaycastHit hit;
             if (!Physics.Linecast(transform.position, target, out hit, geometryMask, QueryTriggerInteraction.Ignore)) return true;
             return hit.collider.GetComponentInParent<CrewActor>() != null;
@@ -305,7 +339,7 @@ namespace Lifeline
             Vector3 direction = delta.normalized; facing = direction;
             float step = Mathf.Min(distance, delta.magnitude);
             RaycastHit hit;
-            if (Physics.SphereCast(transform.position, collisionRadius, direction, out hit, step + .03f, geometryMask, QueryTriggerInteraction.Ignore))
+            if (IsAirborne && Physics.SphereCast(transform.position, collisionRadius, direction, out hit, step + .03f, geometryMask, QueryTriggerInteraction.Ignore))
             {
                 step = Mathf.Max(0, hit.distance - .03f);
                 if (step <= .001f) return;

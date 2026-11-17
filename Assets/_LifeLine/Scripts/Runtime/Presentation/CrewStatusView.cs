@@ -14,7 +14,7 @@ namespace Lifeline
         {
             if(actor==null)actor=GetComponent<CrewActor>();
             if(actor==null||actor.session==null)return;
-            int count=actor.role==CrewRole.Diver&&!actor.onboard&&!actor.downed&&!actor.session.diverFainted?Mathf.Max(0,actor.session.GetMaxDiverBites()-actor.session.diverBites):0;
+            int count=!actor.onboard&&!actor.session.IsIncapacitated(actor)&&!actor.session.IsHidden(actor)?actor.role==CrewRole.Captain?1:Mathf.Max(0,Mathf.CeilToInt(actor.session.GetMaxDiverBites()-actor.session.diverBites)):0;
             if(dotsRoot==null){dotsRoot=new GameObject("Remaining hit dots / replaceable").transform;dotsRoot.SetParent(transform,false);}
             for(int i=0;i<2;i++)
             {

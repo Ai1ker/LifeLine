@@ -88,7 +88,8 @@ namespace Lifeline
             clockText.text = "DAY " + session.day + " · " + (session.IsNight ? "夜晚" : session.IsDusk ? "黄昏" : "白昼") + "  " + (session.elapsed % session.tuning.daySeconds).ToString("0") + "s";
             hullFill.fillAmount = session.hullMax > 0 ? session.hull / session.hullMax : 0;
             powerFill.fillAmount = session.power / Mathf.Max(1, session.tuning.maxPower);
-            oxygenFill.fillAmount = session.diver.oxygenMax > 0 ? session.diver.oxygen / session.diver.oxygenMax : 0;
+            var oxygenActor=session.captain!=null&&!session.captain.onboard?session.captain:session.diver;
+            oxygenFill.fillAmount=oxygenActor.oxygenMax>0?oxygenActor.oxygen/oxygenActor.oxygenMax:0;
         }
         private string CrewLabel(CrewActor actor)
         {
@@ -96,13 +97,15 @@ namespace Lifeline
             int roleIndex = (int)actor.role;
             if (session.reviveTargets[roleIndex] != null)
                 return name + " · 扶起同伴 " + session.reviveProgress[roleIndex].ToString("0.0") + "/" + session.tuning.reviveSeconds.ToString("0") + "s · 持续按住互动";
-            if (actor.downed) return name + " · 倒地，等待同伴扶起";
+            if(actor==session.captain&&session.captainBoardHeld)return name+" · 回船 "+session.captainBoardProgress.ToString("0.0")+"/"+session.captainBoardSeconds.ToString("0.#")+"s";
+            if(session.IsHidden(actor))return name+" · 藏匿中，互动离开";
+            if (actor.downed||session.IsFainted(actor)) return name + " · 倒地，等待同伴扶起";
             if (actor.onboard)
             {
                 var station = actor.NearbyStation;
                 return name + " · 船上  " + (station != null ? GameNames.Station(station.kind) + " [" + actor.input.GetBindingLabel("Interact") + "]" : "行走 / 跳跃 / 梯子");
             }
-            return name + " · 水下  O₂ " + actor.oxygen.ToString("0") + "s  背包 " + actor.backpack.Count + "/" + actor.BagCapacity + "  绳长 " + session.DiverRopeLength.ToString("0.0") + "/" + session.ropeLength.ToString("0") + "m";
+            return name + " · 水下  O₂ " + actor.oxygen.ToString("0") + "s  背包 " + actor.backpack.Count + "/" + actor.BagCapacity + "  绳长 " + session.CrewRopeLength(actor).ToString("0.0") + "/" + session.ropeLength.ToString("0") + "m";
         }
         private void OpenStation(StationKind kind, CrewActor actor)
         {

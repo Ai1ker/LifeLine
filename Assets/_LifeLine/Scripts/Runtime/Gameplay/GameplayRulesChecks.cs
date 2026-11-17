@@ -172,6 +172,7 @@ namespace Lifeline
                     spawnWorld.sharkSpawnPoints.Add(new Vector3(center + 14, surface - 43, 0));
                     spawnWorld.sharkSpawnPoints.Add(new Vector3(center - 14, surface - 46.5f, 0));
                 }
+                tuning.maximumSharks = 6;
                 List<Vector3> sharkPoints = game.SelectInitialSharkSpawnPoints();
                 int[] perArea = new int[3]; int deepPoints = 0; bool allLegal = true, canBecomeWhiteShark = false;
                 foreach (Vector3 point in sharkPoints)

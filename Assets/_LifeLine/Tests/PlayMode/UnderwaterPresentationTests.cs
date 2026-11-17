@@ -34,6 +34,13 @@ namespace Lifeline.Tests
                 diver.onboard = true; rig.RefreshViewNow();
                 Assert.That(rig.IsSharedView, Is.True);
                 Assert.That(rig.diverCamera.cullingMask & (1 << rig.shipPresentationLayer), Is.Not.Zero);
+                captain.onboard=false;rig.RefreshViewNow();
+                Assert.That(rig.IsSplitScreen,Is.True,"captain entering water also requires separate maps/views");
+                Assert.That(rig.captainCamera.cullingMask&((1<<10)|(1<<rig.shipPresentationLayer)),Is.Zero);
+                Assert.That(rig.captainCamera.cullingMask&(1<<rig.underwaterProxyLayer),Is.Not.Zero);
+                diver.onboard=false;rig.RefreshViewNow();
+                Assert.That(rig.diverCamera.cullingMask&((1<<10)|(1<<rig.shipPresentationLayer)),Is.Zero);
+                captain.onboard=diver.onboard=true;rig.RefreshViewNow();
                 rig.enabled = false;
                 Assert.That(capVisual.gameObject.layer, Is.EqualTo(9), "disabling replacement rig restores authored layers");
                 Assert.That(hull.gameObject.layer, Is.EqualTo(10));

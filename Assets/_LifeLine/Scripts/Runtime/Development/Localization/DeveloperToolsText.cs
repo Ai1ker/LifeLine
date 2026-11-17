@@ -12,6 +12,7 @@ namespace Lifeline.Development
                 case "Developer test tools / F8": return "开发测试工具 / F8";
                 case "Start a local game first.": return "请先进入本地游戏。";
                 case "Commands use a separate developer save slot.": return "测试命令使用独立开发存档，不覆盖玩家存档。";
+                case "Next day with cave": return "下一天（必出洞穴）";
                 case "Daylight": return "白天";
                 case "Thunderstorm": return "雷雨夜";
                 case "Move both crew into cabin": return "两名船员移入船舱";

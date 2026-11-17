@@ -26,9 +26,12 @@ namespace Lifeline
         }
         void Update()
         {
-            if(label==null||world==null||world.session==null||world.session.diver==null)return;
-            var diver=world.session.diver;label.gameObject.SetActive(!diver.onboard&&Vector2.Distance(diver.Position,transform.position)<4);
-            label.text=UiLocalization.Text(world.session.diverHidden?"藏匿中 · 互动离开":"藏匿点 · 互动躲藏");
+            if(label==null||world==null||world.session==null)return;
+            CrewActor focus=null;float distance=4;
+            foreach(var actor in world.session.Crew)
+                if(actor!=null&&!actor.onboard&&Vector2.Distance(actor.Position,transform.position)<distance){focus=actor;distance=Vector2.Distance(actor.Position,transform.position);}
+            label.gameObject.SetActive(focus!=null&&(world.session.IsHidden(focus)||world.GetLabelFocus(focus)==transform));
+            label.text=UiLocalization.Text(focus!=null&&world.session.IsHidden(focus)?"藏匿中 · 互动离开":"藏匿点 · 互动躲藏");
         }
     }
 }

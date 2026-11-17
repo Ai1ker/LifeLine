@@ -59,6 +59,7 @@ namespace Lifeline.Tests
             Assert.That(Vector2.Distance(view.rope.GetPosition(view.rope.positionCount - 1), cargo.transform.TransformPoint(view.cargoAttachmentLocal)), Is.LessThan(.001f));
             var lead = Child("Main lifeline view").AddComponent<DiverLifelineView>(); lead.Initialize(game); lead.RefreshNow();
             Assert.That(lead.shipLead, Is.Not.Null); Assert.That(lead.shipLead.enabled);
+            Assert.That(lead.shipLead.sharedMaterial,Is.Not.Null,"an aboard diver must still provide a valid material for the shared outgoing ship cable");
             Assert.That(lead.shipLead.transform.parent, Is.SameAs(game.ship.transform));
             Assert.That(Vector2.Distance(lead.shipLead.GetPosition(0), lead.winchAttachment.position), Is.LessThan(.001f));
             Assert.That(Vector2.Distance(lead.shipLead.GetPosition(1), game.WaterToShipPoint(game.BoatAnchor)), Is.LessThan(.001f));

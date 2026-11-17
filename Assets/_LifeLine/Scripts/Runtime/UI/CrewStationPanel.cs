@@ -63,7 +63,7 @@ namespace Lifeline
             Close(); station = kind; actor.controlsCaptured = true; previousMove = Vector2.zero;
             panel.SetActive(true); titleText.text = GameNames.Role(actor.role) + " / " + GameNames.Station(kind);
             repairStarted = session.repairAuthorized[(int)kind];
-            if (kind == StationKind.Winch) session.SetWinchActive(true);
+            if (kind == StationKind.Winch) session.SetWinchActive(true,actor);
             if (kind == StationKind.Engine) engineVersion = session.engineRepairVersion;
             BuildActions();
         }
@@ -163,7 +163,7 @@ namespace Lifeline
                     break;
                 case StationKind.Winch:
                     detailText.text = "基础判定 +10%；T2累计 +20%。成功立即收绳，失败回滑。";
-                    Add("节奏校准 [" + actor.input.GetBindingLabel("Melee") + "]", () => session.TryWinchQte(WinchAngle()), session.GetUpgrade(UpgradeKind.Rope) < 3);
+                    Add("节奏校准 [" + actor.input.GetBindingLabel("Melee") + "]", () => session.TryWinchQte(WinchAngle()), true);
                     break;
                 case StationKind.Generator:
                     detailText.text = "手摇每3秒成功 +1%；1铁板升级燃油机，每桶 +25%。升级后仍可手摇。";
@@ -287,7 +287,7 @@ namespace Lifeline
                 SetRhythmRange(session.tuning.winchCenter, half * 2, WinchAngle());
                 if (qteView != null) qteView.ShowCircle(actor.input, WinchAngle(), session.tuning.winchCenter,
                     half * 2, session.winchProgress, session.winchFeedbackTime, session.winchFeedback.Contains("成功") || session.winchProgress >= 1,
-                    session.GetUpgrade(UpgradeKind.Rope) >= 3);
+                    false);
                 rhythmFill.color = session.winchFeedbackTime > 0 ? session.winchFeedback.Contains("成功") ? new Color(.3f,.9f,.5f) : new Color(.95f,.4f,.3f) : new Color(.83f,.68f,.35f);
                 liveText.text = session.WinchTargetCount + " × " + session.WinchEfficiency.ToString("P0") + " · " + session.winchProgress.ToString("P0") + " · " + session.winchFeedback + "\n指针 " + WinchAngle().ToString("0.00") + " / 绿色窗口 " + (session.tuning.winchCenter - half).ToString("0.000") + " — " + (session.tuning.winchCenter + half).ToString("0.000");
             }

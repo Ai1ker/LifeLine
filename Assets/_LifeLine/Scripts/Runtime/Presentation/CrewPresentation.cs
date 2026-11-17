@@ -68,7 +68,7 @@ namespace Lifeline
                 visualRoot.localScale = new Vector3(Mathf.Abs(baseScale.x) * Mathf.Sign(actor.Facing.x), baseScale.y, baseScale.z);
             if(placeholderPoses&&visualRoot!=null)
             {
-                bool lying=actor.downed||actor.session!=null&&actor==actor.session.diver&&actor.session.diverFainted;
+                bool lying=actor.downed||actor.session!=null&&actor.session.IsFainted(actor);
                 float angle=lying?90:!actor.onboard?actor.Facing.x<0?90:-90:0;
                 visualRoot.localRotation=Quaternion.Euler(0,0,angle);
             }

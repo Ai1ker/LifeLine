@@ -55,7 +55,7 @@ namespace Lifeline
         {
             foreach(var actor in new[]{captain,diver})
             {
-                if(actor==null||actor.downed||actor.onboard!=strike.onShipMap)continue;
+                if(actor==null||IsIncapacitated(actor)||IsHidden(actor)||actor.onboard!=strike.onShipMap)continue;
                 Vector3 position=actor.onboard?ShipToWaterPoint(actor.Position):actor.Position;
                 if(actor.onboard&&ship!=null&&ship.transform.InverseTransformPoint(actor.Position).y<actor.deckY)continue;
                 if(Vector2.Distance(position,strike.point)<=strike.radius)actor.ReceiveDamage(1);

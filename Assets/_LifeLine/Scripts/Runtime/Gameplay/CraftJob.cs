@@ -45,6 +45,6 @@ namespace Lifeline
         }
     }
 
-    public enum EnemyKind { Shark, WhiteShark, Bird, ArmoredBird, Shadow }
+    public enum EnemyKind { Shark, WhiteShark, Bird, ArmoredBird, Shadow, Piranha }
     public enum EnemyState { Patrol, Detecting, Telegraph, Pursuit, Lunge, Retreat, Defeated }
 }

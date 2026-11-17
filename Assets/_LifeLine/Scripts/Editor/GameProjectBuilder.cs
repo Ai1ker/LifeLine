@@ -115,6 +115,7 @@ namespace Lifeline.Editor
             ShipLadderHatch hatch = session.ship.GetComponent<ShipLadderHatch>();
             if (hatch != null) hatch.crew = new[] { session.captain, session.diver };
             session.obstacleMask = (1 << 8) | (1 << 10);
+            session.piranhaPrefab = library.piranha; session.piranhaMaterial = library.piranhaMaterial;
             session.sharkMaterial = library.sharkMaterial; session.whiteSharkMaterial = library.whiteSharkMaterial;
             session.birdMaterial = library.birdMaterial; session.shadowMaterial = library.shadowMaterial; session.spearMaterial = library.spearMaterial;
             session.sharkPrefab = library.shark; session.birdPrefab = library.bird;
@@ -125,7 +126,7 @@ namespace Lifeline.Editor
             world.resourceMaterials = library.resourcePalette;
             world.lootPrefab = library.loot; world.cratePrefab = library.crate;
             world.trapdoorPrefab = library.trapdoor;
-            world.sharkPrefab = library.shark; world.shadowPrefab = library.shadow;
+            world.piranhaPrefab = library.piranha; world.sharkPrefab = library.shark; world.shadowPrefab = library.shadow;
             session.maps = session.gameObject.AddComponent<GameMapPartition>();
             session.maps.InitializeForAuthoring(session);
             session.GetOrCreateLifeline(); session.GetOrCreateLifeline(true);

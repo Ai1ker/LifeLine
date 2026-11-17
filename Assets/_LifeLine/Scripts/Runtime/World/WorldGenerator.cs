@@ -15,11 +15,18 @@ namespace Lifeline
         public Material[] placeholderMaterials;
         [Tooltip("Optional materials indexed by ResourceKind. Prefab palettes are preserved if unset.")]
         public Material[] resourceMaterials;
-        public GameObject lootPrefab, cratePrefab, sharkPrefab, shadowPrefab, trapdoorPrefab;
+        public GameObject lootPrefab, cratePrefab, sharkPrefab, shadowPrefab, trapdoorPrefab, piranhaPrefab;
         public List<LootPickup> pickups = new List<LootPickup>();
         public Transform generatedRoot;
         public Transform solidRoot;
         public List<Vector3> sharkSpawnPoints = new List<Vector3>();
+        public List<Vector3> piranhaSpawnPoints = new List<Vector3>();
+        public List<Vector3> caveGuardSpawnPoints = new List<Vector3>();
+        [Header("洞穴占位材质 / Replaceable cave surfaces")]
+        public Material caveWallMaterial, caveBackgroundMaterial;
+        public Color caveWallColor = new Color(.90f, .60f, .30f);
+        public Color caveBackgroundColor = new Color(.18f, .13f, .24f);
+        Material generatedCaveWall, generatedCaveBackground;
         public List<MazeLayout> layouts = new List<MazeLayout>();
         public List<TrapdoorGate> trapdoors = new List<TrapdoorGate>();
         public List<UnderwaterHideSpot> hideSpots = new List<UnderwaterHideSpot>();
@@ -78,8 +85,10 @@ namespace Lifeline
         public IReadOnlyList<MazeLayout> Layouts => layouts;
         readonly List<BoxCollider> generatedWalls = new List<BoxCollider>();
         int pickupSequence;
-        int labelFrame = -1;
-        Transform labelFocus;
+        int[] labelFrames={-1,-1};
+        Transform[] labelTargets=new Transform[2];
+        public int forceCaveDay=-1;
+        public Color nightOceanColor=new Color(.025f,.075f,.14f),duskOceanColor=new Color(.07f,.19f,.27f);
         Material[] fallbackMaterials;
 
         [ContextMenu("Generate configured seed")]
@@ -98,6 +107,7 @@ namespace Lifeline
             activeDay = Mathf.Max(1, day);
             GenerateInternal(true);
             ResolveRefreshOverlap(session != null ? session.diver : null);
+            ResolveRefreshOverlap(session != null ? session.captain : null);
         }
 
         public float EventChance(float baseChance) => Mathf.Min(tuning != null ? tuning.deepEventChanceCap : eventChanceCap,
@@ -114,6 +124,7 @@ namespace Lifeline
 
         void GenerateInternal(bool preserveCargo)
         {
+            if(session!=null)foreach(var actor in session.Crew)if(actor!=null)actor.SetHidden(false);
             DiverRope.NotifyGeometryChanged();
             var cargo = new List<LootPickup>();
             if (preserveCargo)
@@ -124,7 +135,7 @@ namespace Lifeline
                         pickup.mazeIndex = pickup.mazeCell = -1;
                         cargo.Add(pickup);
                     }
-            ResetWorld(); hideSpots.Clear();
+            ResetWorld(); hideSpots.Clear();if(activeDay>forceCaveDay)forceCaveDay=-1;
             generatedSeed = ComputeDaySeed(seed, activeDay, dailySeedStride);
             var random = new System.Random(generatedSeed);
             generatedRoot = Child(transform, "Generated");
@@ -169,13 +180,13 @@ namespace Lifeline
                 var obj=new GameObject("Ruins hiding spot");obj.transform.SetParent(generatedRoot,false);obj.transform.position=maze.Center(cell);
                 var hide=obj.AddComponent<UnderwaterHideSpot>();hide.world=this;hideSpots.Add(hide);
             }
-            // Independent rolls: an eel can occur in the deepest ruin even when no cave occurs.
+            // Preserve the legacy event rolls/IDs. Every placed cave now guarantees an eel; the independent no-cave eel roll remains.
             Vector2Int events = RollDeepEvents(random);
             bool caveOccurs = events.x != 0, eelOccurs = events.y != 0;
             generatedCave = false;
             generatedEel = deep != null && eelOccurs;
             MazeLayout rewardMaze = deep;
-            if (deep != null && generateCaves && (forceCave || caveOccurs))
+            if (deep != null && generateCaves && (forceCave || forceCaveDay==activeDay || caveOccurs))
             {
                 float mainRight = deep.topLeft.x + deep.columns * deep.cellSize;
                 float exitY = deep.Center(deep.rightExitRow * deep.columns + deep.columns - 1).y;
@@ -191,7 +202,9 @@ namespace Lifeline
                     Solid("Cave connector floor", new Vector3(mainRight + .5f, exitY - doorWidth * .5f - wallThickness * .5f, 0), new Vector3(1 + wallThickness, wallThickness, wallDepth), 0);
                     ConnectRuins(deep, cave, "Branch cave passage");
                     rewardMaze = cave;
-                    if (!eelOccurs) SpawnPickup(lootRoot, cave.Center(cave.rewardCell), ResourceKind.Fuel, false, false, layouts.Count - 1, cave.rewardCell).name = "Reachable cave reward";
+                    generatedEel = true;
+                    if (!eelOccurs) SpawnPickup(lootRoot, cave.Center(cave.rewardCell), ResourceKind.Eel, false, false, layouts.Count - 1, cave.rewardCell).name = "Guaranteed cave eel generator";
+                    BuildCaveGuardPoints(cave);
                     foreach (int cell in cave.rewardRoute)
                         Visual(Child(generatedRoot, "Cave guide marker"), "VisualRoot", cave.Center(cell) + new Vector3(0, -.7f, .7f), new Vector3(.12f, .12f, .12f), 5);
                 }
@@ -202,6 +215,7 @@ namespace Lifeline
             SpawnPickup(lootRoot, new Vector3(-2.8f, -6.4f, 0), ResourceKind.Wood, false, false, -1, -1);
             SpawnPickup(lootRoot, new Vector3(0, -6.8f, 0), ResourceKind.Fiber, false, false, -1, -1);
             SpawnPickup(lootRoot, new Vector3(2.8f, -6.4f, 0), ResourceKind.Metal, false, false, -1, -1);
+            BuildSupplementalLife(lootRoot);
             foreach (var pickup in cargo) { pickup.transform.SetParent(generatedRoot, true); pickups.Add(pickup); }
             Physics.SyncTransforms();
             ValidateGeneratedWorld(out validationReport);
@@ -249,7 +263,7 @@ namespace Lifeline
                 int cell = i == 0 ? maze.entranceCell : maze.rewardCell;
                 SpawnPickup(lootRoot, maze.Center(cell) + new Vector3(.76f, -.35f, -.12f), ResourceKind.Wood, true, false, index, cell);
             }
-            // More candidate points in deeper bands, all at depth >=25. Session caps live sharks at six.
+            // More candidate points in deeper bands, all at depth >=25. Session caps live sharks at the configured maximum (default eight).
             int spawnCount = tier >= 2 ? 3 : tier == 1 ? 1 : 0;
             for (int i = 0; i < spawnCount; i++)
                 sharkSpawnPoints.Add(new Vector3(centerX + (i % 2 == 0 ? -1 : 1) * (columns * cellSize * .5f + 1.4f),
@@ -261,7 +275,8 @@ namespace Lifeline
         {
             var roomRoot = Child(solidRoot, maze.name);
             var background = Child(roomRoot, "VisualRoot");
-            Visual(background, "Distant silhouette", new Vector3(maze.topLeft.x + maze.columns * maze.cellSize * .5f, maze.topLeft.y - maze.rows * maze.cellSize * .5f, 2.4f), new Vector3(maze.columns * maze.cellSize, maze.rows * maze.cellSize, .25f), tier == 3 ? 0 : 1);
+            var backdrop = Visual(background, "Distant silhouette", new Vector3(maze.topLeft.x + maze.columns * maze.cellSize * .5f, maze.topLeft.y - maze.rows * maze.cellSize * .5f, 2.4f), new Vector3(maze.columns * maze.cellSize, maze.rows * maze.cellSize, .25f), tier == 3 ? 0 : 1);
+            if (tier == 3) backdrop.GetComponent<Renderer>().sharedMaterial = CaveMaterial(false);
             for (int row = 0; row <= maze.rows; row++)
                 for (int column = 0; column < maze.columns; column++)
                 {
@@ -280,6 +295,83 @@ namespace Lifeline
                 }
             if (drawLabels && drawRuinTitles)
                 AddLabel(background, maze.name, new Vector3(maze.topLeft.x + maze.columns * maze.cellSize * .5f, maze.topLeft.y + .45f, -.5f), .018f, new Color(.5f, .8f, .76f));
+        }
+
+        Material CaveMaterial(bool wall)
+        {
+            Material authored = wall ? caveWallMaterial : caveBackgroundMaterial;
+            if (authored != null) return authored;
+            Material material = wall ? generatedCaveWall : generatedCaveBackground;
+            if (material == null)
+            {
+                material = new Material(Palette[0]) { name = wall ? "Cave warm sandstone / replaceable" : "Cave dark violet / replaceable" };
+                if (wall) generatedCaveWall = material; else generatedCaveBackground = material;
+            }
+            Color color = wall ? caveWallColor : caveBackgroundColor;
+            material.color = color; if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
+            return material;
+        }
+
+        void BuildCaveGuardPoints(MazeLayout cave)
+        {
+            if (tuning != null && tuning.maximumSharks <= 0) return;
+            var random = new System.Random(unchecked(generatedSeed ^ 0x537ade));
+            int count = tuning != null ? Mathf.Clamp(tuning.caveGuardMaximum, 1, 3) : 2;
+            // Use reachable route cells near the reward, never solid walls or the reward itself.
+            for (int i = 0; i < count; i++)
+            {
+                if (i > 0 && random.NextDouble() >= (tuning != null ? tuning.extraCaveGuardChance : .75f)) continue;
+                int routeIndex = Mathf.Max(0, cave.rewardRoute.Count - 2 - i * 2);
+                if (cave.rewardRoute.Count > 1) caveGuardSpawnPoints.Add(cave.Center(cave.rewardRoute[routeIndex]));
+            }
+        }
+
+        void BuildSupplementalLife(Transform lootRoot)
+        {
+            var fishRandom = new System.Random(unchecked(generatedSeed ^ 0x1837abc));
+            for (int area = 0; area < areaCenters.Length; area++)
+            {
+                int spawned = 0; MazeLayout fallback = null;
+                for (int band = 0; band < bandRoomCounts.Length; band++)
+                {
+                    int index = area * bandRoomCounts.Length + band;
+                    if (index >= layouts.Count || layouts[index].entranceOnLeft) continue;
+                    var maze = layouts[index]; fallback = fallback ?? maze;
+                    for (int cell = 0; cell < maze.Count; cell++)
+                    {
+                        if (fishRandom.NextDouble() >= (tuning != null ? tuning.underwaterFishChance : .12f)) continue;
+                        // A small offset keeps the fish from covering the ordinary resource at cell centre.
+                        Vector3 position = maze.Center(cell) + new Vector3(-.64f, .12f, -.08f);
+                        SpawnPickup(lootRoot, position, ResourceKind.Fish, false, false, index, cell); spawned++;
+                    }
+                }
+                int minimum = tuning != null ? tuning.minimumFishPerArea : 1;
+                for (int n = spawned; n < minimum && fallback != null; n++)
+                    SpawnPickup(lootRoot, fallback.Center(fallback.entranceCell) + new Vector3(-.64f, .12f, -.08f), ResourceKind.Fish, false, false, layouts.IndexOf(fallback), fallback.entranceCell);
+            }
+            var candidates = new List<Vector3>();
+            Vector2 depths = tuning != null ? tuning.piranhaDepths : new Vector2(20, 35);
+            foreach (var maze in layouts)
+                if (!maze.entranceOnLeft)
+                    for (int cell = 0; cell < maze.Count; cell++)
+                    {
+                        Vector3 p = maze.Center(cell); float depth = WaterSurface - p.y;
+                        if (p.x >= (tuning != null ? tuning.shallowBoundary : 24) && p.x < (tuning != null ? tuning.deepBoundary : 56)
+                            && depth >= depths.x && depth <= depths.y) candidates.Add(p);
+                    }
+            var schoolRandom = new System.Random(unchecked(generatedSeed ^ 0x49bad));
+            for (int i = candidates.Count - 1; i > 0; i--) { int j = schoolRandom.Next(i + 1); var p = candidates[i]; candidates[i] = candidates[j]; candidates[j] = p; }
+            int maximum = tuning != null ? Mathf.Clamp(tuning.maximumPiranhas, 0, 6) : 6;
+            int schoolSize = RollPiranhaCount(schoolRandom, Mathf.Min(maximum, candidates.Count), tuning != null ? tuning.piranhaSpawnChance : .6f);
+            for (int i = 0; i < schoolSize; i++) piranhaSpawnPoints.Add(candidates[i]);
+        }
+
+        public static int RollPiranhaCount(System.Random random, int maximum, float chance)
+        {
+            maximum = Mathf.Clamp(maximum, 0, 6);
+            int count = 0;
+            for (int i = 0; i < maximum; i++) if (random.NextDouble() < Mathf.Clamp01(chance)) count++;
+            return maximum > 0 ? Mathf.Max(1, count) : 0;
         }
 
         public bool CanPlaceMaze(MazeLayout maze, out string reason)
@@ -359,7 +451,8 @@ namespace Lifeline
         void BuildSea()
         {
             var scenery = Child(generatedRoot, "Ocean VisualRoot");
-            Visual(scenery, "Deep ocean", new Vector3(worldBounds.center.x, (worldBounds.yMin + waterSurface) * .5f, 7), new Vector3(worldBounds.width, waterSurface - worldBounds.yMin, .25f), 0);
+            var ocean=Visual(scenery, "Deep ocean", new Vector3(worldBounds.center.x, (worldBounds.yMin + waterSurface) * .5f, 7), new Vector3(worldBounds.width, waterSurface - worldBounds.yMin, .25f), 0);
+            var cycle=ocean.AddComponent<DayNightBackdrop>();cycle.session=session;cycle.nightColor=nightOceanColor;cycle.duskColor=duskOceanColor;
             Visual(scenery, "Surface", new Vector3(worldBounds.center.x, waterSurface, 3), new Vector3(worldBounds.width, .07f, .2f), 5);
             for (int i = 0; i < 14; i++)
                 Visual(scenery, "Depth stratum", new Vector3(worldBounds.center.x, -5 - i * 4, 5.8f), new Vector3(worldBounds.width, .035f, .1f), 1);
@@ -563,16 +656,24 @@ namespace Lifeline
         {foreach(var hide in hideSpots)if(hide!=null&&Vector2.Distance(actor.Position,hide.transform.position)<=hide.range)return true;return false;}
         public bool TryHide(CrewActor actor)
         {
-            if(actor==null||actor.onboard||session==null||!IsAtHideSpot(actor))return false;
-            session.diverHidden=!session.diverHidden;session.Tell(session.diverHidden?"潜水员藏身于废墟阴影。":"潜水员离开藏身处。");return true;
+            if(actor==null||actor.onboard||session==null||session.IsIncapacitated(actor))return false;
+            if(session.IsHidden(actor)){actor.SetHidden(false);session.Tell(GameNames.Role(actor.role)+"离开藏匿处。");session.Changed();return true;}
+            if(!IsAtHideSpot(actor))return false;
+            actor.SetHidden(true);session.Tell(GameNames.Role(actor.role)+"进入藏匿处，再按互动键离开。");session.Changed();return true;
         }
-        public Transform GetLabelFocus()
+        public Transform GetLabelFocus()=>GetLabelFocus(session!=null?session.diver:null);
+        public bool IsLabelFocus(Transform target)
         {
-            if (!Application.isPlaying || !drawLabels || session == null || session.diver == null
-                || session.diver.onboard || session.diver.downed) return null;
-            if (labelFrame == Time.frameCount) return labelFocus;
-            labelFrame = Time.frameCount; labelFocus = null;
-            Vector3 position = session.diver.Position;
+            if(session==null)return false;
+            foreach(var actor in session.Crew)if(GetLabelFocus(actor)==target)return true;
+            return false;
+        }
+        public Transform GetLabelFocus(CrewActor actor)
+        {
+            if(!Application.isPlaying||!drawLabels||actor==null||actor.onboard||actor.downed||session.IsHidden(actor))return null;
+            int index=(int)actor.role;if(labelFrames[index]==Time.frameCount)return labelTargets[index];
+            labelFrames[index]=Time.frameCount;
+            Transform labelFocus=null;Vector3 position=actor.Position;
             float best = labelVisibleDistance * labelVisibleDistance;
             foreach (var pickup in pickups)
             {
@@ -588,7 +689,12 @@ namespace Lifeline
                 if (distance >= best) continue;
                 best = distance; labelFocus = gate.transform;
             }
-            return labelFocus;
+            foreach(var hide in hideSpots)
+            {
+                if(hide==null)continue;float distance=(hide.transform.position-position).sqrMagnitude;
+                if(distance<best){best=distance;labelFocus=hide.transform;}
+            }
+            labelTargets[index]=labelFocus;return labelFocus;
         }
 
         [ContextMenu("Validate generated collision and reachability")]
@@ -699,8 +805,8 @@ namespace Lifeline
         public void ResetWorld()
         {
             if (generatedRoot != null) RemoveObject(generatedRoot.gameObject);
-            generatedRoot = null; solidRoot = null; pickups.Clear(); layouts.Clear(); trapdoors.Clear(); sharkSpawnPoints.Clear(); regionalConnections.Clear(); generatedWalls.Clear();
-            pickupSequence = 0; labelFrame = -1; labelFocus = null;
+            generatedRoot = null; solidRoot = null; pickups.Clear(); layouts.Clear(); trapdoors.Clear(); sharkSpawnPoints.Clear(); piranhaSpawnPoints.Clear(); caveGuardSpawnPoints.Clear(); regionalConnections.Clear(); generatedWalls.Clear();
+            pickupSequence = 0;labelFrames=new[]{-1,-1};labelTargets=new Transform[2];
         }
 
         BoxCollider Solid(string title, Vector3 center, Vector3 size, int material, Transform parent = null)
@@ -708,7 +814,9 @@ namespace Lifeline
             var root = new GameObject(title); root.layer = geometryLayer;
             root.transform.SetParent(parent != null ? parent : solidRoot, true); root.transform.position = center;
             var collider = root.AddComponent<BoxCollider>(); collider.size = size;
-            Visual(root.transform, "VisualRoot", center, size, material);
+            var view = Visual(root.transform, "VisualRoot", center, size, material);
+            if (parent != null && parent.name.Contains("BRANCH CAVE"))
+                view.GetComponent<Renderer>().sharedMaterial = CaveMaterial(true);
             generatedWalls.Add(collider); return collider;
         }
         GameObject Visual(Transform parent, string title, Vector3 position, Vector3 size, int material)
@@ -758,8 +866,9 @@ namespace Lifeline
         }
         void OnDestroy()
         {
-            if (fallbackMaterials == null) return;
-            foreach (var material in fallbackMaterials) if (material != null) RemoveObject(material);
+            if (generatedCaveWall != null) RemoveObject(generatedCaveWall);
+            if (generatedCaveBackground != null) RemoveObject(generatedCaveBackground);
+            if (fallbackMaterials != null) foreach (var material in fallbackMaterials) if (material != null) RemoveObject(material);
         }
         static void RemoveObject(UnityEngine.Object target)
         {

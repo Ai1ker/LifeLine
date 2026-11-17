@@ -24,6 +24,7 @@ namespace Lifeline
         public SessionSaveState state;
         public CrewSaveState captain, diver;
         public Vector3 shipPosition;
+        public Vector3[] captainRopeContacts=Array.Empty<Vector3>();
         public Vector3[] diverRopeContacts = Array.Empty<Vector3>();
         public Vector3[] cargoRopeContacts = Array.Empty<Vector3>();
         public CraftSaveState[] jobs = Array.Empty<CraftSaveState>();
@@ -51,9 +52,10 @@ namespace Lifeline
         public bool[] repairAuthorized;
         public float ropeLength;
         public bool diverFainted, diverHidden;
-        public int diverBites;
+        public float diverBites;
         public float diverInvulnerable;
         public bool winchElectric, winchSignalAuthorized;
+        public CrewRole winchOperatorRole;
         public float winchProgress, winchCycleTime, winchJam, winchStartDistance;
         public bool winchAttemptedThisCycle;
         public string winchTargetKind;
@@ -77,7 +79,8 @@ namespace Lifeline
     [Serializable] public sealed class CrewSaveState
     {
         public CrewRole role;
-        public bool onboard, downed;
+        public bool onboard, downed, hidden, fainted;
+        public Vector3 hidingPosition;
         public Vector3 position, velocity;
         public Vector2 facing;
         public float health, maxHealth, oxygen, oxygenMax;
@@ -94,6 +97,7 @@ namespace Lifeline
     {
         public bool present;
         public int activeDay, generatedSeed;
+        public int forceCaveDay=-1;
         public PickupSaveState[] pickups = Array.Empty<PickupSaveState>();
         public GateSaveState[] gates = Array.Empty<GateSaveState>();
     }
@@ -115,6 +119,8 @@ namespace Lifeline
         public float health, maxHealth, stateTime, pursuitTime, attackCooldown, reacquireTime;
         public int shadowHitCount, shadowAttackIndex, shadowPhase; public bool variantApplied;
         public float shadowAttackClock; public Vector3 shadowAim;
+        public bool caveGuard, damagedRetreat;
+        public Vector3 fleeDirection;
     }
     [Serializable] public sealed class SpearSaveState
     {

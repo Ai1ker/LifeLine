@@ -46,6 +46,7 @@ namespace Lifeline
         public bool IsEdgeMarkerVisible => edgeMarker != null && edgeMarker.gameObject.activeSelf;
         readonly List<Material> generatedMaterials = new List<Material>();
         Canvas markerCanvas;
+        RectTransform captainEdgeMarker;
 
         void Awake()
         {
@@ -84,31 +85,35 @@ namespace Lifeline
 
         public void RefreshNow()
         {
-            bool visible = session != null && session.ship != null && session.diver != null && !session.diver.onboard
+            bool visible = session != null && session.ship != null && session.AnyCrewUnderwater
                 && (session.phase == SessionPhase.Playing || session.phase == SessionPhase.Paused);
             if (visualRoot != null) visualRoot.gameObject.SetActive(visible);
             if (!visible)
             {
                 if (edgeMarker != null) edgeMarker.gameObject.SetActive(false);
+                if(captainEdgeMarker!=null)captainEdgeMarker.gameObject.SetActive(false);
                 return;
             }
             float surface = session.world != null ? session.world.WaterSurface : -1.5f;
             transform.position = new Vector3(session.BoatAnchor.x, surface + surfaceHeight, foregroundZ);
             visualRoot.localScale = proxyScale;
             foreach (var renderer in visualRoot.GetComponentsInChildren<Renderer>(true)) renderer.gameObject.layer = presentationLayer;
-            if (edgeMarker == null) return;
-            Camera output = cameraRig != null ? cameraRig.diverCamera : null;
-            bool enabledView = output != null && output.enabled;
-            Vector3 viewport = enabledView ? output.WorldToViewportPoint(transform.position + Vector3.up * .5f) : Vector3.zero;
-            bool outside = viewport.z <= 0 || viewport.y > markerViewportHeight || viewport.x < .05f || viewport.x > .95f;
-            edgeMarker.gameObject.SetActive(showTopEdgeMarker && enabledView && outside);
-            if (!edgeMarker.gameObject.activeSelf) return;
-            Rect pixels = output.pixelRect;
-            float screenX = output.WorldToScreenPoint(transform.position).x;
-            float padding = markerHorizontalPadding + markerSize.x * .5f;
-            screenX = Mathf.Clamp(screenX, pixels.xMin + padding, pixels.xMax - padding);
-            edgeMarker.position = new Vector3(screenX, pixels.yMin + pixels.height * markerViewportHeight, 0);
-            edgeMarker.sizeDelta = markerSize;
+            if(edgeMarker==null)return;
+            if(captainEdgeMarker==null){captainEdgeMarker=Instantiate(edgeMarker,edgeMarker.parent);captainEdgeMarker.name="Captain small ship bearing";}
+            UpdateMarker(edgeMarker,session.diver,cameraRig!=null?cameraRig.diverCamera:null);
+            UpdateMarker(captainEdgeMarker,session.captain,cameraRig!=null?cameraRig.captainCamera:null);
+        }
+        void UpdateMarker(RectTransform marker,CrewActor actor,Camera output)
+        {
+            bool enabledView=actor!=null&&!actor.onboard&&output!=null&&output.enabled;
+            Vector3 viewport=enabledView?output.WorldToViewportPoint(transform.position+Vector3.up*.5f):Vector3.zero;
+            bool outside=viewport.z<=0||viewport.y>markerViewportHeight||viewport.x<.05f||viewport.x>.95f;
+            marker.gameObject.SetActive(showTopEdgeMarker&&enabledView&&outside);
+            if(!marker.gameObject.activeSelf)return;
+            Rect pixels=output.pixelRect;float screenX=output.WorldToScreenPoint(transform.position).x;
+            float padding=markerHorizontalPadding+markerSize.x*.5f;
+            screenX=Mathf.Clamp(screenX,pixels.xMin+padding,pixels.xMax-padding);
+            marker.position=new Vector3(screenX,pixels.yMin+pixels.height*markerViewportHeight,0);marker.sizeDelta=markerSize;
         }
 
         void BuildGeometry()

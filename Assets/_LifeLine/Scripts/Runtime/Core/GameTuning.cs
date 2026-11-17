@@ -90,15 +90,34 @@ namespace Lifeline
         public float sharkWindup = .68f;
         public float sharkPursuitSeconds = 4f;
         public float sharkPatrolSpeed = 1.25f;
-        public float sharkDetectionRange = 6.7f;
-        public float sharkNightDetectionRange = 9.6f;
+        [Tooltip("Metres. Initial diver length is 1.8m; authored art scaling never changes detection.")]
+        public float sharkDetectionRange = 3.6f;
+        public float sharkNightDetectionRange = 1.8f;
+        public float sharkChaseSpeed = 3.36f;
         public float sharkBiteCooldown = 3.6f;
         public float sharkReacquireDelay = 3f;
         [Min(0)] public float sharkMinimumDepth = 25f;
-        [Min(0)] public int maximumSharks = 6;
+        [Min(0)] public int maximumSharks = 8;
         [Min(1)] public int mutationStartDay = 3;
         [Range(0, 1)] public float armoredBirdChance = .35f;
-        [Min(1)] public float sharkHealth = 2, whiteSharkHealth = 4, birdHealth = 1, armoredBirdHealth = 2;
+        [Min(1)] public float sharkHealth = 2, whiteSharkHealth = 3, birdHealth = 1, armoredBirdHealth = 2;
+        [Min(.1f)] public float sharkHitRetreatSeconds = 3f;
+        [Header("城区食人鱼 / Middle-depth city schools")]
+        [Range(0, 6)] public int maximumPiranhas = 6;
+        [Range(0, 1)] public float piranhaSpawnChance = .6f;
+        public Vector2 piranhaDepths = new Vector2(20, 35);
+        public float piranhaDamage = .5f;
+        public float piranhaScaleMultiplier = .5f;
+        public float piranhaAttackDistance = .84f;
+        public float piranhaWarningDistance = 1.54f;
+        public float piranhaWindup = .544f;
+        public float piranhaChaseSpeed = 3.696f;
+        public float piranhaPatrolSpeed = 1.375f;
+        [Header("洞穴守卫与鱼获 / Cave guards and separate fish loot")]
+        [Range(1, 3)] public int caveGuardMaximum = 2;
+        [Range(0, 1)] public float extraCaveGuardChance = .75f;
+        [Range(0, 1)] public float underwaterFishChance = .12f;
+        [Min(0)] public int minimumFishPerArea = 1;
         public float shadowWindup = 1.76f;
         public int shadowHitsRequired = 20;
         public float shadowSpeedMultiplier = .9f;

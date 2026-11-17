@@ -59,6 +59,7 @@ namespace Lifeline.Development
             if (GUILayout.Button(T("Daylight"))) SetTime(game, .1f);
             if (GUILayout.Button(T("Thunderstorm"))) SetTime(game, game.tuning.dayFraction + game.tuning.duskFraction + .02f);
             GUILayout.EndHorizontal();
+            if(GUILayout.Button(T("Next day with cave")))NextDayWithCave(game);
             if (GUILayout.Button(T("Move both crew into cabin")))
             {
                 IsolateSave(); game.captain.RestorePose(true, game.ShipPoint(new Vector3(-3, -3.1f, 0)), Vector3.zero, Vector2.right);
@@ -71,7 +72,7 @@ namespace Lifeline.Development
             if (GUILayout.Button(T("Restore hull / power / oxygen / crew")))
             {
                 IsolateSave(); game.hull = game.hullMax; game.power = game.tuning.maxPower;
-                game.captain.Revive(); game.diver.Revive(); game.diverFainted = false;
+                game.captain.Revive(); game.diver.Revive(); game.diverFainted = false;game.captain.fainted=game.diver.fainted=false;
                 game.diver.oxygen = game.GetOxygenMax(); game.diverBites = 0;
             }
             if (GUILayout.Button(T("Create 2 attached cargo crates"))) CreateCargo(game);
@@ -82,6 +83,11 @@ namespace Lifeline.Development
             GUILayout.EndHorizontal();
             GUILayout.Label(T("Delete Scripts/Runtime/Development to remove all tools."));
             GUI.DragWindow(new Rect(0, 0, window.width, 24));
+        }
+        public void NextDayWithCave(GameSession game)
+        {
+            if(game==null||game.world==null)return;
+            IsolateSave();testDay=game.day+1;game.world.forceCaveDay=testDay;game.SetDayClock(testDay,.1f);
         }
         public void SetTime(GameSession game, float fraction)
         {

@@ -48,6 +48,7 @@ namespace Lifeline
 
         public void ResetLifelines()
         {
+            if(captainRope!=null)captainRope.ResetRoute();
             if (diverRope != null) diverRope.ResetRoute();
             if (world != null) foreach (var cargo in world.pickups) if (cargo != null && cargo.lifeline != null) cargo.lifeline.ResetRoute();
             if (cargoRope != null) cargoRope.ResetRoute();
@@ -55,6 +56,8 @@ namespace Lifeline
 
         public void RefreshLifelines()
         {
+            if(captain!=null&&!captain.onboard)GetCrewLifeline(captain).UpdateRoute(BoatAnchor,captain.Position);
+            else if(captainRope!=null)captainRope.ResetRoute();
             if (diver != null && !diver.onboard) GetOrCreateLifeline().UpdateRoute(BoatAnchor, diver.Position);
             else if (diverRope != null) diverRope.ResetRoute();
             if (world != null) foreach (var cargo in world.pickups)
@@ -83,10 +86,20 @@ namespace Lifeline
         public bool RopeCrossesBounds(Bounds bounds)
         {
             RefreshLifelines();
+            if(Crosses(captainRope,bounds))return true;
             if (Crosses(diverRope, bounds)) return true;
             if (world != null) foreach (var cargo in world.pickups)
                 if (IsWinchCargo(cargo) && Crosses(cargo.lifeline, bounds)) return true;
             return false;
+        }
+
+        void EnsureCaptainLifelineView()
+        {
+            if(!Application.isPlaying||captain==null)return;
+            foreach(var view in FindObjectsByType<DiverLifelineView>())if(view.session==this&&view.swimmer==captain)return;
+            var obj=new GameObject("Captain lifeline presentation");if(maps==null)obj.transform.SetParent(transform,false);
+            var line=obj.AddComponent<DiverLifelineView>();line.swimmer=captain;line.Initialize(this);
+            maps?.MoveGameplayObject(obj,false);
         }
 
         static bool Crosses(DiverRope route, Bounds bounds)

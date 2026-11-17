@@ -16,7 +16,7 @@ namespace Lifeline
             if(label.font!=RuntimeUIFont.GetOrCreateFont()){label.font=RuntimeUIFont.GetOrCreateFont();var rendererFont=label.GetComponent<Renderer>();if(rendererFont!=null)rendererFont.sharedMaterial=label.font.material;}
             var renderer = label.GetComponent<Renderer>();
             if (renderer != null) renderer.enabled = world != null && world.drawLabels
-                && world.GetLabelFocus() == owner;
+                && world.IsLabelFocus(owner);
         }
         void LateUpdate() => RefreshNow();
         void OnEnable() => RefreshNow();

@@ -4,7 +4,7 @@ Shader "LifeLine/UI/Night Visibility"
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
-        _DarknessColor ("Night Color", Color) = (0.006,0.014,0.025,0.98)
+        _DarknessColor ("Night Color", Color) = (0.006,0.014,0.025,1)
         _FocusUV ("Focus in Viewport", Vector) = (0.5,0.5,0,0)
         _ViewportPixels ("Viewport Pixel Size", Vector) = (960,1080,0,0)
         _MaskRect ("Image Local Rect", Vector) = (-480,-540,960,1080)
@@ -88,7 +88,8 @@ Shader "LifeLine/UI/Night Visibility"
                 float radius = max(1.0, _RadiusPixels);
                 float feather = max(0.01, min(radius, _FeatherPixels));
                 float coverage = smoothstep(radius - feather, radius, distancePixels);
-                fixed alpha = coverage * saturate(_Opacity) * _DarknessColor.a * input.color.a;
+                // Exterior coverage must be opaque. Tint/image alpha used to leak bright loot silhouettes.
+                fixed alpha = coverage * saturate(_Opacity);
                 #ifdef UNITY_UI_CLIP_RECT
                     alpha *= UnityGet2DClipping(input.localPosition.xy, _ClipRect);
                 #endif

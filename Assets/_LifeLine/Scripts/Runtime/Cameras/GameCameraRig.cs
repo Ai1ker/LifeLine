@@ -75,10 +75,11 @@ namespace Lifeline
         [Range(0, 31)] public int cameraBoundsLayer = 2;
         public bool obstructionAvoidance = true;
         public bool preventCameraPenetration = true;
+        public Color dayBackground=new Color(.55f,.8f,.88f), duskBackground=new Color(.34f,.38f,.52f), nightBackground=new Color(.035f,.075f,.14f);
         public bool IsSplitScreen { get; private set; }
         public bool IsSharedView => !onlineView && !IsSplitScreen;
         bool configured;
-        bool previousSplit;
+        bool previousSplit,previousCaptainOnboard=true,previousDiverOnboard=true;
         float lastCaptainLens = -1, lastDiverLens = -1;
         sealed class VisualLayer
         {
@@ -185,9 +186,11 @@ namespace Lifeline
         void RefreshView(bool snap)
         {
             if (captainCamera == null || diverCamera == null || captainFocus == null || diverFocus == null) return;
-            IsSplitScreen = ShouldUseSplitScreen(onlineView, diver == null || diver.onboard, splitScreenOnShip);
+            IsSplitScreen = ShouldUseSplitScreen(onlineView, (diver == null || diver.onboard)&&(captain==null||captain.onboard), splitScreenOnShip);
             bool shared = !onlineView && !IsSplitScreen;
-            bool transition = snap || previousSplit != IsSplitScreen;
+            bool capAboard=captain==null||captain.onboard,divAboard=diver==null||diver.onboard;
+            bool transition = snap || previousSplit != IsSplitScreen || capAboard!=previousCaptainOnboard || divAboard!=previousDiverOnboard;
+            previousCaptainOnboard=capAboard;previousDiverOnboard=divAboard;
             previousSplit = IsSplitScreen;
             captainCamera.enabled = !onlineView || localRole == CrewRole.Captain;
             diverCamera.enabled = IsSplitScreen || onlineView && localRole == CrewRole.Diver;
@@ -196,6 +199,8 @@ namespace Lifeline
             captainCamera.rect = IsSplitScreen ? new Rect(0, 0, .5f, 1) : new Rect(0, 0, 1, 1);
             diverCamera.rect = IsSplitScreen ? new Rect(.5f, 0, .5f, 1) : new Rect(0, 0, 1, 1);
             RefreshViewLayers();
+            var sky=session!=null&&session.IsNight?nightBackground:session!=null&&session.IsDusk?duskBackground:dayBackground;
+            captainCamera.backgroundColor=diverCamera.backgroundColor=sky;
 
             Vector3 boatPosition = ship != null ? ship.transform.position : Vector3.zero;
             if (shipBoundary != null) shipBoundary.transform.position = new Vector3(boatPosition.x, boatPosition.y, 0);
@@ -203,9 +208,11 @@ namespace Lifeline
             Vector3 capPosition = captain != null ? captain.transform.position : boatPosition + Vector3.up;
             Vector3 divPosition = diver != null ? diver.transform.position : capPosition;
             Vector3 capTarget = capPosition + (Vector3)captainOffset;
-            float desiredCaptainSize = captainSize;
+            float desiredCaptainSize = captain!=null&&!captain.onboard?diverSize:captainSize;
             if (shared) desiredCaptainSize = GetSharedFraming(capPosition, divPosition, boatPosition, captainCamera.aspect, out capTarget);
             else if (captain != null) capTarget.x += captain.Facing.x * horizontalLookAhead;
+            if(captain!=null&&!captain.onboard&&keepUnderwaterViewBelowSurface)
+            {float surface=session!=null&&session.world!=null?session.world.WaterSurface:-1.5f;capTarget.y=Mathf.Min(capTarget.y,surface-diverSize-waterSurfaceViewPadding+underwaterSurfaceHeadroom);}
             capTarget.z = 0;
             captainFocus.position = capTarget;
             Vector3 divTarget = divPosition + (Vector3)diverOffset;
@@ -217,7 +224,7 @@ namespace Lifeline
             }
             divTarget.z = 0; diverFocus.position = divTarget;
 
-            SetBoundary(captainConfiner, shipBoundary);
+            SetBoundary(captainConfiner, captain!=null&&!captain.onboard?waterBoundary:shipBoundary);
             SetBoundary(diverConfiner, diver != null && diver.onboard ? shipBoundary : waterBoundary);
             UpdateLens(captainVirtualCamera, captainConfiner, desiredCaptainSize, ref lastCaptainLens, transition);
             UpdateLens(diverVirtualCamera, diverConfiner, diver != null && diver.onboard ? captainSize : diverSize, ref lastDiverLens, transition);
@@ -249,7 +256,9 @@ namespace Lifeline
             }
             int presentation = 1 << shipPresentationLayer;
             int waterProxy = 1 << underwaterProxyLayer;
-            captainCamera.cullingMask = (captainViewMask | presentation) & ~waterProxy;
+            captainCamera.cullingMask = isolateUnderwaterShip&&captain!=null&&!captain.onboard
+                ? (captainViewMask|waterProxy)&~((1<<shipSolidLayer)|presentation)
+                : (captainViewMask | presentation) & ~waterProxy;
             diverCamera.cullingMask = isolateUnderwaterShip && underwater
                 ? (diverViewMask | waterProxy) & ~((1 << shipSolidLayer) | presentation)
                 : (diverViewMask | presentation) & ~waterProxy;

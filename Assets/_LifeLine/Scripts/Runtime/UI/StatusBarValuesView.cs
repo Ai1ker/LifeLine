@@ -16,7 +16,14 @@ namespace Lifeline
             if(background!=null)background.enabled=visible;
             if(hull!=null){hull.enabled=visible;hull.text=UiLocalization.Text("船体耐久")+" "+session.hull.ToString("0")+" / "+session.hullMax.ToString("0");}
             if(power!=null){power.enabled=visible;power.text=UiLocalization.Text("电力")+" "+session.power.ToString("0")+" / "+session.tuning.maxPower.ToString("0")+"%";}
-            if(oxygen!=null){oxygen.enabled=visible;oxygen.text=UiLocalization.Text("潜水员氧气")+" "+(session.diver!=null?session.diver.oxygen:0).ToString("0")+" / "+session.GetOxygenMax().ToString("0")+"s";}
+            if(oxygen!=null)
+            {
+                oxygen.enabled=visible;string text="";
+                foreach(var actor in session.Crew)if(actor!=null&&!actor.onboard)
+                    text+=(text.Length>0?"   ":"")+UiLocalization.Text(GameNames.Role(actor.role)+"氧气")+" "+actor.oxygen.ToString("0")+" / "+session.GetOxygenMax(actor).ToString("0")+"s";
+                if(text=="")text=UiLocalization.Text("潜水员氧气")+" "+session.diver.oxygen.ToString("0")+" / "+session.GetOxygenMax().ToString("0")+"s";
+                oxygen.text=text;
+            }
         }
     }
 }
