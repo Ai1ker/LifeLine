@@ -25,7 +25,7 @@ namespace Lifeline
         public void Open()
         {
             if (panel == null) return;
-            panel.SetActive(true); panel.transform.SetAsLastSibling();
+            panel.SetActive(true); panel.transform.SetAsLastSibling(); GameHUDController.ConfigureModalLayer(panel,120);
             if (cameraRig == null) cameraRig = FindAnyObjectByType<GameCameraRig>();
             RefreshLabels(); UiLocalization.Refresh(panel);
         }

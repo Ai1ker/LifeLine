@@ -16,6 +16,43 @@ namespace Lifeline
         public List<int> rewardRoute = new List<int>();
         public bool entranceOnLeft, openLeft, openRight;
         public int leftExitRow, rightExitRow;
+        public int bottomExitColumn = -1, extraLeftExitRow = -1, extraRightExitRow = -1;
+
+        public struct ExteriorExit
+        {
+            public int cell;
+            public Vector2Int direction;
+            public ExteriorExit(int cell, Vector2Int direction) { this.cell = cell; this.direction = direction; }
+        }
+
+        /// <summary>Ruins have four ways out. Cave topology deliberately retains its single side entrance.</summary>
+        public void ConfigureRuinExits(System.Random random, float extraSideChance)
+        {
+            if (entranceOnLeft) return;
+            openLeft = openRight = true;
+            bottomExitColumn = random.Next(columns);
+            extraLeftExitRow = rows > 1 && random.NextDouble() < extraSideChance
+                ? (leftExitRow + 1 + random.Next(rows - 1)) % rows : -1;
+            extraRightExitRow = rows > 1 && random.NextDouble() < extraSideChance
+                ? (rightExitRow + 1 + random.Next(rows - 1)) % rows : -1;
+        }
+
+        public IEnumerable<ExteriorExit> ExteriorExits()
+        {
+            yield return new ExteriorExit(entranceCell, entranceOnLeft ? Vector2Int.left : Vector2Int.up);
+            if (openLeft && (!entranceOnLeft || leftExitRow * columns != entranceCell))
+                yield return new ExteriorExit(leftExitRow * columns, Vector2Int.left);
+            if (openRight) yield return new ExteriorExit(rightExitRow * columns + columns - 1, Vector2Int.right);
+            if (bottomExitColumn >= 0) yield return new ExteriorExit((rows - 1) * columns + bottomExitColumn, Vector2Int.down);
+            if (extraLeftExitRow >= 0) yield return new ExteriorExit(extraLeftExitRow * columns, Vector2Int.left);
+            if (extraRightExitRow >= 0) yield return new ExteriorExit(extraRightExitRow * columns + columns - 1, Vector2Int.right);
+        }
+
+        public bool HasExteriorExit(int cell, Vector2Int direction)
+        {
+            foreach (var exit in ExteriorExits()) if (exit.cell == cell && exit.direction == direction) return true;
+            return false;
+        }
 
         public void OpenSidePassages()
         {

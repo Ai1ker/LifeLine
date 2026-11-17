@@ -30,7 +30,7 @@ namespace Lifeline
         public void Open()
         {
             if (panel == null) return;
-            panel.SetActive(true); panel.transform.SetAsLastSibling(); selectedRole = CrewRole.Captain; BuildRows(); UiLocalization.Refresh(panel);
+            panel.SetActive(true); panel.transform.SetAsLastSibling(); GameHUDController.ConfigureModalLayer(panel,130); selectedRole = CrewRole.Captain; BuildRows(); UiLocalization.Refresh(panel);
         }
         public void Close()
         {

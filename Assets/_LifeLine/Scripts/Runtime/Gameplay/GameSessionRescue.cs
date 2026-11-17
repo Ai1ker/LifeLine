@@ -72,20 +72,21 @@ namespace Lifeline
                 bag.world = world; bag.capacity = Mathf.Max(tuning.crateCapacity, dropCount);
                 bag.isCrate = true; bag.isCabinet = false; bag.amount = 0;
                 for (int i = 0; i < dropCount; i++) { int last = diver.backpack.Count - 1; bag.contents.Add(diver.backpack[last]); diver.backpack.RemoveAt(last); }
-                world.pickups.Add(bag);
+                bag.persistAcrossDays = true; bag.isLostCargo = true;
+                bag.transform.SetParent(world.transform, true); world.pickups.Add(bag); world.PrepareRestoredPickup(bag);
             }
             Tell(reason + "，潜水员昏厥。缓慢拖向船底，仍需船长用绞盘接回；一半背包物资留在原处。"); Changed();
         }
 
         public bool RegisterSharkBite()
         {
-            return ReceiveDiverHit("鲨鱼咬伤", true);
+            return ReceiveDiverHit("鲨鱼咬伤", true, tuning.sharkDamage);
         }
 
         public bool ReceiveDiverHit(string reason, bool dropResource = true, float hitAmount = 1f)
         {
             if (hitAmount <= 0 || diver == null || IsHidden(diver) || diverFainted || diver.downed || diverInvulnerable > 0) return false;
-            if (GetUpgrade(UpgradeKind.DivingSuit) >= 2 && UnityEngine.Random.value < tuning.upgradedSuitImmunity)
+            if (GetUpgrade(UpgradeKind.DivingSuit) >= 3 && UnityEngine.Random.value < tuning.upgradedSuitImmunity)
             {
                 diverInvulnerable = biteInvulnerabilitySeconds;
                 Tell("潜水服免疫了这次攻击。"); Changed(); return false;
@@ -141,7 +142,8 @@ namespace Lifeline
                 return count;
             }
         }
-        public float WinchEfficiency => 1f / Mathf.Max(1, WinchTargetCount);
+        public float WinchRecoveryMultiplier => GetUpgrade(UpgradeKind.Rope) >= 4 ? 1 + tuning.winchT4RecoveryBonus : 1;
+        public float WinchEfficiency => WinchRecoveryMultiplier / Mathf.Max(1, WinchTargetCount);
         static bool IsWinchCargo(LootPickup cargo) => cargo != null && cargo.isCrate && cargo.attached && !cargo.consumed && cargo.gameObject.activeInHierarchy;
 
         void PrepareWinchTarget()
@@ -189,11 +191,11 @@ namespace Lifeline
             if (string.IsNullOrEmpty(winchTargetKind)) return false;
             winchAttemptedThisCycle = true;
             bool good = Mathf.Abs(Mathf.Repeat(normalizedAngle, 1) - tuning.winchCenter) <= WinchQteWidth * .5f;
-            winchFeedback = good ? "校准成功 +" + (tuning.winchGoodDistance * WinchEfficiency).ToString("0.00") + "m" : "校准失败 −" + (tuning.winchBadDistance * WinchEfficiency).ToString("0.00") + "m";
+            winchFeedback = good ? "校准成功 +" + (tuning.winchGoodDistance * WinchEfficiency).ToString("0.00") + "m" : "校准失败 −" + (tuning.winchBadDistance / Mathf.Max(1, WinchTargetCount)).ToString("0.00") + "m";
             winchFeedbackTime = 1.2f;
             if (winchTargetKind == "survivors")
             {
-                float delta = good ? tuning.winchGoodDistance : -tuning.winchBadDistance;
+                float delta = good ? tuning.winchGoodDistance * WinchRecoveryMultiplier : -tuning.winchBadDistance;
                 rescueProgress = Mathf.Clamp01(rescueProgress + delta / Mathf.Max(1, rescueWinchSeconds)); winchProgress = rescueProgress;
             }
             else MoveWinch(good ? tuning.winchGoodDistance : -tuning.winchBadDistance);
@@ -205,7 +207,7 @@ namespace Lifeline
         {
             int count = WinchTargetCount;
             if (count == 0) return;
-            float share = pullDistance / count;
+            float share = pullDistance * (pullDistance > 0 ? WinchRecoveryMultiplier : 1) / count;
             if (world != null) foreach (var cargo in world.pickups)
             {
                 if (!IsWinchCargo(cargo)) continue;

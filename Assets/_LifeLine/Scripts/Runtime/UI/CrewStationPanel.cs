@@ -73,6 +73,10 @@ namespace Lifeline
             if (session != null && IsOpen && station == StationKind.Winch) session.SetWinchActive(false);
             if (panel != null) panel.SetActive(false);
             fishingActive = false; heldButton = null; previousMove = Vector2.zero;
+            selectedJobId=0;lastJobCount=-1;generatorFeedback=0;repairStarted=false;
+            ClearActions();repairBoard=null;
+            if(qteView!=null)qteView.gameObject.SetActive(false);
+            if(liveText!=null)liveText.text="";if(detailText!=null)detailText.text="";
         }
         private void Update()
         {
@@ -95,13 +99,13 @@ namespace Lifeline
         }
         public void HandleCommand(CrewCommand command)
         {
-            if (!IsOpen) return;
+            if (!IsOpen || session.phase != SessionPhase.Playing || actor == null || session.IsIncapacitated(actor)) return;
             if (station == StationKind.Workbench || station == StationKind.HullRepair)
             {
                 if (command.move.sqrMagnitude > .2f && (previousMove.sqrMagnitude < .2f || Vector2.Dot(previousMove, command.move) < .5f))
                 {
                     int direction = Mathf.Abs(command.move.y) >= Mathf.Abs(command.move.x) ? command.move.y > 0 ? 0 : 2 : command.move.x < 0 ? 1 : 3;
-                    session.CraftQte(selectedJobId, direction);
+                    session.GetOrCreateCraftingManager().CraftQteAtStation(selectedJobId, direction, station);
                 }
             }
             else if (station == StationKind.Engine && repairStarted && command.move.sqrMagnitude>.2f && previousMove.sqrMagnitude<.2f)
@@ -137,6 +141,7 @@ namespace Lifeline
                     detailText.text = "普通作业 " + session.GetCraftDuration().ToString("0") + "秒；快速修补用时减半。校准成功加进度，离开仍继续，不返还已投入材料。";
                     foreach (CraftJob job in session.jobs)
                     {
+                        if (!JobBelongsHere(job)) continue;
                         int id = job.id; Add("选择校准：" + job.recipe.displayName, () => { selectedJobId = id; });
                         if (selectedJobId == 0) selectedJobId = id;
                     }
@@ -152,10 +157,12 @@ namespace Lifeline
                     foreach (UpgradeKind upgrade in Enum.GetValues(typeof(UpgradeKind)))
                     {
                         UpgradeKind selected = upgrade;
-                        string extra = upgrade == UpgradeKind.Rope ? " / T2判定再+10%，T3电动" : upgrade == UpgradeKind.Workbench ? " / 制作35→25→20s，T3双作业" : "";
                         int level = session.GetUpgrade(upgrade);
-                        int displayTier = upgrade == UpgradeKind.Searchlight ? level + 1 : level;
-                        Add(UpgradeLabel(upgrade) + "  T" + displayTier + extra + "\n" + Costs(session.GetUpgradeCost(upgrade)), () => ActionAndRefresh(() => session.TryUpgrade(selected)), level < session.MaxUpgradeLevel(upgrade));
+                        bool canUpgrade = level < session.MaxUpgradeLevel(upgrade);
+                        int displayTier = UpgradeSummary.DisplayTier(upgrade, canUpgrade ? level + 1 : level);
+                        string label = UiLocalization.Text(UpgradeLabel(upgrade)) + (canUpgrade ? " → T" : " T") + displayTier + " / " + UpgradeSummary.NextEffect(session, upgrade);
+                        if (canUpgrade) label += "\n" + Costs(session.GetUpgradeCost(upgrade));
+                        Add(label, () => ActionAndRefresh(() => session.TryUpgrade(selected)), canUpgrade);
                     }
                     Add(session.turretInstalled ? "炮塔 " + (session.turretOn ? "关闭" : "开启") : "建造炮塔：3木板 3铁板 1纤维束", () => ActionAndRefresh(() => { if (session.turretInstalled) session.ToggleTurret(); else session.BuildTurret(); }));
                     if(session.turretInstalled && session.turretTier<2)Add("升级炮塔T2：1铁板 3纤维束 1木板",()=>ActionAndRefresh(()=>session.UpgradeTurret()));
@@ -166,12 +173,16 @@ namespace Lifeline
                     Add("节奏校准 [" + actor.input.GetBindingLabel("Melee") + "]", () => session.TryWinchQte(WinchAngle()), true);
                     break;
                 case StationKind.Generator:
-                    detailText.text = "手摇每3秒成功 +1%；1铁板升级燃油机，每桶 +25%。升级后仍可手摇。";
+                    detailText.text = "手摇每3秒成功 +1%；燃油机每桶 +15%，再用3铁板升级至 +20%。保留手摇。";
                     if (!session.infinitePower)
                     {
                         Add("节奏发力 [" + actor.input.GetBindingLabel("Melee") + "]", Crank);
                         if (session.generatorTier == 0) Add("【升级】燃油发电机：1 铁板", () => ActionAndRefresh(() => session.UpgradeGenerator()));
-                        else Add("消耗1燃油 / +25%电力", () => ActionAndRefresh(() => session.BurnFuel()));
+                        else
+                        {
+                            Add(string.Format(UiLocalization.Text("消耗1燃油 / +{0}%电力"), session.FuelPower.ToString("0")), () => ActionAndRefresh(() => session.BurnFuel()));
+                            if(!session.efficientFuelGenerator)Add("【升级】高效燃油机：3 铁板 / 每桶20%",()=>ActionAndRefresh(()=>session.UpgradeGenerator()));
+                        }
                     }
                     Add("安装电鳗：无限动力 / +30%耐久 / +20%航速", () => ActionAndRefresh(() => session.InstallEel()), session.GetResource(ResourceKind.Eel) > 0 && !session.infinitePower);
                     break;
@@ -262,14 +273,15 @@ namespace Lifeline
             if (fishingProgress >= 1) { fishingActive = false; session.TryCatchFish(fishingQuality, actor); }
             else if (fishingProgress <= 0 || fishingTime - fishWait > fishTimeoutSeconds) { fishingActive = false; liveText.text = "鱼儿逃脱，重新抛竿。"; }
         }
+        bool JobBelongsHere(CraftJob job) => CraftingManager.JobStation(job) == station;
         private void UpdateLive()
         {
             if (rhythmWindow != null) rhythmWindow.gameObject.SetActive(false);
             if (rhythmCursor != null) rhythmCursor.gameObject.SetActive(false);
             if (station == StationKind.Workbench || station == StationKind.HullRepair)
             {
-                if (lastJobCount != session.jobs.Count) { selectedJobId = session.jobs.Count > 0 ? session.jobs[0].id : 0; BuildActions(); }
-                CraftJob job = session.jobs.Find(candidate => candidate.id == selectedJobId);
+                if (lastJobCount != session.jobs.Count) { selectedJobId = 0; BuildActions(); }
+                CraftJob job = session.jobs.Find(candidate => candidate.id == selectedJobId && JobBelongsHere(candidate));
                 if (job == null) { liveText.text = "作业槽 " + session.jobs.Count + "/" + session.CraftCapacity; rhythmFill.fillAmount = 0; if (qteView != null) qteView.gameObject.SetActive(false); return; }
                 float offset = job.nextCue - job.elapsed;
                 rhythmFill.fillAmount = Mathf.Clamp01(1 - offset);
@@ -307,7 +319,7 @@ namespace Lifeline
                 rhythmFill.fillAmount = session.engineFaultClean[fault];
                 liveText.text = "故障 " + (fault + 1) + " 清理 " + session.engineFaultClean[fault].ToString("P0");
             }
-            else if (station != StationKind.Fishing) { liveText.text = session.StatusMessage; rhythmFill.fillAmount = 0; }
+            else if (station != StationKind.Fishing) { liveText.text = ""; rhythmFill.fillAmount = 0; }
         }
         private void ConfigureQtePresentation()
         {
@@ -364,8 +376,8 @@ namespace Lifeline
                 case UpgradeKind.Hull: return "船体加固";
                 case UpgradeKind.Sail: return "船帆 / 舵";
                 case UpgradeKind.Searchlight: return "探照灯";
-                case UpgradeKind.Backpack: return "潜水背包 / +1格、+1格、采集+25%";
-                case UpgradeKind.DivingSuit: return "潜水服 / 二次承伤、25%免疫";
+                case UpgradeKind.Backpack: return "潜水背包";
+                case UpgradeKind.DivingSuit: return "潜水服";
                 default: return "制作台";
             }
         }

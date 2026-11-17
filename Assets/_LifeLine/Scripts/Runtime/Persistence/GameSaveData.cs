@@ -16,6 +16,8 @@ namespace Lifeline
         // Version 0 saves predate the separate ship map. Their world coordinates already
         // match the logical water map. Version 1 normalizes ship-map positions on write.
         public int coordinateVersion;
+        public int balanceVersion;
+        public float routeDistance;
         public float cycleSeconds, daylightSeconds, duskSeconds;
         public AreaStrike[] areaStrikes = Array.Empty<AreaStrike>();
         public string savedUtc;
@@ -44,6 +46,7 @@ namespace Lifeline
         public float hull, hullMax, power;
         public bool filterRepaired, circuitRepaired, engineRepaired, engineEverRepaired;
         public int engineRepairVersion, generatorTier, turretTier;
+        public bool efficientFuelGenerator;
         public bool infinitePower, searchlightOn, turretInstalled, turretOn;
         public float lastCrankAt, lowPowerSailingSeconds;
         public float[] engineFaultClean;
@@ -104,7 +107,7 @@ namespace Lifeline
     [Serializable] public sealed class PickupSaveState
     {
         public string id;
-        public bool dynamic, isCrate, isCabinet, attached, consumed;
+        public bool dynamic, isCrate, isCabinet, attached, consumed, persistAcrossDays, isLostCargo;
         public ResourceKind resource;
         public int amount, capacity, mazeIndex, mazeCell;
         public Vector3 position;
@@ -119,7 +122,8 @@ namespace Lifeline
         public float health, maxHealth, stateTime, pursuitTime, attackCooldown, reacquireTime;
         public int shadowHitCount, shadowAttackIndex, shadowPhase; public bool variantApplied;
         public float shadowAttackClock; public Vector3 shadowAim;
-        public bool caveGuard, damagedRetreat;
+        public bool caveGuard, damagedRetreat, birdTargetsCrew;
+        public CrewRole birdTargetRole;
         public Vector3 fleeDirection;
     }
     [Serializable] public sealed class SpearSaveState

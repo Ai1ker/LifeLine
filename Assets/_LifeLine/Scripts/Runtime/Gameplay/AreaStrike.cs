@@ -58,7 +58,7 @@ namespace Lifeline
                 if(actor==null||IsIncapacitated(actor)||IsHidden(actor)||actor.onboard!=strike.onShipMap)continue;
                 Vector3 position=actor.onboard?ShipToWaterPoint(actor.Position):actor.Position;
                 if(actor.onboard&&ship!=null&&ship.transform.InverseTransformPoint(actor.Position).y<actor.deckY)continue;
-                if(Vector2.Distance(position,strike.point)<=strike.radius)actor.ReceiveDamage(1);
+                if(Vector2.Distance(position,strike.point)<=strike.radius)actor.ReceiveDamage(strike.kind==AreaStrikeKind.Lightning ? actor==diver?GetMaxDiverBites():tuning.baseDiverHitCapacity : strike.kind==AreaStrikeKind.WaterShot ? tuning.waterShotHitDamage : tuning.shadowDamage);
             }
             bool touchesHull=ship!=null && (strike.onShipMap
                 ? Mathf.Abs(strike.point.x-ShipToWaterPoint(ship.Position).x)<=12+strike.radius

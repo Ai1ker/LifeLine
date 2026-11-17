@@ -33,7 +33,7 @@ namespace Lifeline
         public List<RuinConnection> regionalConnections = new List<RuinConnection>();
 
         [Header("Geometry (metres, XY physics)")]
-        public Rect worldBounds = new Rect(-22, -55, 122, 65);
+        public Rect worldBounds = new Rect(-22, -55, 244.22223f, 65);
         public float waterSurface = -1.5f;
         [Min(2.6f)] public float roomSize = 3f;
         [Min(1.9f)] public float doorWidth = 2.2f;
@@ -43,7 +43,7 @@ namespace Lifeline
         [Range(0, 31)] public int pickupLayer;
         [Range(0, 1)] public float ruinLoopChance = .2f;
         [Range(0, 1)] public float caveLoopChance = .04f;
-        [Tooltip("Extra exterior side openings. Paired regional route openings are always kept traversable.")]
+        [Tooltip("Chance of an extra left/right opening in addition to each ruin's guaranteed top, bottom, left and right exits. Caves excluded.")]
         [Range(0, 1)] public float extraSideOpeningChance = .55f;
         public bool generateCaves = true;
         public bool forceCave;
@@ -55,7 +55,7 @@ namespace Lifeline
         [Min(0)] public int cratesPerZone = 2;
         [Min(.1f)] public float maximumLootDepth = 50f;
         [Tooltip("Horizontal sea areas; all contain the complete depth sequence.")]
-        public float[] areaCenters = { 0, 36, 72 };
+        public float[] areaCenters = { 0, 80, 160 };
         public float[] bandTopDepths = { 10, 21.5f, 36 };
         public Vector2Int[] bandRoomCounts = { new Vector2Int(5, 3), new Vector2Int(7, 4), new Vector2Int(9, 5) };
         public float[] bandCellSizes = { 3, 3, 2.8f };
@@ -129,7 +129,7 @@ namespace Lifeline
             var cargo = new List<LootPickup>();
             if (preserveCargo)
                 foreach (var pickup in pickups)
-                    if (pickup != null && pickup.attached && !pickup.consumed)
+                    if (pickup != null && (pickup.attached || pickup.persistAcrossDays) && !pickup.consumed)
                     {
                         pickup.transform.SetParent(transform, true);
                         pickup.mazeIndex = pickup.mazeCell = -1;
@@ -216,7 +216,22 @@ namespace Lifeline
             SpawnPickup(lootRoot, new Vector3(0, -6.8f, 0), ResourceKind.Fiber, false, false, -1, -1);
             SpawnPickup(lootRoot, new Vector3(2.8f, -6.4f, 0), ResourceKind.Metal, false, false, -1, -1);
             BuildSupplementalLife(lootRoot);
-            foreach (var pickup in cargo) { pickup.transform.SetParent(generatedRoot, true); pickups.Add(pickup); }
+            foreach (var pickup in cargo)
+            {
+                pickup.transform.SetParent(generatedRoot, true); pickups.Add(pickup);
+                if(pickup.persistAcrossDays && OverlapsGeneratedWall(pickup.transform.position))
+                {
+                    Vector3 original=pickup.transform.position, safe=original;float nearest=float.PositiveInfinity;
+                    foreach(var maze in layouts)for(int cell=0;cell<maze.Count;cell++)
+                    {
+                        Vector3 candidate=maze.Center(cell);float distance=(candidate-original).sqrMagnitude;
+                        if(distance<nearest&&!OverlapsGeneratedWall(candidate)){safe=candidate;nearest=distance;}
+                    }
+                    pickup.transform.position=safe;
+                }
+                if(pickup.lifeline!=null)pickup.lifeline.ResetRoute();
+                PrepareRestoredPickup(pickup);
+            }
             Physics.SyncTransforms();
             ValidateGeneratedWorld(out validationReport);
         }
@@ -233,6 +248,14 @@ namespace Lifeline
             maze.openLeft = areaIndex > 0 || random.NextDouble() < extraSideOpeningChance;
             maze.openRight = areaIndex + 1 < areaCenters.Length || tier == bandRoomCounts.Length - 1 && generateCaves
                 || random.NextDouble() < extraSideOpeningChance;
+            // Keep the legacy random stream for loot/events and existing cell graphs. Exterior openings
+            // use their own daily seed, so old saves keep matching resource IDs and room topology.
+            var exitRandom = new System.Random(unchecked(generatedSeed ^ areaIndex * 73856093 ^ tier * 19349663 ^ 0x61a7e5));
+            maze.ConfigureRuinExits(exitRandom, extraSideOpeningChance);
+            // The final east face borders the branch cave. Its paired main opening is the safe lane;
+            // another hole here could face a cave wall across the short connector.
+            if (areaIndex == areaCenters.Length - 1 && tier == bandRoomCounts.Length - 1 && generateCaves)
+                maze.extraRightExitRow = -1;
             if (!CanPlaceMaze(maze, out string placementReason))
             {
                 Debug.LogWarning(title + " omitted: " + placementReason, this);
@@ -281,16 +304,16 @@ namespace Lifeline
                 for (int column = 0; column < maze.columns; column++)
                 {
                     int below = row * maze.columns + column, above = below - maze.columns;
-                    bool open = row == 0 ? !maze.entranceOnLeft && column == maze.entranceCell % maze.columns
-                        : row < maze.rows && maze.IsOpen(above, below);
+                    bool open = row == 0 ? maze.HasExteriorExit(column, Vector2Int.up)
+                        : row == maze.rows ? maze.HasExteriorExit(above, Vector2Int.down) : maze.IsOpen(above, below);
                     WallWithPortal(roomRoot, new Vector3(maze.topLeft.x + (column + .5f) * maze.cellSize, maze.topLeft.y - row * maze.cellSize, 0), maze.cellSize, true, open, tier);
                 }
             for (int column = 0; column <= maze.columns; column++)
                 for (int row = 0; row < maze.rows; row++)
                 {
                     int right = row * maze.columns + column, left = right - 1;
-                    bool open = column == 0 ? (maze.entranceOnLeft && row == maze.entranceCell / maze.columns) || (maze.openLeft && row == maze.leftExitRow)
-                        : column == maze.columns ? maze.openRight && row == maze.rightExitRow : maze.IsOpen(left, right);
+                    bool open = column == 0 ? maze.HasExteriorExit(right, Vector2Int.left)
+                        : column == maze.columns ? maze.HasExteriorExit(left, Vector2Int.right) : maze.IsOpen(left, right);
                     WallWithPortal(roomRoot, new Vector3(maze.topLeft.x + column * maze.cellSize, maze.topLeft.y - (row + .5f) * maze.cellSize, 0), maze.cellSize, false, open, tier);
                 }
             if (drawLabels && drawRuinTitles)
@@ -418,6 +441,18 @@ namespace Lifeline
         void ConnectDepthBands(MazeLayout upper, MazeLayout lower)
         {
             if (upper == null || lower == null) return;
+            if (upper.bottomExitColumn >= 0 && !lower.entranceOnLeft)
+            {
+                int upperCell = (upper.rows - 1) * upper.columns + upper.bottomExitColumn;
+                Vector3 upperPoint = upper.Center(upperCell), lowerPoint = lower.Center(lower.entranceCell);
+                float gapY = (upper.topLeft.y - upper.rows * upper.cellSize + lower.topLeft.y) * .5f;
+                regionalConnections.Add(new RuinConnection
+                {
+                    name = "Top-bottom depth passage", fromMaze = layouts.IndexOf(upper), fromCell = upperCell,
+                    toMaze = layouts.IndexOf(lower), toCell = lower.entranceCell, from = upperPoint, to = lowerPoint,
+                    waypoints = new List<Vector3> { upperPoint, new Vector3(upperPoint.x, gapY, 0), new Vector3(lowerPoint.x, gapY, 0), lowerPoint }
+                });
+            }
             bool left = upper.openLeft && lower.openLeft;
             if (!left && !(upper.openRight && lower.openRight)) return;
             int a = (left ? upper.leftExitRow : upper.rightExitRow) * upper.columns + (left ? 0 : upper.columns - 1);
@@ -490,6 +525,7 @@ namespace Lifeline
             return nearest != null && nearest.TryInteract(actor);
         }
 
+        public void ResolveCrewRefreshOverlap(){ResolveRefreshOverlap(session!=null?session.captain:null);ResolveRefreshOverlap(session!=null?session.diver:null);}
         void ResolveRefreshOverlap(CrewActor actor)
         {
             if (actor == null || actor.onboard) return;
@@ -749,21 +785,20 @@ namespace Lifeline
                 if (pickup.mazeIndex >= 0 && !CapsulePathClear(layouts[pickup.mazeIndex].Center(pickup.mazeCell), pickup.transform.position))
                 { report = "Loot obstructed: " + pickup.name; return false; }
             }
+            int exteriorCount = 0;
             foreach (var maze in layouts)
-            {
-                if (maze.openLeft)
+                foreach (var exit in maze.ExteriorExits())
                 {
-                    Vector3 center = maze.Center(maze.leftExitRow * maze.columns);
-                    if (!CapsulePathClear(center, center + Vector3.left * maze.cellSize))
-                    { report = maze.name + ": left exterior portal obstructed"; return false; }
+                    Vector3 center = maze.Center(exit.cell);
+                    // Stop after the complete capsule clears this doorway. A full extra cell can
+                    // overshoot the narrow open-water gap and touch the next building's ceiling.
+                    float clearance = exit.direction.y != 0 ? validationHeight * .5f : validationRadius;
+                    float distance = maze.cellSize * .5f + clearance + wallThickness * .5f + .05f;
+                    Vector3 outside = center + new Vector3(exit.direction.x, exit.direction.y, 0) * distance;
+                    if (!worldBounds.Contains(outside) || !CapsulePathClear(center, outside))
+                    { report = maze.name + ": exterior portal obstructed " + exit.direction; return false; }
+                    exteriorCount++;
                 }
-                if (maze.openRight)
-                {
-                    Vector3 center = maze.Center(maze.rightExitRow * maze.columns + maze.columns - 1);
-                    if (!CapsulePathClear(center, center + Vector3.right * maze.cellSize))
-                    { report = maze.name + ": right exterior portal obstructed"; return false; }
-                }
-            }
             foreach (var connection in regionalConnections)
                 for (int point = 0; point < connection.waypoints.Count; point++)
                 {
@@ -778,7 +813,7 @@ namespace Lifeline
                 if (gate != null && (Vector3.Distance(gate.sideA, gate.transform.position) > gate.interactionDistance
                     || Vector3.Distance(gate.sideB, gate.transform.position) > gate.interactionDistance))
                 { report = "Trapdoor cannot be operated from both adjacent reachable rooms"; return false; }
-            report = "PASS: " + layouts.Count + " connected ruins/caves, " + cells + " reachable rooms, " + checkedDoors + " physical capsule-clear doorways, " + regionalConnections.Count + " inter-region routes, " + pickups.Count + " reachable pickups. Empty crates contain no rewards.";
+            report = "PASS: " + layouts.Count + " connected ruins/caves, " + cells + " reachable rooms, " + checkedDoors + " physical capsule-clear doorways, " + exteriorCount + " exterior portals, " + regionalConnections.Count + " inter-region routes, " + pickups.Count + " reachable pickups. Empty crates contain no rewards.";
             return true;
         }
 

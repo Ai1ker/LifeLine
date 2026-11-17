@@ -453,6 +453,9 @@ MonoBehaviour:
   onboard: 1
   downed: 0
   controlsCaptured: 0
+  hidden: 0
+  fainted: 0
+  hidingPosition: {x: 0, y: 0, z: 0}
   oxygen: 0
   oxygenMax: 0
   health: 100
@@ -469,7 +472,7 @@ MonoBehaviour:
   waterSurfaceY: -1.5
   waterBottomY: -54
   leftWorldLimit: -22
-  rightWorldLimit: 100
+  rightWorldLimit: 222.22223
   collisionSkin: 0.035
 --- !u!114 &434342323554862289
 MonoBehaviour:
@@ -489,6 +492,11 @@ MonoBehaviour:
   eventSinks: []
   mirrorFacing: 1
   movementDamping: 0.1
+  placeholderPoses: 1
+  swingSeconds: 0.25
+  meleeStroke: {fileID: 0}
+  meleeMaterial: {fileID: 0}
+  meleeStateTag: Melee
   speedParameter: Speed
   swimmingParameter: Swimming
   groundedParameter: Grounded

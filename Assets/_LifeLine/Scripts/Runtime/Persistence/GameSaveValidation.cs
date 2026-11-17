@@ -16,6 +16,7 @@ namespace Lifeline
             try
             {
                 Require(data != null && data.version == GameSaveData.CurrentVersion, "存档版本不受支持。");
+                Require(data.balanceVersion >= 0 && data.balanceVersion <= 1 && data.routeDistance >= 0, "存档版本不受支持。");
                 Require(data.coordinateVersion >= 0 && data.coordinateVersion <= 1, "存档版本不受支持。");
                 Require((data.diverRopeContacts == null || data.diverRopeContacts.Length <= 256) && (data.cargoRopeContacts == null || data.cargoRopeContacts.Length <= 256), "存档世界数据不完整。");
                 CheckFinite(data, new HashSet<object>());
@@ -29,7 +30,7 @@ namespace Lifeline
                 for (int i = 0; i < state.upgradeLevels.Length; i++)
                 {
                     UpgradeKind kind = (UpgradeKind)i;
-                    int maximum = kind == UpgradeKind.Hull || kind == UpgradeKind.Sail || kind == UpgradeKind.DivingSuit ? 2 : kind == UpgradeKind.Searchlight ? 1 : 3;
+                    int maximum = GameSession.UpgradeLevelLimit(kind);
                     Require(state.upgradeLevels[i] >= 0 && state.upgradeLevels[i] <= maximum, "存档升级等级无效。");
                 }
                 Require(state.hullMax > 0 && state.hull >= 0 && state.hull <= state.hullMax && state.power >= 0 && state.ropeLength > 0, "存档船舶状态无效。");

@@ -139,9 +139,8 @@ namespace Lifeline
                 birdCountdown -= dt * rate;
                 if (birdCountdown <= 0)
                 {
-                    birdCountdown += Mathf.Max(1, tuning.birdInterval);
-                    float side = UnityEngine.Random.value < .5f ? -1 : 1;
-                    SpawnEnemy(day >= tuning.mutationStartDay && UnityEngine.Random.value < tuning.armoredBirdChance ? EnemyKind.ArmoredBird : EnemyKind.Bird, ShipPoint(new Vector3(side * 16, 6, 0)));
+                    birdCountdown += BirdInterval;
+                    SpawnBirdWave(UnityEngine.Random.value);
                 }
             }
             UpdateTurret(dt);
@@ -163,9 +162,11 @@ namespace Lifeline
 
         public bool MeleeAttack(CrewActor actor)
         {
-            if (actor == null || IsActorInputBlocked(actor) || meleeCooldowns[(int)actor.role] > 0) return false;
+            if (actor == null || IsActorInputBlocked(actor) || meleeCooldowns[(int)actor.role] > 0 || actor.GetComponent<CrewPresentation>() != null && actor.GetComponent<CrewPresentation>().MeleeAnimationPlaying) return false;
             if (!actor.onboard && !hasHarpoon) return false;
-            meleeCooldowns[(int)actor.role] = tuning.meleeCooldown;
+            var presentation = actor.GetComponent<CrewPresentation>();
+            meleeCooldowns[(int)actor.role] = Mathf.Max(tuning.meleeCooldown, presentation != null ? presentation.swingSeconds : 0);
+            actor.EmitPresentationEvent(CrewVisualEvent.Melee);
             float damage = (hasHarpoon ? harpoonDamage : meleeDamage) * (Buffs(actor).attack > 0 ? 1 + tuning.fishAttackBonus : 1);
             float range = tuning.meleeRange * (hasHarpoon ? 1 : .65f);
             LifelineEnemy closest = null; float nearest = range;
@@ -293,13 +294,13 @@ namespace Lifeline
             if(stormWarning>0)
             {
                 stormWarning=Mathf.Max(0,stormWarning-dt);
-                if(stormWarning<=0)stormCountdown=UnityEngine.Random.Range(tuning.lightningIntervalMin,tuning.lightningIntervalMax);
+                if(stormWarning<=0)stormCountdown=UnityEngine.Random.Range(LightningInterval.x,LightningInterval.y);
                 return;
             }
             stormCountdown-=dt;if(stormCountdown>0)return;
-            stormWarning=tuning.lightningWarning;
+            stormWarning=LightningWarningSeconds;
             Vector3 point=ShipToWaterPoint(ShipPoint(new Vector3(UnityEngine.Random.Range(-10.5f,10.5f),.9f,0)));
-            QueueAreaStrike(AreaStrikeKind.Lightning,point,true,tuning.lightningRadius,tuning.lightningWarning,lightningHullDamage);
+            QueueAreaStrike(AreaStrikeKind.Lightning,point,true,tuning.lightningRadius,LightningWarningSeconds,lightningHullDamage);
             Tell("雷击落点已标记，离开预警圆圈或进入船舱。");
         }
 

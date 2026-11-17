@@ -13,7 +13,7 @@ namespace Lifeline
         public float speed;
         public Vector3 StartPosition { get; private set; }
         public Vector3 Position => body != null ? body.position : transform.position;
-        public float westLimit = -8f, eastLimit = 90f;
+        public float westLimit = -8f, eastLimit = 200f;
         private float steering;
         private bool hasStartPosition;
 

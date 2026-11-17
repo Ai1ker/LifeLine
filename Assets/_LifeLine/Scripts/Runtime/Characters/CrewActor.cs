@@ -31,7 +31,7 @@ namespace Lifeline
         public float deckY = 0f, cabinY = -4f;
         public float waterSurfaceY = -1.5f;
         public float waterBottomY = -54f;
-        public float leftWorldLimit = -22f, rightWorldLimit = 100f;
+        public float leftWorldLimit = -22f, rightWorldLimit = 222.22223f;
         public float collisionSkin = .035f;
 
         public Vector2 Facing { get; private set; } = Vector2.right;
@@ -175,11 +175,7 @@ namespace Lifeline
                 Facing = onboard ? new Vector2(Mathf.Sign(Mathf.Abs(movement.x) > .01f ? movement.x : Facing.x), 0f) : movement.normalized;
             if (onboard) MoveOnShip(movement, command.jump && !blocked && !atHelm);
             else Swim(movement, command.sprint && !blocked);
-            if (!blocked)
-            {
-                if (command.melee) EmitPresentationEvent(CrewVisualEvent.Melee);
-                if (command.fire) EmitPresentationEvent(CrewVisualEvent.Fire);
-            }
+
         }
 
         private void MoveOnShip(Vector2 movement, bool jump)
@@ -311,7 +307,7 @@ namespace Lifeline
             var direction = delta.normalized;
             foreach (var hit in body.SweepTestAll(direction, distance + collisionSkin, QueryTriggerInteraction.Ignore))
             {
-                if (hit.collider != null && hit.collider.GetComponentInParent<CrewActor>() != null) continue;
+                if (hit.collider != null && (hit.collider.GetComponentInParent<CrewActor>() != null || hit.collider.GetComponentInParent<LifelineEnemy>() != null)) continue;
                 if (hit.collider == null || !onboard && session != null && session.ship != null && hit.collider.transform.IsChildOf(session.ship.transform)) continue;
                 distance = Mathf.Min(distance, Mathf.Max(0f, hit.distance - collisionSkin));
             }
@@ -358,8 +354,8 @@ namespace Lifeline
             if (amount <= 0f || downed || (session!=null?session.IsFainted(this)||session.IsHidden(this):fainted)) return;
             if (role == CrewRole.Captain)
             {
-                // Damage is measured in hit-capacity units. Piranhas deal half a unit.
-                health = Mathf.Max(0, health - maxHealth * amount);
+                // Captain always has base hit capacity; suit upgrades only apply to the diver.
+                health = Mathf.Max(0, health - maxHealth * amount / (session != null ? session.tuning.baseDiverHitCapacity : 2));
                 if (health <= 0) { if (!onboard && session != null) session.FaintCrew(this, "船长受伤"); else SetDowned(true); }
                 EmitPresentationEvent(CrewVisualEvent.Hit, amount); return;
             }

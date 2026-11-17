@@ -65,7 +65,7 @@ namespace Lifeline
                 obj.transform.SetParent(world.transform,true);obj.transform.position=actor.Position;obj.transform.localScale=new Vector3(.6f,.45f,.5f);obj.GetComponent<Collider>().isTrigger=true;
                 var bag=obj.AddComponent<LootPickup>();bag.world=world;bag.isCrate=true;bag.amount=0;bag.capacity=Mathf.Max(tuning.crateCapacity,dropCount);
                 for(int i=0;i<dropCount;i++){int last=actor.backpack.Count-1;bag.contents.Add(actor.backpack[last]);actor.backpack.RemoveAt(last);}
-                world.pickups.Add(bag);world.PrepareRestoredPickup(bag);
+                bag.persistAcrossDays=true;bag.isLostCargo=true;bag.transform.SetParent(world.transform,true);world.pickups.Add(bag);world.PrepareRestoredPickup(bag);
             }
             captainBoardHeld=false;captainBoardProgress=0;
             if(actor.body!=null)actor.body.linearVelocity=Vector3.zero;

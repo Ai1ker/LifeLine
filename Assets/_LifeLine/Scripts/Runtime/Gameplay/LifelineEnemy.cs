@@ -26,6 +26,9 @@ namespace Lifeline
         public Vector3 spawnPoint;
         public bool variantApplied;
         public bool caveGuard, damagedRetreat;
+        public bool birdTargetsCrew;
+        public CrewRole birdTargetRole;
+        public AquaticCrewCollision crewCollision;
         public Vector3 fleeDirection;
         public Vector3 targetPoint;
         public Vector3 facing = Vector3.right;
@@ -72,6 +75,12 @@ namespace Lifeline
             hitCollider = GetComponent<Collider>();
             if (hitCollider == null) hitCollider = gameObject.AddComponent<SphereCollider>();
             hitCollider.isTrigger = true;
+            if(!IsAirborne){crewCollision=GetComponent<AquaticCrewCollision>();if(crewCollision==null)crewCollision=gameObject.AddComponent<AquaticCrewCollision>();crewCollision.Initialize(this);}
+            else
+            {
+                birdTargetsCrew=UnityEngine.Random.value<(kind==EnemyKind.ArmoredBird?owner.tuning.armoredBirdInterruptChance:owner.tuning.birdInterruptChance);
+                birdTargetRole=UnityEngine.Random.value<.5f?CrewRole.Captain:CrewRole.Diver;
+            }
             SphereCollider sphere = hitCollider as SphereCollider; if (sphere != null) sphere.radius = hitRadius;
             Transform existing = transform.Find("VisualRoot");
             visualRoot = existing != null ? existing : BuildVisual();
@@ -198,10 +207,10 @@ namespace Lifeline
             {
                 float speed = ChaseSpeed;
                 Move(targetPoint, speed * dt);
-                if (Vector3.Distance(transform.position, diver.Position) <= AttackRange)
+                if ((Vector3.Distance(transform.position, diver.Position) <= AttackRange || crewCollision != null && crewCollision.Touches(diver)))
                 {
                     if (kind == EnemyKind.Piranha) diver.ReceiveDamage(session.tuning.piranhaDamage);
-                    else if (diver == session.diver) session.RegisterSharkBite(); else diver.ReceiveDamage(1);
+                    else if (diver == session.diver) session.RegisterSharkBite(); else diver.ReceiveDamage(session.tuning.sharkDamage);
                     GiveUp();
                 }
                 else if (stateTime >= sharkLungeSeconds) ChangeState(EnemyState.Pursuit);
@@ -218,12 +227,19 @@ namespace Lifeline
         void TickBird(float dt)
         {
             if (!session.IsNight) { Move(transform.position + Vector3.up * 20, birdSpeed * dt); if (transform.position.y > session.ShipPoint(Vector3.up * 14).y) Destroy(gameObject); return; }
-            Vector3 attackPoint = session.ShipPoint(new Vector3(0, 1.2f, 0));
+            CrewActor target=birdTargetRole==CrewRole.Captain?session.captain:session.diver;
+            bool valid=target!=null&&target.onboard&&!session.IsIncapacitated(target)&&session.ship.transform.InverseTransformPoint(target.Position).y>=target.deckY;
+            if(birdTargetsCrew&&!valid){target=target==session.captain?session.diver:session.captain;valid=target!=null&&target.onboard&&!session.IsIncapacitated(target)&&session.ship.transform.InverseTransformPoint(target.Position).y>=target.deckY; if(valid)birdTargetRole=target.role;}
+            Vector3 attackPoint = birdTargetsCrew&&valid ? target.Position : session.ShipPoint(new Vector3(0, 1.2f, 0));
             if (state == EnemyState.Telegraph)
             {
                 if (stateTime >= .55f)
                 {
-                    session.DamageHull(session.tuning.birdHullDamage);
+                    if(birdTargetsCrew&&valid)
+                    {
+                        if(Vector3.Distance(transform.position,target.Position)<=birdAttackDistance)session.InterruptOperation(target);
+                    }
+                    else session.DamageHull(session.tuning.birdHullDamage);
                     ChangeState(EnemyState.Retreat);
                 }
             }
@@ -320,6 +336,7 @@ namespace Lifeline
         {
             state = EnemyState.Defeated;
             if (hitCollider != null) hitCollider.enabled = false;
+            if(crewCollision!=null&&crewCollision.solid!=null)crewCollision.solid.enabled=false;
             if (kind != EnemyKind.Shadow) session.Tell(kind == EnemyKind.WhiteShark ? "变异白鲨已击退。" : IsAirborne ? "海鸟已驱离。" : kind == EnemyKind.Piranha ? "食人鱼已击杀。" : "鲨鱼已驱离。");
             if (Application.isPlaying) Destroy(gameObject, destroyDelay);
         }
@@ -344,7 +361,7 @@ namespace Lifeline
                 step = Mathf.Max(0, hit.distance - .03f);
                 if (step <= .001f) return;
             }
-            Vector3 next = transform.position + direction * step; next.z = 0;
+            Vector3 next = !IsAirborne&&crewCollision!=null ? crewCollision.LimitMove(direction,step) : transform.position + direction * step; next.z = 0;
             if (body != null) body.position = next;
             transform.position = next;
         }

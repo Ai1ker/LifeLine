@@ -45,14 +45,22 @@ namespace Lifeline
 
         public bool UpgradeGenerator()
         {
-            if (phase != SessionPhase.Playing || generatorTier != 0 || !Spend(generatorUpgradeCost)) return false;
+            if (phase != SessionPhase.Playing || infinitePower || generatorTier > 1 || efficientFuelGenerator) return false;
+            if (generatorTier == 1)
+            {
+                if (!Spend(generatorEfficiencyCost)) return false;
+                efficientFuelGenerator = true; Changed(); return true;
+            }
+            if (!Spend(generatorUpgradeCost)) return false;
             generatorTier = 1; Tell("燃油机已安装，可消耗燃油为整船发电。"); Changed(); return true;
         }
+
+        public float FuelPower => efficientFuelGenerator ? tuning.upgradedFuelPower : tuning.fuelPower;
 
         public bool BurnFuel()
         {
             if (phase != SessionPhase.Playing || generatorTier < 1 || infinitePower || power >= tuning.maxPower || !Spend(new[] { new ResourceAmount(ResourceKind.Fuel, 1) })) return false;
-            power = Mathf.Min(tuning.maxPower, power + tuning.fuelPower); Tell("燃油发电 +" + tuning.fuelPower.ToString("0") + "%"); Changed(); return true;
+            power = Mathf.Min(tuning.maxPower, power + FuelPower); Tell("燃油发电 +" + FuelPower.ToString("0") + "%"); Changed(); return true;
         }
 
         public bool InstallEel()
@@ -183,7 +191,7 @@ namespace Lifeline
             if (!rescueVoyage || day < 4 || ship == null || ship.transform.position.x < rescueArrivalX || diver == null || !diver.onboard) return;
             if ((winchActive || winchElectric) && CaptainCanWinch())
             {
-                rescueProgress = Mathf.Clamp01(rescueProgress + dt / Mathf.Max(1, rescueWinchSeconds));
+                rescueProgress = Mathf.Clamp01(rescueProgress + dt * WinchRecoveryMultiplier / Mathf.Max(1, rescueWinchSeconds));
                 winchProgress = rescueProgress; winchTargetKind = "survivors";
                 if (rescueProgress >= 1) EndSession(true, "救生索接住了最后一名幸存者。失联结束——你们共同活到了救援到来。");
             }

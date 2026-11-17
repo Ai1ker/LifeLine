@@ -63,7 +63,7 @@ namespace Lifeline
         [Min(0)] public float zoomDamping = .16f;
         [Tooltip("Ship-local camera confinement, follows the moving ship without rebaking the shape.")]
         public Rect shipViewBounds = new Rect(-24, -20, 48, 40);
-        public Rect underwaterViewBounds = new Rect(-22, -55, 122, 65);
+        public Rect underwaterViewBounds = new Rect(-22, -55, 244.22223f, 65);
         public Color oceanClearColor = new Color(.48f, .76f, .82f);
 
         [Header("Official Cinemachine 3D obstruction handling")]

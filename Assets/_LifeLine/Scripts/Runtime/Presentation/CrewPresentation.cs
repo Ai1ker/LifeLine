@@ -18,6 +18,11 @@ namespace Lifeline
         public LineRenderer meleeStroke;
         public Material meleeMaterial;
         float swingTimer;
+        [Tooltip("Tag the replacement Animator melee state with this tag; it blocks retriggering until the state finishes.")]
+        public string meleeStateTag = "Melee";
+        public bool MeleeAnimationPlaying => swingTimer > 0 || animator != null && animator.isActiveAndEnabled && animator.runtimeAnimatorController != null
+            && animator.GetCurrentAnimatorStateInfo(0).IsTag(meleeStateTag)
+            && animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1;
         Material generatedMeleeMaterial;
         [Header("Optional Animator parameters")]
         public string speedParameter = "Speed";

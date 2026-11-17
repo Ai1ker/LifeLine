@@ -57,7 +57,7 @@ namespace Lifeline.Tests
             for (int area = 0; area < 3; area++)
                 Assert.That(world.pickups.Any(p => p.resource == ResourceKind.Fish && p.mazeIndex >= area * 3 && p.mazeIndex < area * 3 + 3));
             Assert.That(world.piranhaSpawnPoints.Count, Is.InRange(1, 6));
-            Assert.That(world.piranhaSpawnPoints.All(p => p.x >= 24 && p.x < 56 && world.WaterSurface - p.y >= 20 && world.WaterSurface - p.y <= 35));
+            Assert.That(world.piranhaSpawnPoints.All(p => p.x >= tuning.shallowBoundary && p.x < tuning.deepBoundary && world.WaterSurface - p.y >= 20 && world.WaterSurface - p.y <= 35));
             var ids = world.pickups.Select(p => p.saveId).ToArray(); var points = world.piranhaSpawnPoints.ToArray();
             world.Generate(8417); Assert.That(world.pickups.Select(p => p.saveId), Is.EqualTo(ids)); Assert.That(world.piranhaSpawnPoints, Is.EqualTo(points));
             var fish = world.pickups.First(p => p.resource == ResourceKind.Fish); fish.consumed = true; string fishId = fish.saveId;
@@ -90,27 +90,27 @@ namespace Lifeline.Tests
                 enemy.ReceiveHit(1, game.diver); Assert.That(enemy.IsAlive, Is.False);
             }
         }
-        [Test] public void PiranhaUsesHalfHitAndOneShotDeathWithConcreteAttackTuning()
+        [Test] public void PiranhaUsesOneHitUnitAndOneShotDeathWithConcreteAttackTuning()
         {
-            game.BeginDive(); game.diver.RestorePose(false, new Vector3(36, -29, 0), Vector3.zero, Vector2.right);
+            game.BeginDive(); game.diver.RestorePose(false, new Vector3(80, -29, 0), Vector3.zero, Vector2.right);
             var fish = game.SpawnEnemy(EnemyKind.Piranha, game.diver.Position);
             Assert.That(fish.AttackRange, Is.EqualTo(.84f)); Assert.That(fish.AttackWindup, Is.EqualTo(.544f)); Assert.That(fish.ChaseSpeed, Is.EqualTo(3.696f));
             Assert.That(fish.visualRoot.localScale.x, Is.EqualTo(1.2f).Within(.001f));
-            game.diver.ReceiveDamage(.5f); Assert.That(game.diverBites, Is.EqualTo(.5f)); Assert.That(game.diverFainted, Is.False);
+            game.diver.ReceiveDamage(1f); Assert.That(game.diverBites, Is.EqualTo(1f)); Assert.That(game.diverFainted, Is.False);
             var saved = game.CaptureSaveData(); Assert.That(game.TryRestoreSaveData(saved, out string error), Is.True, error);
-            Assert.That(game.diverBites, Is.EqualTo(.5f)); game.diverInvulnerable = 0; game.diver.ReceiveDamage(.5f); Assert.That(game.diverFainted);
+            Assert.That(game.diverBites, Is.EqualTo(1f)); game.diverInvulnerable = 0; game.diver.ReceiveDamage(1f); Assert.That(game.diverFainted);
             var restoredFish = game.enemies.Single(); restoredFish.ReceiveHit(.01f, game.captain); Assert.That(restoredFish.IsAlive, Is.False);
         }
         [Test] public void AquaticHuntersSeeCircularMetreRangesAndPassThroughSolidWalls()
         {
-            tuning.maximumSharks = 8; game.BeginDive(); game.diver.RestorePose(false, new Vector3(36, -30, 0), Vector3.zero, Vector2.right);
-            var wall = GameObject.CreatePrimitive(PrimitiveType.Cube); wall.transform.SetParent(root.transform); wall.layer = 20; wall.transform.position = new Vector3(34, -30, 0); wall.transform.localScale = new Vector3(.4f, 8, 2);
+            tuning.maximumSharks = 8; game.BeginDive(); game.diver.RestorePose(false, new Vector3(80, -30, 0), Vector3.zero, Vector2.right);
+            var wall = GameObject.CreatePrimitive(PrimitiveType.Cube); wall.transform.SetParent(root.transform); wall.layer = 20; wall.transform.position = new Vector3(78, -30, 0); wall.transform.localScale = new Vector3(.4f, 8, 2);
             Physics.SyncTransforms();
             foreach (var kind in new[] { EnemyKind.Shark, EnemyKind.WhiteShark, EnemyKind.Piranha })
             {
-                var enemy = game.SpawnEnemy(kind, new Vector3(33, -30, 0)); enemy.geometryMask = 1 << 20;
+                var enemy = game.SpawnEnemy(kind, new Vector3(77, -30, 0)); enemy.geometryMask = 1 << 20;
                 Assert.That(enemy.DetectionRadius, Is.EqualTo(3.6f)); enemy.StepEnemy(.01f); Assert.That(enemy.state, Is.EqualTo(EnemyState.Detecting));
-                enemy.state = EnemyState.Pursuit; enemy.StepEnemy(.7f); Assert.That(enemy.transform.position.x, Is.GreaterThan(34.2f));
+                enemy.state = EnemyState.Pursuit; enemy.StepEnemy(.7f); Assert.That(enemy.transform.position.x, Is.GreaterThan(78.2f));
                 game.elapsed = tuning.daySeconds * .9f; Assert.That(enemy.DetectionRadius, Is.EqualTo(1.8f));
                 game.searchlightOn = game.circuitRepaired = true; game.power = 10; Assert.That(enemy.DetectionRadius, Is.EqualTo(3.6f));
                 game.diver.transform.localScale = Vector3.one * 2; Assert.That(enemy.DetectionRadius, Is.EqualTo(3.6f), "art scaling cannot change authored metre values");

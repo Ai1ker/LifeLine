@@ -43,6 +43,10 @@ namespace Lifeline
             diverPanel?.Initialize(this, session, session.diver);
             session.StationRequested += OpenStation;
             session.CommandReceived += OnCommand;
+            session.OperationInterrupted += OnOperationInterrupted;
+            ConfigureModalLayer(pausePanel, 100); ConfigureModalLayer(endingPanel, 110);
+            if(settings!=null)ConfigureModalLayer(settings.panel,120);
+            if(controls!=null)ConfigureModalLayer(controls.panel,130);
             if (controls != null) { controls.captainInput = session.captain != null ? session.captain.input : null; controls.diverInput = session.diver != null ? session.diver.input : null; }
             pauseButton?.onClick.AddListener(TogglePause);
             controlsButton?.onClick.AddListener(OpenControls);
@@ -62,6 +66,7 @@ namespace Lifeline
             if (session == null) return;
             session.StationRequested -= OpenStation;
             session.CommandReceived -= OnCommand;
+            session.OperationInterrupted -= OnOperationInterrupted;
         }
         private void Update()
         {
@@ -69,7 +74,7 @@ namespace Lifeline
             if (EventSystem.current != null) EventSystem.current.sendNavigationEvents = session.phase != SessionPhase.Playing;
             if ((session.phase == SessionPhase.Won || session.phase == SessionPhase.Lost) && !endingShown)
             {
-                endingShown = true; captainPanel.Close(); diverPanel.Close(); endingPanel.SetActive(true);endingPanel.transform.SetAsLastSibling();
+                endingShown = true; captainPanel.Close(); diverPanel.Close(); endingPanel.SetActive(true);endingPanel.transform.SetAsLastSibling();ConfigureModalLayer(endingPanel,110);
                 if(session.phase==SessionPhase.Lost){var save=FindAnyObjectByType<GameSaveManager>(); endingRestartButton.interactable=save!=null&&save.HasValidSave(out _);endingRestartButton.GetComponentInChildren<Text>().text=UiLocalization.Text("回退到上个存档");}
                 endingText.text = session.phase == SessionPhase.Won ? "从获救者，成为救援者\n幸存者已登船。你们守住了同一根绳。" : session.StatusMessage;
             }
@@ -115,6 +120,14 @@ namespace Lifeline
             if (other != null && other.IsOpen && other.station == kind) { if (messageText != null) messageText.text = "同伴正在操作这个站点。"; return; }
             own?.Open(kind);
         }
+        private void OnOperationInterrupted(CrewActor actor) => (actor.role == CrewRole.Captain ? captainPanel : diverPanel)?.Close();
+        public static void ConfigureModalLayer(GameObject panel, int order)
+        {
+            if(panel==null)return;
+            var canvas=panel.GetComponent<Canvas>();if(canvas==null)canvas=panel.AddComponent<Canvas>();
+            canvas.overrideSorting=true;canvas.sortingOrder=order;
+            if(panel.GetComponent<GraphicRaycaster>()==null)panel.AddComponent<GraphicRaycaster>();
+        }
         private void OnCommand(CrewActor actor, CrewCommand command)
         {
             if (command.pause) { HandleEscape(); return; }
@@ -155,7 +168,7 @@ namespace Lifeline
             if (paused) CloseStationPanels();
             else CloseTransientPanels();
             session.Pause(paused);
-            if (pausePanel != null) { pausePanel.SetActive(paused); if (paused) pausePanel.transform.SetAsLastSibling(); }
+            if (pausePanel != null) { pausePanel.SetActive(paused); if (paused) { pausePanel.transform.SetAsLastSibling(); ConfigureModalLayer(pausePanel,100); } }
         }
         public void RequestManualSave() { ManualSaveRequested?.Invoke(); }
         public void SetManualSaveAvailable(bool available) { if (saveButton != null) saveButton.interactable = available; }

@@ -12,6 +12,7 @@ namespace Lifeline
         public bool isCrate, isCabinet;
         public List<ResourceKind> contents = new List<ResourceKind>();
         public bool attached, consumed;
+        public bool persistAcrossDays, isLostCargo;
         [System.NonSerialized] public DiverRope lifeline;
         public WorldGenerator world;
         public Transform visualRoot;
@@ -132,11 +133,23 @@ namespace Lifeline
             }
         }
 
+        public string LostCargoPrompt()
+        {
+            CrewActor actor=null;float distance=float.PositiveInfinity;
+            if(world!=null && world.session!=null)foreach(var crew in world.session.Crew)
+            {
+                if(crew==null||crew.onboard||world.session.IsIncapacitated(crew))continue;
+                float next=(crew.Position-transform.position).sqrMagnitude;if(next<distance){actor=crew;distance=next;}
+            }
+            string collect=actor!=null&&actor.input!=null?actor.input.GetBindingLabel("Collect"):"1";
+            string interact=actor!=null&&actor.input!=null?actor.input.GetBindingLabel("Interact"):"Enter";
+            return string.Format(UiLocalization.Text(attached ? "遗失物资 {0}/{1} · 已挂绳，等待绞盘" : "遗失物资 {0}/{1}\n按住 [{2}] 挂绳 / [{3}] 存入"),contents.Count,capacity,collect,interact);
+        }
         void RefreshLabel()
         {
             if (label == null) return;
             string progress = CollectionProgress > 0 ? " " + Mathf.RoundToInt(CollectionProgress * 100) + "%" : "";
-            label.text = isCrate ? (attached ? "CARGO / ATTACHED" : "CARGO " + contents.Count + "/" + capacity) + progress
+            label.text = isLostCargo ? LostCargoPrompt() + progress : isCrate ? (attached ? "CARGO / ATTACHED" : "CARGO " + contents.Count + "/" + capacity) + progress
                 : isCabinet ? "SALVAGE " + contents.Count + progress : GameNames.Resource(resource) + progress;
             label.text = UiLocalization.Text(label.text);
         }

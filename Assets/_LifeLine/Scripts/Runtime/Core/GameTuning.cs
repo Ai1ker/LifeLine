@@ -12,36 +12,46 @@ namespace Lifeline
         public float jumpSpeed = 7f;
         public float gravity = 20f;
         [Min(1)] public int bagCapacity = 8;
-        public float baseOxygen = 40f;
+        public float baseOxygen = 50f;
         public float sprintOxygenMultiplier = 2f;
         public float reviveDistance = 2.5f;
         [Min(.1f)] public float reviveSeconds = 5f;
-        [Tooltip("The first effective hit exhausts the basic suit; T1 survives until its second hit.")]
-        [Min(1)] public int baseDiverHitCapacity = 1;
-        [Min(1)] public int upgradedDiverHitCapacity = 2;
+        [Tooltip("Hit units: base 2, suit T1 3, T2/T3 4. T3 adds immunity.")]
+        [Min(1)] public int baseDiverHitCapacity = 2;
+        [Min(1)] public int upgradedDiverHitCapacity = 3;
         [Range(0, 1)] public float upgradedSuitImmunity = .25f;
         [Range(0, 1)] public float backpackCollectionBonus = .25f;
         public float collectSeconds = .72f;
         public float cabinetSeconds = 1.5f;
         public int crateCapacity = 3;
-        [Tooltip("T3 is 74m so the new 50m buildings remain physically reachable.")]
-        public float[] ropeLengths = { 28f, 44f, 54f, 74f };
+        public int suitT2HitCapacity = 4;
+        public int[] backpackSlotsByLevel = { 0, 2, 6, 10 };
+        public float upgradedFuelPower = 20f;
+        public float sharkDamage = 2f, shadowDamage = 2f, waterShotHitDamage = 1f;
+        public float lightningIntervalDayReduction = .5f, lightningMinFloor = 6f, lightningMaxFloor = 10f;
+        public float lightningWarningDayReduction = .05f, lightningWarningFloor = 1.2f;
+        public float birdMinimumInterval = 10f, birdIntervalDayReduction = 1f;
+        public float birdExtraOneChance = .2f, birdExtraTwoChance = .1f, birdExtraDailyChance = .01f;
+        public float birdExtraOneCap = .5f, birdExtraTwoCap = .25f;
+        public float birdInterruptChance = .25f, armoredBirdInterruptChance = .5f;
+        [Tooltip("Base / T1 / T2 / T3 / T4 rope length in metres. T4 extends the electric winch to 100m.")]
+        public float[] ropeLengths = { 28f, 44f, 54f, 74f, 100f };
 
         [Header("船舶与动力 / Ship")]
-        public float boatSpeed = 3.4f;
-        [Range(.01f, 1)] public float diveBoatMultiplier = .28f;
+        public float boatSpeed = 3f;
+        [Range(.01f, 1)] public float diveBoatMultiplier = .3f;
         public float baseHull = 100f;
         public float initialPower = 20f;
         public float maxPower = 100f;
-        public float routePowerCost = 80f;
-        public float routeDistance = 90f;
-        public float fuelPower = 25f;
+        public float routePowerCost = 200f;
+        public float routeDistance = 200f;
+        public float fuelPower = 15f;
         public float handPowerPerStroke = 1f;
         public float generatorStrokeInterval = 3f;
         public float eelHullMultiplier = 1.3f;
         public float eelSpeedMultiplier = 1.2f;
         public float[] hullLevels = { 100f, 150f, 220f };
-        public float[] oxygenLevels = { 40f, 70f, 115f, 145f };
+        public float[] oxygenLevels = { 50f, 75f, 120f, 150f };
 
         [Header("昼夜 / Day-night")]
         public float daySeconds = 200f;
@@ -49,7 +59,7 @@ namespace Lifeline
         [Range(0, 1)] public float duskFraction = .117f;
         public float lightningIntervalMin = 12f;
         public float lightningIntervalMax = 18f;
-        public float lightningWarning = 2.2f;
+        public float lightningWarning = 2f;
         [Range(0, 1)] public float lightningEngineRisk = .05f;
         [Range(0, 1)] public float lowPowerEngineRisk = .05f;
         public float lowPowerRiskInterval = 5f;
@@ -63,8 +73,8 @@ namespace Lifeline
         [Header("制作 / Automatic crafting")]
         public float craftSeconds = 40f;
         [Tooltip("Compatibility value for T2; prefer craftSecondsByLevel/GetCraftDuration.")]
-        public float upgradedCraftSeconds = 25f;
-        public float[] craftSecondsByLevel = { 40f, 35f, 25f, 20f };
+        public float upgradedCraftSeconds = 20f;
+        public float[] craftSecondsByLevel = { 40f, 30f, 20f, 15f };
         public float craftQteBonus = 3f;
         public float craftQteHalfWindow = .16f;
         public float workbenchWindowMultiplier = 1.3f;
@@ -82,6 +92,8 @@ namespace Lifeline
         public float winchGoodDistance = 1.78f;
         public float winchBadDistance = .89f;
         public float winchElectricSpeed = 3.33f;
+        [Tooltip("T4 positive recovery multiplier bonus. Applies before sharing between attached targets; failed calibration slip is unchanged.")]
+        [Min(0)] public float winchT4RecoveryBonus = .2f;
         [Min(1)] public int electricWinchSignalCount = 3;
         [Min(.1f)] public float electricWinchSignalWindow = 1.1f;
 
@@ -106,7 +118,7 @@ namespace Lifeline
         [Range(0, 6)] public int maximumPiranhas = 6;
         [Range(0, 1)] public float piranhaSpawnChance = .6f;
         public Vector2 piranhaDepths = new Vector2(20, 35);
-        public float piranhaDamage = .5f;
+        public float piranhaDamage = 1f;
         public float piranhaScaleMultiplier = .5f;
         public float piranhaAttackDistance = .84f;
         public float piranhaWarningDistance = 1.54f;
@@ -147,8 +159,8 @@ namespace Lifeline
         public int shallowLootCount = 9;
         public int middleLootCount = 21;
         public int deepLootCount = 40;
-        public float shallowBoundary = 24f;
-        public float deepBoundary = 56f;
+        public float shallowBoundary = 53.333332f;
+        public float deepBoundary = 124.44444f;
         [Range(0, 1)] public float caveChance = .05f;
         [Range(0, 1)] public float eelCaveChance = .05f;
         [Range(0, 1)] public float deepEventChancePerDayAfterThree = .02f;

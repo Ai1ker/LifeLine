@@ -249,6 +249,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 460462375}
   label: {fileID: 1599316207}
@@ -2344,6 +2346,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1755088731}
   label: {fileID: 1539244114}
@@ -3178,6 +3182,9 @@ MonoBehaviour:
     openRight: 1
     leftExitRow: 2
     rightExitRow: 2
+    bottomExitColumn: -1
+    extraLeftExitRow: -1
+    extraRightExitRow: -1
   - name: AREA 1 / DEPTH 22m
     columns: 7
     rows: 4
@@ -3220,6 +3227,9 @@ MonoBehaviour:
     openRight: 1
     leftExitRow: 2
     rightExitRow: 2
+    bottomExitColumn: -1
+    extraLeftExitRow: -1
+    extraRightExitRow: -1
   - name: AREA 1 / DEPTH 36m
     columns: 9
     rows: 5
@@ -3287,6 +3297,9 @@ MonoBehaviour:
     openRight: 1
     leftExitRow: 1
     rightExitRow: 1
+    bottomExitColumn: -1
+    extraLeftExitRow: -1
+    extraRightExitRow: -1
   - name: AREA 2 / DEPTH 10m
     columns: 5
     rows: 3
@@ -3318,6 +3331,9 @@ MonoBehaviour:
     openRight: 1
     leftExitRow: 2
     rightExitRow: 2
+    bottomExitColumn: -1
+    extraLeftExitRow: -1
+    extraRightExitRow: -1
   - name: AREA 2 / DEPTH 22m
     columns: 7
     rows: 4
@@ -3363,6 +3379,9 @@ MonoBehaviour:
     openRight: 1
     leftExitRow: 2
     rightExitRow: 2
+    bottomExitColumn: -1
+    extraLeftExitRow: -1
+    extraRightExitRow: -1
   - name: AREA 2 / DEPTH 36m
     columns: 9
     rows: 5
@@ -3428,6 +3447,9 @@ MonoBehaviour:
     openRight: 1
     leftExitRow: 1
     rightExitRow: 1
+    bottomExitColumn: -1
+    extraLeftExitRow: -1
+    extraRightExitRow: -1
   - name: AREA 3 / DEPTH 10m
     columns: 5
     rows: 3
@@ -3458,6 +3480,9 @@ MonoBehaviour:
     openRight: 1
     leftExitRow: 2
     rightExitRow: 2
+    bottomExitColumn: -1
+    extraLeftExitRow: -1
+    extraRightExitRow: -1
   - name: AREA 3 / DEPTH 22m
     columns: 7
     rows: 4
@@ -3503,6 +3528,9 @@ MonoBehaviour:
     openRight: 1
     leftExitRow: 2
     rightExitRow: 2
+    bottomExitColumn: -1
+    extraLeftExitRow: -1
+    extraRightExitRow: -1
   - name: AREA 3 / DEPTH 36m
     columns: 9
     rows: 5
@@ -3567,6 +3595,9 @@ MonoBehaviour:
     openRight: 1
     leftExitRow: 1
     rightExitRow: 1
+    bottomExitColumn: -1
+    extraLeftExitRow: -1
+    extraRightExitRow: -1
   trapdoors:
   - {fileID: 1428995694}
   - {fileID: 47522525}
@@ -3744,7 +3775,7 @@ MonoBehaviour:
     serializedVersion: 2
     x: -22
     y: -55
-    width: 122
+    width: 244.22223
     height: 65
   waterSurface: -1.5
   roomSize: 3
@@ -3767,8 +3798,8 @@ MonoBehaviour:
   maximumLootDepth: 50
   areaCenters:
   - 0
-  - 36
-  - 72
+  - 80
+  - 160
   bandTopDepths:
   - 10
   - 21.5
@@ -4541,6 +4572,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1245491345}
   label: {fileID: 768118235}
@@ -4906,6 +4939,8 @@ MonoBehaviour:
   contents: 020000000000000000000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 542535836}
   label: {fileID: 775234798}
@@ -5223,6 +5258,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 767614856}
   label: {fileID: 1137499757}
@@ -5966,6 +6003,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1535594048}
   label: {fileID: 1005252312}
@@ -6260,7 +6299,7 @@ MonoBehaviour:
     serializedVersion: 2
     x: -22
     y: -55
-    width: 122
+    width: 244.22223
     height: 65
   oceanClearColor: {r: 0.48, g: 0.76, b: 0.82, a: 1}
   obstacleMask:
@@ -9309,6 +9348,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 968007797}
   label: {fileID: 2132556333}
@@ -9409,6 +9450,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 517010312}
   label: {fileID: 1941807624}
@@ -10391,6 +10434,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1558724480}
   label: {fileID: 425748932}
@@ -11013,6 +11058,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 197203255}
   label: {fileID: 2126899093}
@@ -11780,6 +11827,8 @@ MonoBehaviour:
   contents: 080000000800000001000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1314138594}
   label: {fileID: 2146372916}
@@ -12339,6 +12388,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2027238545}
   label: {fileID: 48194118}
@@ -12887,6 +12938,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1442113541}
   label: {fileID: 864556970}
@@ -13275,6 +13328,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 892536170}
   label: {fileID: 363103828}
@@ -14127,6 +14182,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1920593845}
   label: {fileID: 746755811}
@@ -15093,6 +15150,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 605429659}
   label: {fileID: 670830692}
@@ -15247,6 +15306,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1669472248}
   label: {fileID: 116298145}
@@ -18320,6 +18381,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1700346097}
   label: {fileID: 2005090103}
@@ -19933,6 +19996,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 308080961}
   label: {fileID: 1759257131}
@@ -21961,6 +22026,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 746489842}
   label: {fileID: 1167377804}
@@ -22749,6 +22816,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1642940774}
   label: {fileID: 792648648}
@@ -23061,6 +23130,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1468039818}
   label: {fileID: 871416169}
@@ -23308,6 +23379,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 457188388}
   label: {fileID: 419445423}
@@ -23961,6 +24034,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1723009777}
   label: {fileID: 1847642432}
@@ -26379,6 +26454,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1017979731}
   label: {fileID: 316919594}
@@ -26919,6 +26996,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 724506997}
   label: {fileID: 1835921038}
@@ -29139,6 +29218,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 209892312}
   label: {fileID: 1056638985}
@@ -30153,6 +30234,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1056474076}
   label: {fileID: 1840791536}
@@ -32564,6 +32647,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1882827363}
   label: {fileID: 219375558}
@@ -33420,6 +33505,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1090963507}
   label: {fileID: 1432406891}
@@ -33732,6 +33819,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1063986355}
   label: {fileID: 1778140862}
@@ -34907,6 +34996,8 @@ MonoBehaviour:
   contents: 000000000000000002000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1456602468}
   label: {fileID: 2013401433}
@@ -35885,6 +35976,8 @@ MonoBehaviour:
   contents: 010000000100000000000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1730458009}
   label: {fileID: 1359401658}
@@ -36273,6 +36366,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 465150081}
   label: {fileID: 498767627}
@@ -37486,6 +37581,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1548914574}
   label: {fileID: 410162180}
@@ -39587,6 +39684,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 53138318}
   label: {fileID: 1781410075}
@@ -39900,6 +39999,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 860956827}
   label: {fileID: 243752995}
@@ -40121,6 +40222,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 253638728}
   label: {fileID: 1730466675}
@@ -41072,6 +41175,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 987368464}
   label: {fileID: 1948434729}
@@ -42490,6 +42595,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 932560439}
   label: {fileID: 572160544}
@@ -42590,6 +42697,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1453360546}
   label: {fileID: 291059510}
@@ -45778,6 +45887,8 @@ MonoBehaviour:
   contents: 010000000000000001000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 627997698}
   label: {fileID: 571102645}
@@ -47287,6 +47398,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1414921862}
   label: {fileID: 1963328848}
@@ -47984,6 +48097,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 989224918}
   label: {fileID: 1500253562}
@@ -49296,6 +49411,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 964689574}
   label: {fileID: 1464000714}
@@ -50131,6 +50248,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 672237587}
   label: {fileID: 1624217229}
@@ -50772,6 +50891,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 357684989}
   label: {fileID: 318254474}
@@ -51754,6 +51875,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 100312124}
   label: {fileID: 401810346}
@@ -52406,6 +52529,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 333185853}
   label: {fileID: 1690427253}
@@ -52596,6 +52721,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1520337329}
   label: {fileID: 193882401}
@@ -53321,6 +53448,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1199613763}
   label: {fileID: 1628477105}
@@ -53511,6 +53640,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 342365854}
   label: {fileID: 1618268058}
@@ -53643,6 +53774,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 769750228}
   label: {fileID: 953917535}
@@ -54350,6 +54483,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 225414419}
   label: {fileID: 1168025887}
@@ -54504,6 +54639,8 @@ MonoBehaviour:
   contents: 020000000200000001000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1010647053}
   label: {fileID: 1454757078}
@@ -57481,6 +57618,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 593088498}
   label: {fileID: 474371098}
@@ -57582,6 +57721,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1775579116}
   label: {fileID: 414695907}
@@ -58027,6 +58168,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1779496066}
   label: {fileID: 1521968037}
@@ -59040,6 +59183,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2077170570}
   label: {fileID: 985612476}
@@ -60038,6 +60183,8 @@ MonoBehaviour:
   contents: 010000000200000000000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1131631799}
   label: {fileID: 35780683}
@@ -61181,6 +61328,10 @@ PrefabInstance:
       propertyPath: session
       value: 
       objectReference: {fileID: 1594206554}
+    - target: {fileID: 383958770034582902, guid: f80e117bf1ed6f2448d7f32346e2c2a0, type: 3}
+      propertyPath: eastLimit
+      value: 200
+      objectReference: {fileID: 0}
     - target: {fileID: 769417875057243077, guid: f80e117bf1ed6f2448d7f32346e2c2a0, type: 3}
       propertyPath: m_Layer
       value: 12
@@ -61773,6 +61924,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2114304262}
   label: {fileID: 139224390}
@@ -61905,6 +62058,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 830757222}
   label: {fileID: 1049154633}
@@ -65443,6 +65598,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2035914762}
   label: {fileID: 1019103620}
@@ -65777,6 +65934,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1472081553}
   label: {fileID: 521933406}
@@ -66325,6 +66484,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2022720445}
   label: {fileID: 1739392029}
@@ -66839,6 +67000,8 @@ MonoBehaviour:
   contents: 000000000000000001000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1269224484}
   label: {fileID: 983971215}
@@ -67060,6 +67223,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 833381140}
   label: {fileID: 1947547028}
@@ -67368,6 +67533,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 470707231}
   label: {fileID: 1571544600}
@@ -67648,6 +67815,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 111407470}
   label: {fileID: 333439454}
@@ -67946,6 +68115,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 554696377}
   label: {fileID: 758797426}
@@ -70247,6 +70418,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1737434114}
   label: {fileID: 170151176}
@@ -71621,6 +71794,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1879265205}
   label: {fileID: 684264879}
@@ -71811,6 +71986,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1355775477}
   label: {fileID: 657808419}
@@ -72654,6 +72831,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1772604509}
   label: {fileID: 2048719740}
@@ -73148,6 +73327,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1072530704}
   label: {fileID: 885561494}
@@ -75095,6 +75276,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 904404835}
   label: {fileID: 1753038158}
@@ -75393,6 +75576,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1129368877}
   label: {fileID: 181748277}
@@ -78192,6 +78377,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1352502888}
   label: {fileID: 662601802}
@@ -79310,6 +79497,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 143066953}
   label: {fileID: 1265614203}
@@ -79410,6 +79599,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 152774403}
   label: {fileID: 498527959}
@@ -81083,6 +81274,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 188365387}
   label: {fileID: 79271252}
@@ -82334,6 +82527,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1775400442}
   label: {fileID: 1074345217}
@@ -83443,6 +83638,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 628214394}
   label: {fileID: 136383420}
@@ -83875,6 +84072,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 536108653}
   label: {fileID: 1882625126}
@@ -84065,6 +84264,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1271938320}
   label: {fileID: 78544573}
@@ -85253,6 +85454,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2023483623}
   label: {fileID: 1605060518}
@@ -85765,6 +85968,10 @@ PrefabInstance:
       propertyPath: session
       value: 
       objectReference: {fileID: 1594206554}
+    - target: {fileID: 6964457404127925666, guid: 07df74016128c9d41a3578f4d2138d22, type: 3}
+      propertyPath: rightWorldLimit
+      value: 222.22223
+      objectReference: {fileID: 0}
     - target: {fileID: 8412547313314089097, guid: 07df74016128c9d41a3578f4d2138d22, type: 3}
       propertyPath: m_Layer
       value: 12
@@ -85873,6 +86080,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1236230429}
   label: {fileID: 1633890486}
@@ -85976,6 +86185,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1801571052}
   label: {fileID: 184463087}
@@ -86108,6 +86319,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1740501085}
   label: {fileID: 226680220}
@@ -87429,6 +87642,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 399851150}
   label: {fileID: 1393533652}
@@ -91045,6 +91260,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1599497210}
   label: {fileID: 41866509}
@@ -92450,6 +92667,8 @@ MonoBehaviour:
   contents: 020000000200000000000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1926005944}
   label: {fileID: 2103992373}
@@ -94587,6 +94806,8 @@ MonoBehaviour:
   contents: 000000000200000008000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 390815054}
   label: {fileID: 197256308}
@@ -94687,6 +94908,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 496204494}
   label: {fileID: 325144811}
@@ -94842,6 +95065,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1504073839}
   label: {fileID: 1952582330}
@@ -96171,6 +96396,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 974761288}
   label: {fileID: 514760408}
@@ -97953,6 +98180,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 407433307}
   label: {fileID: 123853379}
@@ -98107,6 +98336,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 738089058}
   label: {fileID: 1806232751}
@@ -99181,6 +99412,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1963065393}
   label: {fileID: 216318200}
@@ -99281,6 +99514,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 563670012}
   label: {fileID: 25310111}
@@ -99629,6 +99864,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1264070776}
   label: {fileID: 106550583}
@@ -101555,6 +101792,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1334178553}
   label: {fileID: 2112908637}
@@ -102335,6 +102574,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1348131018}
   label: {fileID: 684877582}
@@ -103954,6 +104195,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1695696371}
   label: {fileID: 1315480369}
@@ -106532,6 +106775,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2143611225}
   label: {fileID: 1737802316}
@@ -107879,6 +108124,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1710805181}
   label: {fileID: 1475970894}
@@ -108476,6 +108723,8 @@ MonoBehaviour:
   contents: 020000000000000000000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 766750376}
   label: {fileID: 1789515612}
@@ -109475,6 +109724,8 @@ MonoBehaviour:
   contents: 020000000200000001000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1778969103}
   label: {fileID: 1645987854}
@@ -109607,6 +109858,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1887492519}
   label: {fileID: 545357630}
@@ -113019,6 +113272,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2110136993}
   label: {fileID: 360504982}
@@ -113734,6 +113989,8 @@ MonoBehaviour:
   contents: 000000000100000000000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 324897462}
   label: {fileID: 1346326312}
@@ -117479,6 +117736,8 @@ MonoBehaviour:
   contents: 000000000100000002000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 515581556}
   label: {fileID: 1558717277}
@@ -120015,6 +120274,8 @@ MonoBehaviour:
   contents: 010000000100000002000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1441015284}
   label: {fileID: 1688876791}
@@ -120381,6 +120642,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2047776239}
   label: {fileID: 2071001744}
@@ -121175,6 +121438,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1630018453}
   label: {fileID: 2116698831}
@@ -123057,6 +123322,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1858850870}
   label: {fileID: 1441967091}
@@ -124974,6 +125241,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 529910035}
   label: {fileID: 877876811}
@@ -126956,6 +127225,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 386079814}
   label: {fileID: 431498774}
@@ -128681,6 +128952,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1175536951}
   label: {fileID: 421229504}
@@ -131549,6 +131822,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1648996117}
   label: {fileID: 654576057}
@@ -131650,6 +131925,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 552043486}
   label: {fileID: 1370118265}
@@ -133409,6 +133686,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 468267948}
   label: {fileID: 1691261599}
@@ -133797,6 +134076,8 @@ MonoBehaviour:
   contents: 080000000100000002000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1179415086}
   label: {fileID: 1138169015}
@@ -134744,6 +135025,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 957938559}
   label: {fileID: 1169294649}
@@ -135448,6 +135731,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 952649693}
   label: {fileID: 1007811015}
@@ -135993,6 +136278,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1540850472}
   label: {fileID: 938035048}
@@ -136547,6 +136834,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 736609679}
   label: {fileID: 628384279}
@@ -137443,6 +137732,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 808930204}
   label: {fileID: 602729683}
@@ -137543,6 +137834,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1841501818}
   label: {fileID: 902792474}
@@ -137643,6 +137936,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1160498536}
   label: {fileID: 1019641216}
@@ -137862,6 +138157,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 44347162}
   label: {fileID: 1900090029}
@@ -138283,6 +138580,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 11613492}
   label: {fileID: 1518103324}
@@ -139059,6 +139358,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1092947388}
   label: {fileID: 1358051456}
@@ -140019,6 +140320,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 877078612}
   label: {fileID: 2141012033}
@@ -141923,6 +142226,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 316137125}
   label: {fileID: 679435977}
@@ -142114,6 +142419,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 558647116}
   label: {fileID: 12885353}
@@ -144162,6 +144469,8 @@ MonoBehaviour:
   contents: 080000000200000000000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1540614282}
   label: {fileID: 1665544158}
@@ -144316,6 +144625,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 970455314}
   label: {fileID: 1498831504}
@@ -146242,6 +146553,8 @@ MonoBehaviour:
   contents: 010000000000000002000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 650350694}
   label: {fileID: 1584491019}
@@ -147775,6 +148088,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1656017008}
   label: {fileID: 742332037}
@@ -149015,6 +149330,8 @@ MonoBehaviour:
   contents: 020000000100000000000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 968119869}
   label: {fileID: 1660350922}
@@ -151055,6 +151372,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2140543020}
   label: {fileID: 342332835}
@@ -151155,6 +151474,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 352981329}
   label: {fileID: 2005761578}
@@ -152403,6 +152724,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1940897081}
   label: {fileID: 1403751955}
@@ -152557,6 +152880,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 330517331}
   label: {fileID: 59042440}
@@ -154359,6 +154684,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 80635774}
   label: {fileID: 171738199}
@@ -154877,6 +155204,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2065087366}
   label: {fileID: 309550976}
@@ -156288,6 +156617,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1004154706}
   label: {fileID: 235991457}
@@ -156640,6 +156971,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 850224145}
   label: {fileID: 1927018859}
@@ -157852,6 +158185,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1285184420}
   label: {fileID: 1913473507}
@@ -161802,6 +162137,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 399262488}
   label: {fileID: 359261695}
@@ -162901,6 +163238,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 265770871}
   label: {fileID: 2097767764}
@@ -164048,6 +164387,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 19988948}
   label: {fileID: 554150052}
@@ -166798,6 +167139,8 @@ MonoBehaviour:
   contents: 020000000100000002000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1126267721}
   label: {fileID: 111447634}
@@ -168020,6 +168363,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 487298965}
   label: {fileID: 1541445933}
@@ -169245,6 +169590,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 811796007}
   label: {fileID: 1351461378}
@@ -170700,6 +171047,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 616507070}
   label: {fileID: 45779140}
@@ -172616,6 +172965,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1098217471}
   label: {fileID: 1988373622}
@@ -172968,6 +173319,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 219624836}
   label: {fileID: 1850446381}
@@ -174375,6 +174728,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1942939784}
   label: {fileID: 1945501173}
@@ -177017,6 +177372,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 561924419}
   label: {fileID: 1432131465}
@@ -178138,6 +178495,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1224977576}
   label: {fileID: 1653657026}
@@ -179026,6 +179385,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 504128789}
   label: {fileID: 1488770426}
@@ -180951,6 +181312,8 @@ MonoBehaviour:
   contents: 000000000100000001000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 340885979}
   label: {fileID: 1905911141}
@@ -181051,6 +181414,8 @@ MonoBehaviour:
   contents: 020000000000000002000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 280733044}
   label: {fileID: 1408639529}
@@ -181565,6 +181930,8 @@ MonoBehaviour:
   contents: 000000000000000000000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 619587100}
   label: {fileID: 1724933384}
@@ -182781,6 +183148,8 @@ MonoBehaviour:
   contents: 010000000000000008000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 640839912}
   label: {fileID: 2072342276}
@@ -182881,6 +183250,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 946117725}
   label: {fileID: 306854111}
@@ -184661,6 +185032,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1212181811}
   label: {fileID: 944466039}
@@ -186007,6 +186380,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1070710568}
   label: {fileID: 1107953903}
@@ -186933,6 +187308,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 872880198}
   label: {fileID: 472381601}
@@ -187771,6 +188148,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 739604192}
   label: {fileID: 425339170}
@@ -188829,6 +189208,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2069686646}
   label: {fileID: 396801829}
@@ -190053,6 +190434,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 861518794}
   label: {fileID: 655125770}
@@ -190693,6 +191076,8 @@ MonoBehaviour:
   contents: 010000000000000000000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 444249630}
   label: {fileID: 2102180295}
@@ -192697,7 +193082,7 @@ MonoBehaviour:
     amount: 2
   backpackUpgradeCost:
   - resource: 7
-    amount: 1
+    amount: 2
   divingSuitUpgradeCost:
   - resource: 6
     amount: 1
@@ -192738,6 +193123,10 @@ MonoBehaviour:
   engineEverRepaired: 0
   engineRepairVersion: 0
   generatorTier: 0
+  efficientFuelGenerator: 0
+  generatorEfficiencyCost:
+  - resource: 6
+    amount: 3
   infinitePower: 0
   searchlightOn: 0
   turretInstalled: 0
@@ -192804,7 +193193,7 @@ MonoBehaviour:
   rescueVoyage: 0
   rescueProgress: 0
   rescueWinchSeconds: 12
-  rescueArrivalX: 85
+  rescueArrivalX: 188.88889
   stormCountdown: 0
   stormWarning: 0
   lightningTarget: 0
@@ -193323,6 +193712,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1975924251}
   label: {fileID: 1881876195}
@@ -194910,6 +195301,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1477900363}
   label: {fileID: 1868823311}
@@ -197706,6 +198099,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1931408232}
   label: {fileID: 151553267}
@@ -198323,6 +198718,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 758230301}
   label: {fileID: 1158939101}
@@ -199702,6 +200099,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1004584591}
   label: {fileID: 1376272123}
@@ -203263,6 +203662,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1183573849}
   label: {fileID: 1234237546}
@@ -203675,6 +204076,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 540903984}
   label: {fileID: 1994832387}
@@ -204921,6 +205324,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 570882523}
   label: {fileID: 2131678277}
@@ -205142,6 +205547,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 668690210}
   label: {fileID: 336488260}
@@ -205508,6 +205915,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1816111736}
   label: {fileID: 1001384771}
@@ -205762,6 +206171,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 535047479}
   label: {fileID: 303270698}
@@ -207321,6 +207732,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1615491503}
   label: {fileID: 1548499948}
@@ -208816,6 +209229,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 297453005}
   label: {fileID: 1185882296}
@@ -209683,6 +210098,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2098302911}
   label: {fileID: 990283077}
@@ -212830,6 +213247,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 904550990}
   label: {fileID: 1011596375}
@@ -213159,6 +213578,10 @@ PrefabInstance:
       propertyPath: session
       value: 
       objectReference: {fileID: 1594206554}
+    - target: {fileID: 7298540333932763542, guid: 9e7f6a8928799f446a8f587bdf3cfb6e, type: 3}
+      propertyPath: rightWorldLimit
+      value: 222.22223
+      objectReference: {fileID: 0}
     - target: {fileID: 7764100194952140133, guid: 9e7f6a8928799f446a8f587bdf3cfb6e, type: 3}
       propertyPath: m_Layer
       value: 12
@@ -216257,6 +216680,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1268686285}
   label: {fileID: 801755988}
@@ -216447,6 +216872,8 @@ MonoBehaviour:
   contents: 000000000200000001000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 336847045}
   label: {fileID: 1719299682}
@@ -217684,6 +218111,8 @@ MonoBehaviour:
   contents: 020000000800000002000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1721120972}
   label: {fileID: 952177074}
@@ -219338,6 +219767,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1208924179}
   label: {fileID: 176987627}
@@ -219585,6 +220016,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1116537807}
   label: {fileID: 19394282}
@@ -222041,6 +222474,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1644466729}
   label: {fileID: 1169094784}
@@ -222339,6 +222774,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1884195046}
   label: {fileID: 193782785}
@@ -223296,6 +223733,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1051913946}
   label: {fileID: 1659886832}
@@ -230895,6 +231334,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 836900100}
   label: {fileID: 997975545}
@@ -232335,6 +232776,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1818962974}
   label: {fileID: 81821414}
@@ -233506,6 +233949,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1023378753}
   label: {fileID: 1734046252}
@@ -233660,6 +234105,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 389192180}
   label: {fileID: 624207605}
@@ -234030,6 +234477,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 466120576}
   label: {fileID: 1879482626}
@@ -234794,6 +235243,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1138548245}
   label: {fileID: 653972258}
@@ -235672,6 +236123,8 @@ MonoBehaviour:
   contents: 020000000200000002000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1473473154}
   label: {fileID: 374860952}
@@ -236006,6 +236459,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 826480076}
   label: {fileID: 1558249500}
@@ -243424,6 +243879,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1581422144}
   label: {fileID: 492240682}
@@ -243722,6 +244179,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 926469177}
   label: {fileID: 1306312869}
@@ -243876,6 +244335,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1331598753}
   label: {fileID: 870804210}
@@ -244367,6 +244828,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1161311048}
   label: {fileID: 740843175}
@@ -244907,6 +245370,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 537761225}
   label: {fileID: 1147147012}
@@ -245151,6 +245616,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 292989996}
   label: {fileID: 1145683810}
@@ -245372,6 +245839,8 @@ MonoBehaviour:
   contents: 000000000000000002000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1207921370}
   label: {fileID: 1712463127}
@@ -245814,6 +246283,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 599009807}
   label: {fileID: 1104400439}
@@ -246148,6 +246619,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2075474447}
   label: {fileID: 54656179}
@@ -246638,6 +247111,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1110658976}
   label: {fileID: 657810191}
@@ -247388,6 +247863,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2058914461}
   label: {fileID: 1443249747}
@@ -247745,6 +248222,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1434656956}
   label: {fileID: 2005851959}
@@ -247845,6 +248324,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 310138547}
   label: {fileID: 58808535}
@@ -248215,6 +248696,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2128077066}
   label: {fileID: 383632701}
@@ -249366,6 +249849,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 546747670}
   label: {fileID: 166202267}
@@ -250077,6 +250562,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1220494272}
   label: {fileID: 620544401}
@@ -250634,6 +251121,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 2126805650}
   label: {fileID: 1596425805}
@@ -252156,6 +252645,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 103427650}
   label: {fileID: 1528696770}
@@ -255183,6 +255674,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1017368717}
   label: {fileID: 1843888722}
@@ -256026,6 +256519,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1096622585}
   label: {fileID: 1305286109}
@@ -256589,6 +257084,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1699787409}
   label: {fileID: 389387834}
@@ -256775,6 +257272,8 @@ MonoBehaviour:
   contents: 000000000000000001000000i
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 738178986}
   label: {fileID: 1609067481}
@@ -257816,6 +258315,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 86391705}
   label: {fileID: 179925613}
@@ -258040,6 +258541,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 101527578}
   label: {fileID: 1316455462}
@@ -258600,6 +259103,8 @@ MonoBehaviour:
   contents: 
   attached: 0
   consumed: 0
+  persistAcrossDays: 0
+  isLostCargo: 0
   world: {fileID: 20026270}
   visualRoot: {fileID: 1619142642}
   label: {fileID: 44789808}

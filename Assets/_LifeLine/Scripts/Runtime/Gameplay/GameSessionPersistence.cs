@@ -21,7 +21,7 @@ namespace Lifeline
             RefreshLifelines();
             var data = new GameSaveData
             {
-                areaStrikes=areaStrikes.ToArray(), coordinateVersion = 1, savedUtc = DateTime.UtcNow.ToString("O"), state = new SessionSaveState(),
+                areaStrikes=areaStrikes.ToArray(), coordinateVersion = 1, balanceVersion=1, routeDistance=tuning.routeDistance, savedUtc = DateTime.UtcNow.ToString("O"), state = new SessionSaveState(),
                 cycleSeconds = tuning.daySeconds, daylightSeconds = tuning.daySeconds * tuning.dayFraction, duskSeconds = tuning.daySeconds * tuning.duskFraction,
                 shipPosition = ship != null ? ShipToWaterPoint(ship.Position) : Vector3.zero,
                 captainRopeContacts=captainRope!=null?captainRope.CaptureContacts():Array.Empty<Vector3>(),
@@ -48,7 +48,7 @@ namespace Lifeline
                 {
                     if (pickup == null) continue;
                     if (string.IsNullOrEmpty(pickup.saveId)) pickup.saveId = "dynamic:" + Guid.NewGuid().ToString("N");
-                    pickups.Add(new PickupSaveState { id = pickup.saveId, dynamic = pickup.mazeIndex < 0 || !pickup.saveId.StartsWith(prefix, StringComparison.Ordinal), resource = pickup.resource, amount = pickup.amount, capacity = pickup.capacity, isCrate = pickup.isCrate, isCabinet = pickup.isCabinet, contents = pickup.contents, attached = pickup.attached, consumed = pickup.consumed, position = pickup.transform.position, mazeIndex = pickup.mazeIndex, mazeCell = pickup.mazeCell, ropeContacts = pickup.attached && !pickup.consumed ? GetCargoLifeline(pickup).CaptureContacts() : Array.Empty<Vector3>() });
+                    pickups.Add(new PickupSaveState { id = pickup.saveId, dynamic = pickup.mazeIndex < 0 || !pickup.saveId.StartsWith(prefix, StringComparison.Ordinal), resource = pickup.resource, amount = pickup.amount, capacity = pickup.capacity, persistAcrossDays=pickup.persistAcrossDays, isLostCargo=pickup.isLostCargo, isCrate = pickup.isCrate, isCabinet = pickup.isCabinet, contents = pickup.contents, attached = pickup.attached, consumed = pickup.consumed, position = pickup.transform.position, mazeIndex = pickup.mazeIndex, mazeCell = pickup.mazeCell, ropeContacts = pickup.attached && !pickup.consumed ? GetCargoLifeline(pickup).CaptureContacts() : Array.Empty<Vector3>() });
                 }
                 data.world.pickups = pickups.ToArray();
                 var gates = new List<GateSaveState>();
@@ -106,6 +106,7 @@ namespace Lifeline
             { error = "存档世界种子与当前地图配置不兼容。"; return false; }
             // All semantic checks above happen before replacing the active world or its inventory.
             data = CloneSave(data);
+            bool migratedBalance=BalanceSaveMigration.Upgrade(data,tuning);
             float clockOffset = restoredElapsed - data.state.elapsed;
             data.state.elapsed = restoredElapsed;
             data.state.lastCrankAt += clockOffset; data.state.lastSignalAt += clockOffset;
@@ -134,6 +135,7 @@ namespace Lifeline
                     RestoreWorld(data.world);
                 }
                 RestoreCrew(captain, data.captain); RestoreCrew(diver, data.diver); IgnoreCrewCollision();
+                if(migratedBalance&&world!=null)world.ResolveCrewRefreshOverlap();
                 if(data.areaStrikes!=null)areaStrikes.AddRange(data.areaStrikes);
                 var enemyMap = new Dictionary<string, LifelineEnemy>();
                 foreach (EnemySaveState saved in data.enemies)
@@ -223,7 +225,7 @@ namespace Lifeline
                     world.pickups.Add(pickup);
                 }
                 pickup.world = world; pickup.saveId = state.id; pickup.resource = state.resource; pickup.amount = state.amount; pickup.capacity = state.capacity;
-                pickup.isCrate = state.isCrate; pickup.isCabinet = state.isCabinet; pickup.attached = state.attached; pickup.consumed = state.consumed;
+                pickup.persistAcrossDays=state.persistAcrossDays;pickup.isLostCargo=state.isLostCargo; pickup.isCrate = state.isCrate; pickup.isCabinet = state.isCabinet; pickup.attached = state.attached; pickup.consumed = state.consumed;
                 pickup.mazeIndex = state.mazeIndex; pickup.mazeCell = state.mazeCell; pickup.contents = state.contents; pickup.transform.position = state.position;
                 pickup.gameObject.SetActive(!state.consumed); world.PrepareRestoredPickup(pickup); pickup.RefreshVisual(); restored.Add(state.id);
             }

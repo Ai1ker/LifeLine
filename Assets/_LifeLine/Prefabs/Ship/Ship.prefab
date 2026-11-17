@@ -1525,7 +1525,7 @@ MonoBehaviour:
   helmOperator: {fileID: 0}
   speed: 0
   westLimit: -8
-  eastLimit: 90
+  eastLimit: 200
 --- !u!114 &3269520124439010695
 MonoBehaviour:
   m_ObjectHideFlags: 0

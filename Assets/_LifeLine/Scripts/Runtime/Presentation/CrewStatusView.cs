@@ -8,15 +8,15 @@ namespace Lifeline
         public Material dotMaterial;
         public float spacing=.23f, height=1.05f;
         Material generated;
-        Transform[] dots=new Transform[2];
+        Transform[] dots=new Transform[4];
         void OnDestroy(){if(generated!=null)Destroy(generated);}
         void LateUpdate()
         {
             if(actor==null)actor=GetComponent<CrewActor>();
             if(actor==null||actor.session==null)return;
-            int count=!actor.onboard&&!actor.session.IsIncapacitated(actor)&&!actor.session.IsHidden(actor)?actor.role==CrewRole.Captain?1:Mathf.Max(0,Mathf.CeilToInt(actor.session.GetMaxDiverBites()-actor.session.diverBites)):0;
+            int count=!actor.onboard&&!actor.session.IsIncapacitated(actor)&&!actor.session.IsHidden(actor)?actor.role==CrewRole.Captain?Mathf.CeilToInt(actor.health/Mathf.Max(1,actor.maxHealth)*actor.session.tuning.baseDiverHitCapacity):Mathf.Max(0,Mathf.CeilToInt(actor.session.GetMaxDiverBites()-actor.session.diverBites)):0;
             if(dotsRoot==null){dotsRoot=new GameObject("Remaining hit dots / replaceable").transform;dotsRoot.SetParent(transform,false);}
-            for(int i=0;i<2;i++)
+            for(int i=0;i<dots.Length;i++)
             {
                 if(dots[i]==null)
                 {

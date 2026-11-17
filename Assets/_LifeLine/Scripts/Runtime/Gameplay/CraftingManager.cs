@@ -142,6 +142,12 @@ namespace Lifeline
             session.Tell("已取消" + (job.recipe != null ? job.recipe.displayName : "作业") + "，已投入材料不予返还。"); session.Changed(); return true;
         }
 
+        public static StationKind JobStation(CraftJob job) => job != null && job.recipe != null && job.recipe.repairAmount > 0 ? StationKind.HullRepair : StationKind.Workbench;
+        public bool CraftQteAtStation(int jobId, int direction, StationKind station)
+        {
+            var job=jobs.Find(candidate=>candidate!=null&&candidate.id==jobId);
+            return job!=null && JobStation(job)==station && CraftQte(jobId,direction);
+        }
         public bool CraftQte(int jobId, int direction)
         {
             if (session == null || session.phase != SessionPhase.Playing || session.tuning == null) return false;

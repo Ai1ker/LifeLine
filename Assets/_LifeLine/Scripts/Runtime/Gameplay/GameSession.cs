@@ -65,7 +65,7 @@ namespace Lifeline
         public ResourceAmount[] sailUpgradeCost = { new ResourceAmount(ResourceKind.Plank, 1), new ResourceAmount(ResourceKind.FiberBundle, 1) };
         public ResourceAmount[] lightUpgradeCost = { new ResourceAmount(ResourceKind.Plank, 2), new ResourceAmount(ResourceKind.Plate, 2) };
         public ResourceAmount[] workbenchUpgradeCost = { new ResourceAmount(ResourceKind.Plank, 2) };
-        public ResourceAmount[] backpackUpgradeCost = { new ResourceAmount(ResourceKind.FiberBundle, 1) };
+        public ResourceAmount[] backpackUpgradeCost = { new ResourceAmount(ResourceKind.FiberBundle, 2) };
         public ResourceAmount[] divingSuitUpgradeCost = { new ResourceAmount(ResourceKind.Plate, 1), new ResourceAmount(ResourceKind.FiberBundle, 2) };
         public ResourceAmount[] generatorUpgradeCost = { new ResourceAmount(ResourceKind.Plate, 1) };
         public ResourceAmount[] turretBuildCost = { new ResourceAmount(ResourceKind.Plank, 3), new ResourceAmount(ResourceKind.Plate, 3), new ResourceAmount(ResourceKind.FiberBundle, 1) };
@@ -87,6 +87,8 @@ namespace Lifeline
         public int engineRepairVersion;
         [Tooltip("0 hand crank, 1 fuel, 2 installed eel / unlimited electricity.")]
         public int generatorTier;
+        public bool efficientFuelGenerator;
+        public ResourceAmount[] generatorEfficiencyCost = { new ResourceAmount(ResourceKind.Plate, 3) };
         public bool infinitePower;
         public bool searchlightOn;
         public bool turretInstalled;
@@ -147,7 +149,7 @@ namespace Lifeline
         public bool rescueVoyage;
         public float rescueProgress;
         public float rescueWinchSeconds = 12f;
-        public float rescueArrivalX = 85f;
+        public float rescueArrivalX = 188.88889f;
         public float stormCountdown;
         public float stormWarning;
         public CrewRole lightningTarget;
@@ -258,7 +260,7 @@ namespace Lifeline
             hasRod = hasHarpoon = hasSpeargun = false;
             hullMax = tuning.baseHull; hull = hullMax; power = tuning.initialPower;
             filterRepaired = circuitRepaired = engineRepaired = engineEverRepaired = false;
-            engineRepairVersion = 0; generatorTier = 0;
+            engineRepairVersion = 0; generatorTier = 0; efficientFuelGenerator = false;
             infinitePower = searchlightOn = turretInstalled = turretOn = false;
             lowPowerSailingSeconds = 0; lastCrankAt = -100;
             repairAuthorized = new bool[Enum.GetValues(typeof(StationKind)).Length];
@@ -443,7 +445,8 @@ namespace Lifeline
         }
 
         public int GetUpgrade(UpgradeKind kind) => upgradeLevels != null && (int)kind < upgradeLevels.Length ? upgradeLevels[(int)kind] : 0;
-        public int GetMaxUpgrade(UpgradeKind kind) => kind == UpgradeKind.Hull || kind == UpgradeKind.Sail || kind == UpgradeKind.DivingSuit ? 2 : kind == UpgradeKind.Searchlight ? 1 : 3;
+        public static int UpgradeLevelLimit(UpgradeKind kind) => kind == UpgradeKind.Rope ? 4 : kind == UpgradeKind.Hull || kind == UpgradeKind.Sail ? 2 : kind == UpgradeKind.Searchlight ? 1 : 3;
+        public int GetMaxUpgrade(UpgradeKind kind) => UpgradeLevelLimit(kind);
         public int MaxUpgradeLevel(UpgradeKind kind) => GetMaxUpgrade(kind);
         public ResourceAmount[] GetUpgradeCost(UpgradeKind kind)
         {
@@ -475,9 +478,9 @@ namespace Lifeline
         }
 
         public CrewBuffs Buffs(CrewActor actor) => actor == captain ? captainBuffs : diverBuffs;
-        public int GetBagCapacity(CrewActor actor) => tuning == null ? 8 : tuning.bagCapacity + (actor == diver ? Mathf.Min(2, GetUpgrade(UpgradeKind.Backpack)) : 0) + (Buffs(actor).capacity > 0 ? 1 : 0);
-        public float GetCollectSpeedMultiplier(CrewActor actor) => actor == diver && GetUpgrade(UpgradeKind.Backpack) >= 3 ? 1 + tuning.backpackCollectionBonus : 1;
-        public int GetMaxDiverBites() => GetUpgrade(UpgradeKind.DivingSuit) >= 1 ? tuning.upgradedDiverHitCapacity : tuning.baseDiverHitCapacity;
+        public int GetBagCapacity(CrewActor actor) => tuning == null ? 8 : tuning.bagCapacity + (actor == diver ? tuning.backpackSlotsByLevel[Mathf.Clamp(GetUpgrade(UpgradeKind.Backpack), 0, tuning.backpackSlotsByLevel.Length-1)] : 0) + (Buffs(actor).capacity > 0 ? 1 : 0);
+        public float GetCollectSpeedMultiplier(CrewActor actor) => actor == diver ? 1 + tuning.backpackCollectionBonus * (GetUpgrade(UpgradeKind.Backpack) >= 3 ? 2 : GetUpgrade(UpgradeKind.Backpack) >= 1 ? 1 : 0) : 1;
+        public int GetMaxDiverBites() => GetUpgrade(UpgradeKind.DivingSuit) >= 2 ? tuning.suitT2HitCapacity : GetUpgrade(UpgradeKind.DivingSuit) >= 1 ? tuning.upgradedDiverHitCapacity : tuning.baseDiverHitCapacity;
         public int DiverHitCapacity => GetMaxDiverBites();
         public float GetMoveMultiplier(CrewActor actor) => (filterRepaired ? filterMoveMultiplier : 1) * (Buffs(actor).move > 0 ? 1 + tuning.fishMoveBonus : 1);
         public float GetBoatSpeedMultiplier() => (AnyCrewUnderwater ? tuning.diveBoatMultiplier : 1) * (engineRepaired ? repairedEngineSpeedMultiplier : 1) * (GetUpgrade(UpgradeKind.Sail) >= 1 ? 1 + sailSpeedBonus : 1) * (infinitePower ? tuning.eelSpeedMultiplier : 1);

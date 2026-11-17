@@ -94,13 +94,13 @@ namespace Lifeline.Tests
             game.captain.RestorePose(true,game.WaterToShipPoint(point),Vector3.zero,Vector2.right);game.ResolveAreaStrike(strike);
             Assert.That(game.captain.downed,Is.True);
         }
-        [Test] public void CaptainOneHitSuitTwoHitsAndBothDownedFailWithoutLosingBank()
+        [Test] public void CaptainTwoUnitsSuitThreeUnitsAndBothDownedFailWithoutLosingBank()
         {
             game.upgradeLevels[(int)UpgradeKind.DivingSuit]=1;game.AddResource(ResourceKind.Metal,6);
             Assert.That(Physics.GetIgnoreCollision(game.captain.GetComponent<Collider>(),game.diver.GetComponent<Collider>()),Is.True);
             game.diver.ReceiveDamage(1);Assert.That(game.diver.downed,Is.False);game.diverInvulnerable=0;
-            game.diver.ReceiveDamage(1);Assert.That(game.diver.downed,Is.True);
-            game.captain.ReceiveDamage(1);Assert.That(game.captain.downed,Is.True);
+            game.diver.ReceiveDamage(2);Assert.That(game.diver.downed,Is.True);
+            game.captain.ReceiveDamage(2);Assert.That(game.captain.downed,Is.True);
             game.StepSimulation(.2f);Assert.That(game.phase,Is.EqualTo(SessionPhase.Lost));Assert.That(game.GetResource(ResourceKind.Metal),Is.EqualTo(6));
         }
         [Test] public void FlowHighlightOnlyFollowsReciprocalConnectionsAndGeneratedPuzzlesRemainSolvable()

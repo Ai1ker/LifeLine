@@ -40,15 +40,15 @@ namespace Lifeline
                 Check(!spent && game.GetResource(ResourceKind.Wood) == 3, "atomic aggregated ingredient spending", log);
                 Check(game.TryUpgrade(UpgradeKind.Workbench) == false && game.GetUpgrade(UpgradeKind.Workbench) == 0, "unaffordable upgrade preserves level", log);
                 game.AddResource(ResourceKind.Plank, 6); game.AddResource(ResourceKind.Plate, 3);
-                float[] durations = { 40, 35, 25, 20 };
+                float[] durations = { 40, 30, 20, 15 };
                 for (int i = 0; i < 3; i++) { Check(game.TryUpgrade(UpgradeKind.Workbench), "workbench T" + (i + 1), log); Check(Mathf.Approximately(game.GetCraftDuration(), durations[i + 1]), "workbench duration " + durations[i + 1], log); }
                 Check(game.CraftCapacity == 2 && Mathf.Approximately(game.GetCraftQteWindow(), .208f), "T3 parallel slots and T1 wider judgment", log);
                 Check(game.GetUpgradeCost(UpgradeKind.Workbench).Length == 0 && game.GetResource(ResourceKind.Plank) == 0, "every bench tier costs two planks and max tier has empty cost", log);
-                game.AddResource(ResourceKind.FiberBundle, 3);
-                Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 9, "backpack T1 adds one slot", log);
-                Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 10, "backpack T2 adds one more slot", log);
-                Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 10 && Mathf.Approximately(game.GetCollectSpeedMultiplier(game.diver), 1.25f), "backpack T3 gives 25 percent collection speed", log);
-                Check(Mathf.Approximately(game.GetOxygenMax(), 40) && Mathf.Approximately(tuning.oxygenLevels[3], 145) && Mathf.Approximately(tuning.ropeLengths[3], 74), "rebalanced oxygen and reachable 74m final rope", log);
+                game.AddResource(ResourceKind.FiberBundle, 6);
+                Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 10, "backpack T1 adds two slots", log);
+                Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 14, "backpack T2 adds four more slots", log);
+                Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 18 && Mathf.Approximately(game.GetCollectSpeedMultiplier(game.diver), 1.5f), "backpack T3 gives cumulative 50 percent collection speed", log);
+                Check(Mathf.Approximately(game.GetOxygenMax(), 50) && Mathf.Approximately(tuning.oxygenLevels[3], 150) && Mathf.Approximately(tuning.ropeLengths[3], 74) && Mathf.Approximately(tuning.ropeLengths[4], 100), "rebalanced oxygen, 74m T3 and 100m T4 rope", log);
                 game.upgradeLevels[(int)UpgradeKind.Workbench] = 0;
                 recipe.id = "test_plank"; recipe.displayName = "Test plank";
                 recipe.cost = new[] { new ResourceAmount(ResourceKind.Wood, 1) };
@@ -74,15 +74,15 @@ namespace Lifeline
                 Check(game.CancelCraft(game.jobs[0].id) && game.GetResource(ResourceKind.Wood) == woodAfterStart, "cancel consumes materials without refund", log);
 
                 game.generatorTier = 1; game.power = 10; game.AddResource(ResourceKind.Fuel, 1);
-                Check(game.BurnFuel() && Mathf.Approximately(game.power, 35), "one fuel adds exactly 25 percent", log);
+                Check(game.BurnFuel() && Mathf.Approximately(game.power, 25), "one fuel adds exactly 15 percent", log);
                 game.lastCrankAt = -100;
                 game.generatorTier = 1;
-                Check(game.CrankGenerator(true) && !game.CrankGenerator(true) && Mathf.Approximately(game.power, 36), "crank cadence rejects duplicate strokes", log);
+                Check(game.CrankGenerator(true) && !game.CrankGenerator(true) && Mathf.Approximately(game.power, 26), "crank cadence rejects duplicate strokes", log);
                 game.StepSimulation(1);
-                Check(Mathf.Approximately(game.power, 36), "generator has no idle power income", log);
+                Check(Mathf.Approximately(game.power, 26), "generator has no idle power income", log);
                 Check(!game.CrankGenerator(true), "fuel upgrade keeps crank but three-second cooldown remains", log);
                 game.StepSimulation(2);
-                Check(game.CrankGenerator(true) && Mathf.Approximately(game.power, 37), "crank remains usable after generator upgrade", log);
+                Check(game.CrankGenerator(true) && Mathf.Approximately(game.power, 27), "crank remains usable after generator upgrade", log);
                 game.engineRepaired = true;
                 Check(game.DamageEngine("test") && !game.engineRepaired && game.engineRepairVersion == 1, "damage invalidates engine repair version", log);
                 game.engineEverRepaired = true;
@@ -110,13 +110,13 @@ namespace Lifeline
 
                 game.diver.SetOnboard(false, game.BoatAnchor + Vector3.down * 10);
                 game.diver.oxygen = 100; game.diverInvulnerable = 0;
-                Check(game.RegisterSharkBite() && game.diverFainted, "basic suit exhausts at one effective hit", log);
+                Check(game.RegisterSharkBite() && game.diverFainted, "basic suit exhausts at one two-unit shark bite", log);
                 game.diverFainted = false; game.diverBites = 0; game.diverInvulnerable = 0;
                 game.upgradeLevels[(int)UpgradeKind.DivingSuit] = 1;
-                Check(game.RegisterSharkBite() && !game.diverFainted && game.diverBites == 1, "suit T1 has two-hit capacity", log);
-                game.diverInvulnerable = 0; game.upgradeLevels[(int)UpgradeKind.DivingSuit] = 2;
+                Check(game.RegisterSharkBite() && !game.diverFainted && game.diverBites == 2, "suit T1 survives one two-unit shark hit", log);
+                game.diverInvulnerable = 0; game.upgradeLevels[(int)UpgradeKind.DivingSuit] = 3;
                 tuning.upgradedSuitImmunity = 1;
-                Check(!game.RegisterSharkBite() && game.diverBites == 1 && !game.diverFainted, "suit immunity prevents hit count and faint", log);
+                Check(!game.RegisterSharkBite() && game.diverBites == 2 && !game.diverFainted, "suit immunity prevents hit count and faint", log);
                 tuning.upgradedSuitImmunity = .25f;
                 game.upgradeLevels[(int)UpgradeKind.Rope] = 3; game.circuitRepaired = true;
                 game.winchActive = game.winchElectric = false; game.signalCount = 0; game.lastSignalAt = -100;
@@ -162,7 +162,7 @@ namespace Lifeline
                 // A prefix-only selection passes a count check but silently omits the third area.
                 GameObject worldRoot = new GameObject("Shark selection fixture"); worldRoot.transform.SetParent(fixture.transform, false);
                 WorldGenerator spawnWorld = worldRoot.AddComponent<WorldGenerator>(); game.world = spawnWorld;
-                spawnWorld.areaCenters = new[] { 0f, 36f, 72f };
+                spawnWorld.areaCenters = new[] { 0f, 80f, 160f };
                 float surface = spawnWorld.WaterSurface;
                 spawnWorld.sharkSpawnPoints.Add(new Vector3(0, surface - 12, 0)); // invalid shallow candidate first
                 foreach (float center in spawnWorld.areaCenters)
@@ -177,7 +177,7 @@ namespace Lifeline
                 int[] perArea = new int[3]; int deepPoints = 0; bool allLegal = true, canBecomeWhiteShark = false;
                 foreach (Vector3 point in sharkPoints)
                 {
-                    int area = point.x < 18 ? 0 : point.x < 54 ? 1 : 2; perArea[area]++;
+                    int area = point.x < 40 ? 0 : point.x < 120 ? 1 : 2; perArea[area]++;
                     if (surface - point.y >= 36) deepPoints++;
                     allLegal &= surface - point.y >= tuning.sharkMinimumDepth;
                     canBecomeWhiteShark |= point.x >= tuning.deepBoundary;

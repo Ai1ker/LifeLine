@@ -131,5 +131,30 @@ namespace Lifeline.Tests
             game.StepSimulation(.5f);
             Assert.That(game.GetCargoLifeline(game.world.pickups[0]).PathLength, Is.EqualTo(before - speed * .5f / 2).Within(.005f));
         }
+
+        [TestCase(false, 0)] [TestCase(true, 0)] [TestCase(false, 2)] [TestCase(true, 2)]
+        public void T4BoostsActualManualAndElectricRecoveryBeforeSharingAcrossTargets(bool electric, int crates)
+        {
+            for (int i = 0; i < crates; i++) Cargo();
+            game.upgradeLevels[(int)UpgradeKind.Rope] = 4; game.ropeLength = 100;
+            game.circuitRepaired = electric; game.power = electric ? 100 : 0; game.SetWinchActive(true);
+            float expected = (tuning.winchPassiveSpeed + (electric ? tuning.winchElectricSpeed : 0)) * 1.2f * .25f / (crates + 1);
+            game.StepSimulation(.25f);
+            Assert.That(game.WinchEfficiency, Is.EqualTo(1.2f / (crates + 1)).Within(.0001f));
+            Assert.That(game.DiverRopeLength, Is.EqualTo(5 - expected).Within(.005f));
+            foreach (var cargo in game.world.pickups)
+                Assert.That(game.GetCargoLifeline(cargo).PathLength, Is.EqualTo(5 - expected).Within(.005f));
+        }
+
+        [TestCase(true)] [TestCase(false)]
+        public void T4BoostsGoodCalibrationWithoutIncreasingFailedCalibrationSlip(bool good)
+        {
+            Cargo(); Cargo(); game.upgradeLevels[(int)UpgradeKind.Rope] = 4; game.power = 0; game.SetWinchActive(true);
+            Assert.That(game.TryWinchQte(good ? tuning.winchCenter : 0));
+            float expected = 5 - (good ? tuning.winchGoodDistance * 1.2f : -tuning.winchBadDistance) / 3;
+            Assert.That(game.DiverRopeLength, Is.EqualTo(expected).Within(.005f));
+            foreach (var cargo in game.world.pickups)
+                Assert.That(game.GetCargoLifeline(cargo).PathLength, Is.EqualTo(expected).Within(.005f));
+        }
     }
 }

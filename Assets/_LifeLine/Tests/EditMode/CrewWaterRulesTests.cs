@@ -59,10 +59,10 @@ namespace Lifeline.Tests
         {
             game.upgradeLevels[(int)UpgradeKind.Oxygen]=3;game.upgradeLevels[(int)UpgradeKind.DivingSuit]=2;tuning.upgradedSuitImmunity=1;
             game.captainBuffs.oxygen=120;Assert.That(game.BeginDive(game.captain));Assert.That(game.captain.oxygenMax,Is.EqualTo(tuning.baseOxygen));
-            Assert.That(game.GetOxygenMax(game.diver),Is.EqualTo(145));game.StepSimulation(1);
+            Assert.That(game.GetOxygenMax(game.diver),Is.EqualTo(150));game.StepSimulation(1);
             Assert.That(game.captain.oxygen,Is.EqualTo(tuning.baseOxygen-1).Within(.001f));
-            game.captain.ReceiveDamage(1);Assert.That(game.IsFainted(game.captain));Assert.That(game.IsActorInputBlocked(game.captain));
-            Assert.That(game.GetMaxDiverBites(),Is.EqualTo(2));
+            game.captain.ReceiveDamage(2);Assert.That(game.IsFainted(game.captain));Assert.That(game.IsActorInputBlocked(game.captain));
+            Assert.That(game.GetMaxDiverBites(),Is.EqualTo(4));
         }
         [Test] public void CaptainSelfBoardRequiresContinuousThreeSecondsAndDiverCannotSelfBoard()
         {
@@ -88,7 +88,7 @@ namespace Lifeline.Tests
         {
             game.SetDayClock(2,.9f);foreach(var kind in new[]{EnemyKind.Bird,EnemyKind.ArmoredBird})
             {
-                var enemy=game.SpawnEnemy(kind,game.captain.Position);enemy.state=EnemyState.Telegraph;enemy.stateTime=.6f;
+                var enemy=game.SpawnEnemy(kind,game.captain.Position);enemy.state=EnemyState.Telegraph;enemy.stateTime=.6f;enemy.birdTargetsCrew=false;
                 float hull=game.hull;typeof(LifelineEnemy).GetMethod("TickBird",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(enemy,new object[]{.01f});
                 Assert.That(game.hull,Is.EqualTo(hull-tuning.birdHullDamage));Assert.That(game.captain.downed,Is.False);Assert.That(game.diver.downed,Is.False);
             }
@@ -101,7 +101,7 @@ namespace Lifeline.Tests
             game.winchOperatorRole=CrewRole.Diver;var saved=game.CaptureSaveData();
             Assert.That(saved.captain.hidden);Assert.That(game.TryRestoreSaveData(saved,out string error),Is.True,error);
             Assert.That(game.captain.onboard,Is.False);Assert.That(game.IsHidden(game.captain));Assert.That(game.captain.visualRoot.gameObject.activeSelf,Is.False);
-            Assert.That(game.captain.oxygenMax,Is.EqualTo(40));Assert.That(game.captainBoardProgress,Is.Zero);
+            Assert.That(game.captain.oxygenMax,Is.EqualTo(50));Assert.That(game.captainBoardProgress,Is.Zero);
             Assert.That(game.winchOperatorRole,Is.EqualTo(CrewRole.Diver));Assert.That(game.GetCrewLifeline(game.captain),Is.Not.SameAs(game.GetCrewLifeline(game.diver)));
         }
         [Test] public void ForcedNextDayCaveIsDeterministicAcrossSaveAndExpiresFollowingDay()
