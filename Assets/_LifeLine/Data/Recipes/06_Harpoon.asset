@@ -14,12 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.RecipeDefinition
   id: harpoon
   displayName: "\u9C7C\u53C9"
-  description: "\u6C38\u4E45\u8FD1\u6218\u5DE5\u5177\uFF0C\u5236\u4F5C\u9C7C\u67AA\u65F6\u4FDD\u7559\u3002"
+  description: "\u8FD1\u6218\u9C7C\u53C9\uFF1B\u5236\u4F5C\u5C04\u77DB\u67AA\u65F6\u6D88\u80171\u628A\u3002"
   cost:
   - resource: 6
-    amount: 1
+    amount: 2
   output: []
   toolId: harpoon
+  requiredToolIds: []
+  consumedToolIds: []
   radioStage: 0
   repairAmount: 0
   craftTimeMultiplier: 1

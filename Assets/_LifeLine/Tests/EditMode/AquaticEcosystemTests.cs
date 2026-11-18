@@ -38,7 +38,7 @@ namespace Lifeline.Tests
             tuning.maximumSharks = 8; tuning.eelCaveChance = 0;
             var world = World(); world.forceCave = true; world.Generate(8417);
             Assert.That(world.generatedCave && world.generatedEel);
-            var cave = world.layouts.Last();
+            var cave = world.layouts.Single(layout => layout.entranceOnLeft);
             var eels = world.pickups.Where(p => p.resource == ResourceKind.Eel).ToArray();
             Assert.That(eels.Length, Is.EqualTo(1)); Assert.That(eels[0].transform.position, Is.EqualTo(cave.Center(cave.rewardCell)));
             Assert.That(world.caveGuardSpawnPoints.Count, Is.InRange(1, 2));
@@ -112,6 +112,7 @@ namespace Lifeline.Tests
                 Assert.That(enemy.DetectionRadius, Is.EqualTo(3.6f)); enemy.StepEnemy(.01f); Assert.That(enemy.state, Is.EqualTo(EnemyState.Detecting));
                 enemy.state = EnemyState.Pursuit; enemy.StepEnemy(.7f); Assert.That(enemy.transform.position.x, Is.GreaterThan(78.2f));
                 game.elapsed = tuning.daySeconds * .9f; Assert.That(enemy.DetectionRadius, Is.EqualTo(1.8f));
+                game.upgradeLevels[(int)UpgradeKind.Searchlight] = 1;
                 game.searchlightOn = game.circuitRepaired = true; game.power = 10; Assert.That(enemy.DetectionRadius, Is.EqualTo(3.6f));
                 game.diver.transform.localScale = Vector3.one * 2; Assert.That(enemy.DetectionRadius, Is.EqualTo(3.6f), "art scaling cannot change authored metre values");
                 game.diver.transform.localScale = Vector3.one; game.elapsed = 0; game.searchlightOn = false;

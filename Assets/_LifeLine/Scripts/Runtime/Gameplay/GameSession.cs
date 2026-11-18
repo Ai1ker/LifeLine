@@ -95,7 +95,7 @@ namespace Lifeline
         public bool turretOn;
         public int turretTier;
         public ResourceAmount[] turretUpgradeCost = { new ResourceAmount(ResourceKind.Plate,1), new ResourceAmount(ResourceKind.FiberBundle,3), new ResourceAmount(ResourceKind.Plank,1) };
-        public float filterMoveMultiplier = 1.1f;
+        public float filterMoveMultiplier = 1.2f;
         public float repairedEngineSpeedMultiplier = 1.4f;
         public float sailSpeedBonus = .15f;
         public float lastCrankAt = -100;
@@ -106,7 +106,7 @@ namespace Lifeline
         public bool[] engineFaultFixed = new bool[4];
         public int[] engineFaultTypes = { 0, 1, 2, 3 };
         public bool[] repairAuthorized = new bool[14];
-        public ResourceAmount[] filterRepairCost = { new ResourceAmount(ResourceKind.Plate, 1) };
+        public ResourceAmount[] filterRepairCost = { new ResourceAmount(ResourceKind.Plate, 2) };
         public ResourceAmount[] circuitRepairCost = { new ResourceAmount(ResourceKind.FiberBundle, 1) };
 
         [Header("潜水与绞盘 / metres, seconds")]
@@ -258,8 +258,9 @@ namespace Lifeline
             GetOrCreateCraftingManager().ResetQueue();
             captainBuffs = new CrewBuffs(); diverBuffs = new CrewBuffs();
             hasRod = hasHarpoon = hasSpeargun = false;
-            hullMax = tuning.baseHull; hull = hullMax; power = tuning.initialPower;
+            hullMax = tuning.baseHull; hull = Mathf.Clamp(tuning.initialHull, 0, hullMax); power = tuning.initialPower;
             filterRepaired = circuitRepaired = engineRepaired = engineEverRepaired = false;
+            generatorInstalled = repairBenchInstalled = filterInstalled = false;
             engineRepairVersion = 0; generatorTier = 0; efficientFuelGenerator = false;
             infinitePower = searchlightOn = turretInstalled = turretOn = false;
             lowPowerSailingSeconds = 0; lastCrankAt = -100;
@@ -274,7 +275,7 @@ namespace Lifeline
             ropeLength = tuning.ropeLengths[0];
             diverFainted = diverSprinting = diverHidden = false; diverBites = 0; diverInvulnerable = 0;
             winchActive = winchElectric = winchSignalAuthorized = false; winchJam = winchProgress = winchStartDistance = 0;
-            winchCycleTime = 0; winchAttemptedThisCycle = false; winchCargo = null; winchTargetKind = ""; winchFeedback = "";
+            winchCycleTime = 0; ResetWinchTarget(); winchAttemptedThisCycle = false; winchCargo = null; winchTargetKind = ""; winchFeedback = "";
             baitTime = 0; signalCount = 0; lastSignalAt = -100;
             birdCountdown = tuning.birdInterval;
             turretShotClock = turretPowerClock = 0;
@@ -294,6 +295,7 @@ namespace Lifeline
             SpawnInitialSharks();
             phase = SessionPhase.Playing; initialized = true;
             Tell("失联第1天：打捞物资，修好电路与引擎。潜水员只能由船长绞盘接回。");
+            RefreshEquipmentVisibility();
             UpdateQuest(); Changed(); SessionReady?.Invoke(false);
         }
 
@@ -344,14 +346,14 @@ namespace Lifeline
             if (phase != SessionPhase.Playing) return;
             if(IsHidden(actor))
             {
-                if(command.interact||command.hide)world?.TryHide(actor);
+                if(command.interact||actor==captain&&command.hide)world?.TryHide(actor);
                 return;
             }
             if(actor==captain)
             {
                 captainSprinting=command.sprint;
                 captainBoardHeld=!actor.onboard&&!IsIncapacitated(actor)&&!actor.controlsCaptured
-                    &&(command.interactHeld||command.interact)&&command.move.sqrMagnitude<.01f&&!command.melee&&!command.fire&&Vector3.Distance(actor.Position,BoatAnchor)<=3;
+                    &&(command.interactHeld||command.interact)&&!HasNearbyCaptainWaterInteraction(actor)&&command.move.sqrMagnitude<.01f&&!command.melee&&!command.fire&&Vector3.Distance(actor.Position,BoatAnchor)<=3;
                 if(captainBoardHeld)return;
                 captainBoardProgress=0;
             }
@@ -359,7 +361,7 @@ namespace Lifeline
             if (reviveHeld[(int)actor.role] && TryReviveTeammate(actor)) return;
             if (IsActorInputBlocked(actor)) return;
             if(actor==diver)diverSprinting=command.sprint;
-            if(command.hide&&!actor.onboard&&world!=null&&world.TryHide(actor))return;
+            if(command.hide&&actor==captain&&!actor.onboard&&world!=null&&world.TryHide(actor))return;
             if (capturedBeforeEvent || actor.controlsCaptured) return;
             if (command.melee) MeleeAttack(actor);
             if (command.fire) FireSpear(actor);
@@ -367,23 +369,28 @@ namespace Lifeline
             {
                 if (command.signal) SignalWinch(actor);
                 if (command.bait) ThrowBait(actor);
-                if (command.collect && world != null) world.TryCollect(actor);
+                if ((command.collect || actor == captain && (command.interactHeld || command.interact)) && world != null) world.TryCollect(actor);
                 if (command.interact)
                 {
                     if (world != null && world.TryLoadCrate(actor)) return;
                     if (world != null && world.TryInteractTrapdoor(actor)) return;
                     if (world != null && world.TryHide(actor)) return;
-                    if (Vector3.Distance(actor.Position, BoatAnchor) < 3) Tell("已经抵达船底。请船长打开绞盘接回；潜水员无法自行登船。");
+                    if (actor == diver && Vector3.Distance(actor.Position, BoatAnchor) < 3) Tell("已经抵达船底。请船长打开绞盘接回；潜水员无法自行登船。");
                 }
                 return;
             }
             if (!command.interact || !actor.onboard) return;
             StationAnchor station = actor.NearbyStation;
-            if (station == null) return;
+            if (station == null || !IsStationUnlocked(station.kind)) return;
             if (station.kind == StationKind.DivePreparation) { BeginDive(actor); return; }
             if (station.kind == StationKind.Helm && ship != null)
             {
                 if (ship.helmOperator != null && ship.helmOperator != actor) { Tell("同伴正在掌舵，先请对方离开船舵。"); return; }
+                if (!engineRepaired)
+                {
+                    if (ship.helmOperator == actor) ship.SetHelm(actor);
+                    Tell("引擎损坏，修复后才能航行。"); return;
+                }
                 ship.SetHelm(actor); return;
             }
             StationRequested?.Invoke(station.kind, actor);
@@ -445,7 +452,7 @@ namespace Lifeline
         }
 
         public int GetUpgrade(UpgradeKind kind) => upgradeLevels != null && (int)kind < upgradeLevels.Length ? upgradeLevels[(int)kind] : 0;
-        public static int UpgradeLevelLimit(UpgradeKind kind) => kind == UpgradeKind.Rope ? 4 : kind == UpgradeKind.Hull || kind == UpgradeKind.Sail ? 2 : kind == UpgradeKind.Searchlight ? 1 : 3;
+        public static int UpgradeLevelLimit(UpgradeKind kind) => kind == UpgradeKind.Rope ? 4 : kind == UpgradeKind.Hull || kind == UpgradeKind.Sail ? 2 : kind == UpgradeKind.Searchlight ? 2 : 3;
         public int GetMaxUpgrade(UpgradeKind kind) => UpgradeLevelLimit(kind);
         public int MaxUpgradeLevel(UpgradeKind kind) => GetMaxUpgrade(kind);
         public ResourceAmount[] GetUpgradeCost(UpgradeKind kind)
@@ -474,15 +481,16 @@ namespace Lifeline
             if (kind == UpgradeKind.Rope) ropeLength = tuning.ropeLengths[Mathf.Min(GetUpgrade(kind), tuning.ropeLengths.Length - 1)];
             if (kind == UpgradeKind.Hull) { hullMax = tuning.hullLevels[Mathf.Min(GetUpgrade(kind), tuning.hullLevels.Length - 1)] * (infinitePower ? tuning.eelHullMultiplier : 1); hull += hullMax - oldMax; }
             if (kind == UpgradeKind.Oxygen && diver != null) { float delta = GetOxygenMax() - diver.oxygenMax; diver.oxygenMax = GetOxygenMax(); diver.oxygen += Mathf.Max(0, delta); }
+            RefreshEquipmentVisibility();
             Tell("升级完成：" + kind + " T" + GetUpgrade(kind)); Changed(); return true;
         }
 
         public CrewBuffs Buffs(CrewActor actor) => actor == captain ? captainBuffs : diverBuffs;
-        public int GetBagCapacity(CrewActor actor) => tuning == null ? 8 : tuning.bagCapacity + (actor == diver ? tuning.backpackSlotsByLevel[Mathf.Clamp(GetUpgrade(UpgradeKind.Backpack), 0, tuning.backpackSlotsByLevel.Length-1)] : 0) + (Buffs(actor).capacity > 0 ? 1 : 0);
+        public int GetBagCapacity(CrewActor actor) => actor == captain ? tuning != null ? tuning.captainBagCapacity : 4 : tuning == null ? 8 : tuning.bagCapacity + (actor == diver ? tuning.backpackSlotsByLevel[Mathf.Clamp(GetUpgrade(UpgradeKind.Backpack), 0, tuning.backpackSlotsByLevel.Length-1)] : 0) + (Buffs(actor).capacity > 0 ? 1 : 0);
         public float GetCollectSpeedMultiplier(CrewActor actor) => actor == diver ? 1 + tuning.backpackCollectionBonus * (GetUpgrade(UpgradeKind.Backpack) >= 3 ? 2 : GetUpgrade(UpgradeKind.Backpack) >= 1 ? 1 : 0) : 1;
         public int GetMaxDiverBites() => GetUpgrade(UpgradeKind.DivingSuit) >= 2 ? tuning.suitT2HitCapacity : GetUpgrade(UpgradeKind.DivingSuit) >= 1 ? tuning.upgradedDiverHitCapacity : tuning.baseDiverHitCapacity;
         public int DiverHitCapacity => GetMaxDiverBites();
-        public float GetMoveMultiplier(CrewActor actor) => (filterRepaired ? filterMoveMultiplier : 1) * (Buffs(actor).move > 0 ? 1 + tuning.fishMoveBonus : 1);
+        public float GetMoveMultiplier(CrewActor actor) => (actor != null && !actor.onboard && filterRepaired ? filterMoveMultiplier : 1) * (Buffs(actor).move > 0 ? 1 + tuning.fishMoveBonus : 1);
         public float GetBoatSpeedMultiplier() => (AnyCrewUnderwater ? tuning.diveBoatMultiplier : 1) * (engineRepaired ? repairedEngineSpeedMultiplier : 1) * (GetUpgrade(UpgradeKind.Sail) >= 1 ? 1 + sailSpeedBonus : 1) * (infinitePower ? tuning.eelSpeedMultiplier : 1);
         public float GetOxygenMax() => tuning.oxygenLevels[Mathf.Min(GetUpgrade(UpgradeKind.Oxygen), tuning.oxygenLevels.Length - 1)] * (diverBuffs.oxygen > 0 ? 1 + tuning.fishOxygenBonus : 1);
         public bool IsActorInputBlocked(CrewActor actor) => actor == null || phase != SessionPhase.Playing || actor.downed || IsFainted(actor) || IsHidden(actor) || (actor==captain&&captainBoardHeld) || (reviveTargets[(int)actor.role] != null && reviveHeld[(int)actor.role]);
@@ -510,7 +518,7 @@ namespace Lifeline
         {
             if (!circuitRepaired) QuestText = "打捞 → 船长绞盘接回入库 → 制作铁板/纤维束 → 修复电路";
             else if (radioStage < 3) QuestText = "制作求救天线 → 接收器 → 信号放大器（" + radioStage + "/3）；修复引擎可提升航速";
-            else if (!rescueVoyage) QuestText = "总控启动救援航程；准备至少80%动力，接回潜水员后向东航行";
+            else if (!rescueVoyage) QuestText = "总控启动救援航程；修好引擎并备足燃油，接回潜水员后向东航行";
             else if (day < 4) QuestText = "等待第4日救援频道，先修船备物资；当前第" + day + "日";
             else if (ship != null && ship.transform.position.x < rescueArrivalX) QuestText = "救援航程：向东航行至信号浮标（" + Mathf.RoundToInt(ship.transform.position.x) + "/" + rescueArrivalX + "m）";
             else QuestText = "船长操作绞盘接回幸存者：" + Mathf.RoundToInt(rescueProgress * 100) + "%";

@@ -20,6 +20,8 @@ MonoBehaviour:
     amount: 1
   output: []
   toolId: 
+  requiredToolIds: []
+  consumedToolIds: []
   radioStage: 0
   repairAmount: 10
   craftTimeMultiplier: 0.5

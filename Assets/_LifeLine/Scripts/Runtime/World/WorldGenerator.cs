@@ -22,6 +22,15 @@ namespace Lifeline
         public List<Vector3> sharkSpawnPoints = new List<Vector3>();
         public List<Vector3> piranhaSpawnPoints = new List<Vector3>();
         public List<Vector3> caveGuardSpawnPoints = new List<Vector3>();
+        [Header("城区中层设备打捞 / City middle-depth equipment salvage")]
+        [Range(0, 1)] public float filterSalvageChance = .30f;
+        public Vector2 filterSalvageDepths = new Vector2(20, 35);
+        [Min(.1f)] public float filterSalvageSeconds = 3f;
+        [Range(0, 6)] public int filterGuardMinimum = 2;
+        [Min(.1f)] public float filterGuardRadius = 6f;
+        [Tooltip("Optional replaceable visual prefab; gameplay remains on FilterSalvage / LootPickup.")]
+        public GameObject filterSalvageVisualPrefab;
+        public FilterSalvage filterSalvage;
         [Header("洞穴占位材质 / Replaceable cave surfaces")]
         public Material caveWallMaterial, caveBackgroundMaterial;
         public Color caveWallColor = new Color(.90f, .60f, .30f);
@@ -59,6 +68,9 @@ namespace Lifeline
         public float[] bandTopDepths = { 10, 21.5f, 36 };
         public Vector2Int[] bandRoomCounts = { new Vector2Int(5, 3), new Vector2Int(7, 4), new Vector2Int(9, 5) };
         public float[] bandCellSizes = { 3, 3, 2.8f };
+        [Header("Route coverage (additional buildings, original building sizes retained)")]
+        public bool extendRouteCoverage = true;
+        [Min(2.2f)] public float coverageBuildingGap = 2.5f;
         [Tooltip("Order of the four resource weight components. Can switch raw or finished-material drops.")]
         public ResourceKind[] weightedResourceKinds = { ResourceKind.Fiber, ResourceKind.Wood, ResourceKind.Metal, ResourceKind.Fuel };
         public Vector4 shallowResourceWeights = new Vector4(35, 35, 20, 10);
@@ -78,12 +90,17 @@ namespace Lifeline
         [Header("Validation (match the crew capsule)")]
         public float validationRadius = .32f;
         public float validationHeight = 1.8f;
+        [Tooltip("Full collision validation is a developer check; leave off during normal daily regeneration.")]
+        public bool validateOnGeneration;
         [TextArea] public string validationReport;
 
         public float WaterSurface => waterSurface;
         public Vector3 BoatAnchor => session != null ? session.BoatAnchor : new Vector3(0, waterSurface - .7f, 0);
         public IReadOnlyList<MazeLayout> Layouts => layouts;
         readonly List<BoxCollider> generatedWalls = new List<BoxCollider>();
+        readonly List<Bounds> validationWallBounds = new List<Bounds>();
+        readonly List<Bounds> pathWallCandidates = new List<Bounds>();
+        static Mesh sharedCubeMesh;
         int pickupSequence;
         int[] labelFrames={-1,-1};
         Transform[] labelTargets=new Transform[2];
@@ -216,6 +233,12 @@ namespace Lifeline
             SpawnPickup(lootRoot, new Vector3(0, -6.8f, 0), ResourceKind.Fiber, false, false, -1, -1);
             SpawnPickup(lootRoot, new Vector3(2.8f, -6.4f, 0), ResourceKind.Metal, false, false, -1, -1);
             BuildSupplementalLife(lootRoot);
+            // Equipment uses its own RNG and is appended after all legacy pickups. Existing
+            // room graphs, resource IDs, fish, trapdoors and deep-event rolls remain unchanged.
+            BuildFilterSalvage(lootRoot);
+            // Append with separate random streams and IDs, after every legacy generation step.
+            // Existing saves still resolve the original rooms, gates, resources and event rolls.
+            if (extendRouteCoverage) BuildRouteCoverage(lootRoot, sideRows);
             foreach (var pickup in cargo)
             {
                 pickup.transform.SetParent(generatedRoot, true); pickups.Add(pickup);
@@ -233,7 +256,101 @@ namespace Lifeline
                 PrepareRestoredPickup(pickup);
             }
             Physics.SyncTransforms();
-            ValidateGeneratedWorld(out validationReport);
+            if (validateOnGeneration) ValidateGeneratedWorld(out validationReport);
+            else validationReport = "Not run: use Validate generated collision and reachability for the full developer check.";
+        }
+
+        void BuildRouteCoverage(Transform lootRoot, int[] sideRows)
+        {
+            int bands = Mathf.Min(bandRoomCounts.Length, bandTopDepths.Length);
+            if (areaCenters.Length == 0 || bands == 0) return;
+            var coverageRandom = new System.Random(unchecked(generatedSeed ^ 0x6c29af1));
+            var gateRandom = new System.Random(unchecked(generatedSeed ^ 0x31f49bd));
+            int legacySequence = pickupSequence;
+            // The extra maze indices make this ID segment unique. A filter appearing that day
+            // must not shift any additional building's save IDs.
+            pickupSequence = 0;
+            for (int band = 0; band < bands; band++)
+            {
+                float cellSize = band < bandCellSizes.Length ? bandCellSizes[band] : roomSize;
+                float width = bandRoomCounts[band].x * cellSize;
+                float spacing = width + Mathf.Max(2.2f, coverageBuildingGap);
+                var originals = new List<float>(areaCenters); originals.Sort();
+                var centers = new List<float>();
+                for (int i = 0; i + 1 < originals.Count; i++)
+                {
+                    int segments = Mathf.Max(1, Mathf.FloorToInt((originals[i + 1] - originals[i]) / spacing));
+                    for (int n = 1; n < segments; n++)
+                        centers.Add(Mathf.Lerp(originals[i], originals[i + 1], n / (float)segments));
+                }
+                float last = originals[originals.Count - 1];
+                float eastCenter = worldBounds.xMax - width * .5f - Mathf.Max(2.2f, coverageBuildingGap);
+                float firstEastCenter = last + spacing;
+                // Reserve the existing branch-cave location even on days without a cave.
+                // Its single-entry topology and short corridor therefore remain unchanged.
+                if (band == bands - 1)
+                    firstEastCenter = Mathf.Max(firstEastCenter, last + width * .5f + 1 + 5 * 2.4f
+                        + Mathf.Max(2.2f, coverageBuildingGap) + width * .5f);
+                int eastCount = firstEastCenter <= eastCenter ? 1 + Mathf.FloorToInt((eastCenter - firstEastCenter) / spacing) : 0;
+                for (int n = 0; n < eastCount; n++)
+                    centers.Add(firstEastCenter + n * spacing + (eastCenter - firstEastCenter - (eastCount - 1) * spacing) * .5f);
+                foreach (float center in centers)
+                {
+                    int area = SeaAreaAt(center);
+                    int count = band == 0 ? tuning != null ? tuning.shallowLootCount : 9
+                        : band == 1 ? tuning != null ? tuning.middleLootCount : 21 : tuning != null ? tuning.deepLootCount : 40;
+                    var size = bandRoomCounts[band];
+                    var maze = AddRuin("ROUTE " + Mathf.RoundToInt(center) + "m / DEPTH " + Mathf.RoundToInt(bandTopDepths[band]) + "m",
+                        size.x, size.y, center, waterSurface - bandTopDepths[band], coverageRandom, count, band, lootRoot,
+                        cellSize, area, band < sideRows.Length ? sideRows[band] : -1);
+                    if (maze == null) continue;
+                    BuildTrapdoors(maze, gateRandom);
+                    int cell = maze.entranceCell == 0 ? Mathf.Min(maze.Count - 1, maze.columns + 1) : 0;
+                    var hideObject = new GameObject("Ruins hiding spot"); hideObject.transform.SetParent(generatedRoot, false);
+                    hideObject.transform.position = maze.Center(cell);
+                    var hide = hideObject.AddComponent<UnderwaterHideSpot>(); hide.world = this; hideSpots.Add(hide);
+                    // Fish in new buildings have their own RNG, never the legacy daily fish stream.
+                    for (int fishCell = 0; fishCell < maze.Count; fishCell++)
+                        if (coverageRandom.NextDouble() < (tuning != null ? tuning.underwaterFishChance : .12f))
+                            SpawnPickup(lootRoot, maze.Center(fishCell) + new Vector3(-.64f, .12f, -.08f), ResourceKind.Fish,
+                                false, false, layouts.IndexOf(maze), fishCell);
+                }
+            }
+            pickupSequence += legacySequence;
+            // Old long crossings would pass through newly inserted buildings. Replace only those
+            // crossings with local connections between each depth band's sorted neighbours.
+            regionalConnections.RemoveAll(c => c.name == "Open-water area passage");
+            for (int band = 0; band < bands; band++)
+            {
+                var row = layouts.FindAll(m => !m.entranceOnLeft && Mathf.Abs(m.topLeft.y - (waterSurface - bandTopDepths[band])) < .01f);
+                row.Sort((a, b) => a.topLeft.x.CompareTo(b.topLeft.x));
+                for (int i = 0; i + 1 < row.Count; i++)
+                {
+                    bool caveBetween = layouts.Exists(c => c.entranceOnLeft && c.topLeft.x > row[i].topLeft.x
+                        && c.topLeft.x < row[i + 1].topLeft.x);
+                    if (band == bands - 1 && caveBetween) ConnectAboveRuins(row[i], row[i + 1]);
+                    else ConnectRuins(row[i], row[i + 1], "Adjacent route buildings");
+                }
+            }
+        }
+
+        int SeaAreaAt(float x)
+        {
+            float shallowEnd = tuning != null ? tuning.shallowBoundary : 200f * 24f / 90f;
+            float deepStart = tuning != null ? tuning.deepBoundary : 200f * 56f / 90f;
+            return x < shallowEnd ? 0 : x < deepStart ? 1 : 2;
+        }
+
+        void ConnectAboveRuins(MazeLayout from, MazeLayout to)
+        {
+            Vector3 start = from.Center(from.entranceCell), end = to.Center(to.entranceCell);
+            float y = Mathf.Max(from.topLeft.y, to.topLeft.y) + validationHeight * .5f + wallThickness * .5f + .08f;
+            regionalConnections.Add(new RuinConnection
+            {
+                name = "Open-water route above cave", fromMaze = layouts.IndexOf(from), toMaze = layouts.IndexOf(to),
+                fromCell = from.entranceCell, toCell = to.entranceCell, from = start, to = end,
+                waypoints = new List<Vector3> { start, new Vector3(start.x, y, 0), new Vector3(end.x, y, 0), end }
+            });
         }
 
         MazeLayout AddRuin(string title, int columns, int rows, float centerX, float top, System.Random random, int lootCount, int tier, Transform lootRoot, float cellSize = 0, int areaIndex = 0, int sideRow = -1)
@@ -395,6 +512,71 @@ namespace Lifeline
             int count = 0;
             for (int i = 0; i < maximum; i++) if (random.NextDouble() < Mathf.Clamp01(chance)) count++;
             return maximum > 0 ? Mathf.Max(1, count) : 0;
+        }
+
+        public static bool RollFilterSalvage(int daySeed, float chance)
+            => new System.Random(unchecked(daySeed ^ 0x2f71c49)).NextDouble() < Mathf.Clamp01(chance);
+
+        void BuildFilterSalvage(Transform lootRoot)
+        {
+            if (session != null && session.filterInstalled || !RollFilterSalvage(generatedSeed, filterSalvageChance)) return;
+            int index = bandRoomCounts.Length + 1; // Second sea area, middle depth band; caves excluded.
+            if (areaCenters.Length < 2 || bandRoomCounts.Length < 2 || index >= layouts.Count) return;
+            var maze = layouts[index];
+            if (maze.entranceOnLeft) return;
+            var candidates = new List<int>();
+            for (int cell = 0; cell < maze.Count; cell++)
+            {
+                Vector3 point = maze.Center(cell); float depth = WaterSurface - point.y;
+                float west = tuning != null ? tuning.shallowBoundary : 200f * 24f / 90f;
+                float east = tuning != null ? tuning.deepBoundary : 200f * 56f / 90f;
+                if (point.x >= west && point.x < east && depth >= filterSalvageDepths.x && depth <= filterSalvageDepths.y)
+                    candidates.Add(cell);
+            }
+            if (candidates.Count == 0) return;
+            var random = new System.Random(unchecked(generatedSeed ^ 0x3a72613));
+            int chosen = candidates[random.Next(candidates.Count)];
+            var pickup = SpawnPickup(lootRoot, maze.Center(chosen) + new Vector3(.64f, -.08f, -.16f), ResourceKind.Metal, false, false, index, chosen);
+            // A non-resource save ID marks this as dynamic in the existing save format, so an
+            // acquired (suppressed) device can restore its consumed state without requiring a new enum.
+            pickup.saveId = FilterSalvage.SaveIdPrefix + generatedSeed + ":" + activeDay;
+            pickup.name = "Salvageable seawater filter";
+            ConfigureFilterSalvage(pickup);
+            BiasFilterGuards(maze, candidates);
+        }
+
+        void ConfigureFilterSalvage(LootPickup pickup)
+        {
+            var salvage = pickup.GetComponent<FilterSalvage>();
+            if (salvage == null) salvage = pickup.gameObject.AddComponent<FilterSalvage>();
+            filterSalvage = salvage; salvage.pickup = pickup; salvage.salvageSeconds = filterSalvageSeconds;
+            pickup.generatedVisual = true; pickup.tintPlaceholderVisuals = false;
+            salvage.ConfigureVisual(filterSalvageVisualPrefab, Palette[5 % Palette.Length], Palette[6 % Palette.Length]);
+            pickup.RefreshVisual();
+        }
+
+        void BiasFilterGuards(MazeLayout maze, List<int> cells)
+        {
+            int maximum = tuning != null ? Mathf.Clamp(tuning.maximumPiranhas, 0, 6) : 6;
+            int desired = Mathf.Min(maximum, Mathf.Max(piranhaSpawnPoints.Count, filterGuardMinimum));
+            if (desired <= 0) { piranhaSpawnPoints.Clear(); return; }
+            var nearby = new List<Vector3>();
+            foreach (int cell in cells)
+            {
+                Vector3 point = maze.Center(cell);
+                float distance = Vector3.Distance(point, filterSalvage.transform.position);
+                // Guards patrol around the device rather than occupying its interaction point.
+                if (distance >= 1.5f && distance <= filterGuardRadius) nearby.Add(point);
+            }
+            nearby.Sort((a, b) => (a - filterSalvage.transform.position).sqrMagnitude.CompareTo((b - filterSalvage.transform.position).sqrMagnitude));
+            int guardCount = Mathf.Min(desired, Mathf.Min(filterGuardMinimum, nearby.Count));
+            var result = new List<Vector3>();
+            for (int i = 0; i < guardCount; i++) result.Add(nearby[i]);
+            foreach (Vector3 point in piranhaSpawnPoints)
+                if (result.Count < desired && !result.Contains(point)) result.Add(point);
+            for (int i = guardCount; result.Count < desired && i < nearby.Count; i++)
+                if (!result.Contains(nearby[i])) result.Add(nearby[i]);
+            piranhaSpawnPoints.Clear(); piranhaSpawnPoints.AddRange(result);
         }
 
         public bool CanPlaceMaze(MazeLayout maze, out string reason)
@@ -676,6 +858,11 @@ namespace Lifeline
                 foreach (var renderer in pickup.visualRoot.GetComponentsInChildren<Renderer>())
                     if (renderer.GetComponent<TextMesh>() == null) renderer.sharedMaterial = pickup.resourceMaterials[(int)pickup.resource % pickup.resourceMaterials.Length];
             ConfigureInteractionLabel(pickup.label, pickup.transform);
+            if (!string.IsNullOrEmpty(pickup.saveId) && pickup.saveId.StartsWith(FilterSalvage.SaveIdPrefix, StringComparison.Ordinal))
+            {
+                EnsurePalette(); ConfigureFilterSalvage(pickup);
+                if (session != null && session.filterInstalled) { pickup.consumed = true; pickup.gameObject.SetActive(false); }
+            }
             pickup.RefreshVisual();
         }
 
@@ -695,7 +882,9 @@ namespace Lifeline
             if(actor==null||actor.onboard||session==null||session.IsIncapacitated(actor))return false;
             if(session.IsHidden(actor)){actor.SetHidden(false);session.Tell(GameNames.Role(actor.role)+"离开藏匿处。");session.Changed();return true;}
             if(!IsAtHideSpot(actor))return false;
-            actor.SetHidden(true);session.Tell(GameNames.Role(actor.role)+"进入藏匿处，再按互动键离开。");session.Changed();return true;
+            actor.SetHidden(true);
+            if (actor.role == CrewRole.Diver) session.GetComponent<TutorialProgress>()?.Observe(TutorialAction.Hide);
+            session.Tell(GameNames.Role(actor.role)+"进入藏匿处，再按互动键离开。");session.Changed();return true;
         }
         public Transform GetLabelFocus()=>GetLabelFocus(session!=null?session.diver:null);
         public bool IsLabelFocus(Transform target)
@@ -741,9 +930,17 @@ namespace Lifeline
             Physics.SyncTransforms();
             // This cache is not serialized. Rebuild it when validation runs after a domain reload.
             generatedWalls.Clear();
+            validationWallBounds.Clear();
             if (solidRoot != null)
                 foreach (var wall in solidRoot.GetComponentsInChildren<BoxCollider>())
-                    if (!wall.isTrigger && wall.GetComponentInParent<TrapdoorGate>() == null) generatedWalls.Add(wall);
+                    if (!wall.isTrigger && wall.GetComponentInParent<TrapdoorGate>() == null)
+                    {
+                        generatedWalls.Add(wall);
+                        if (!wall.enabled || !wall.gameObject.activeInHierarchy) continue;
+                        Bounds bounds = wall.bounds;
+                        bounds.Expand(new Vector3(validationRadius * 2, validationHeight, validationRadius * 2));
+                        validationWallBounds.Add(bounds);
+                    }
             int cells = 0, checkedDoors = 0;
             float anchorY = session != null ? session.BoatAnchor.y : waterSurface - .7f;
             float routeEnd = tuning != null ? tuning.routeDistance : 90;
@@ -819,20 +1016,18 @@ namespace Lifeline
 
         bool CapsulePathClear(Vector3 from, Vector3 to)
         {
-            // Test our actual 3D colliders, not a parallel visual-only map or trigger pickups.
-            float stem = Mathf.Max(0, validationHeight * .5f - validationRadius);
+            // Bounds are read once per explicit validation, not once per sample per wall.
+            // Broad-phase the swept centre line before sampling its possible intersections.
+            Bounds pathBounds = new Bounds(from, Vector3.zero); pathBounds.Encapsulate(to);
+            pathWallCandidates.Clear();
+            foreach (var wallBounds in validationWallBounds)
+                if (pathBounds.Intersects(wallBounds)) pathWallCandidates.Add(wallBounds);
+            if (pathWallCandidates.Count == 0) return true;
             int steps = Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(from, to) / .15f));
             for (int i = 0; i <= steps; i++)
             {
                 Vector3 point = Vector3.Lerp(from, to, i / (float)steps);
-                foreach (var wall in generatedWalls)
-                {
-                    if (wall == null || wall.isTrigger || !wall.enabled || !wall.gameObject.activeInHierarchy) continue;
-                    // Axis-aligned generated walls; the validation capsule is vertical like the crew.
-                    Bounds bounds = wall.bounds;
-                    bounds.Expand(new Vector3(validationRadius * 2, (stem + validationRadius) * 2, validationRadius * 2));
-                    if (bounds.Contains(point)) return false;
-                }
+                foreach (var bounds in pathWallCandidates) if (bounds.Contains(point)) return false;
             }
             return true;
         }
@@ -841,6 +1036,8 @@ namespace Lifeline
         {
             if (generatedRoot != null) RemoveObject(generatedRoot.gameObject);
             generatedRoot = null; solidRoot = null; pickups.Clear(); layouts.Clear(); trapdoors.Clear(); sharkSpawnPoints.Clear(); piranhaSpawnPoints.Clear(); caveGuardSpawnPoints.Clear(); regionalConnections.Clear(); generatedWalls.Clear();
+            validationWallBounds.Clear(); pathWallCandidates.Clear();
+            filterSalvage = null;
             pickupSequence = 0;labelFrames=new[]{-1,-1};labelTargets=new Transform[2];
         }
 
@@ -856,10 +1053,16 @@ namespace Lifeline
         }
         GameObject Visual(Transform parent, string title, Vector3 position, Vector3 size, int material)
         {
-            var mesh = GameObject.CreatePrimitive(PrimitiveType.Cube); mesh.name = title;
+            if (sharedCubeMesh == null)
+            {
+                var source = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                sharedCubeMesh = source.GetComponent<MeshFilter>().sharedMesh;
+                RemoveObject(source);
+            }
+            var mesh = new GameObject(title);
             mesh.transform.SetParent(parent, true); mesh.transform.position = position; mesh.transform.localScale = size;
-            var collider = mesh.GetComponent<Collider>(); if (collider != null) RemoveObject(collider);
-            mesh.GetComponent<Renderer>().sharedMaterial = Palette[material % Palette.Length];
+            mesh.AddComponent<MeshFilter>().sharedMesh = sharedCubeMesh;
+            mesh.AddComponent<MeshRenderer>().sharedMaterial = Palette[material % Palette.Length];
             return mesh;
         }
         static Transform Child(Transform parent, string title)

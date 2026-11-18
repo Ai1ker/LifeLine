@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -58,7 +58,7 @@ namespace Lifeline
         }
         public void Open(StationKind kind)
         {
-            if (session == null || session.phase != SessionPhase.Playing || actor == null || actor.downed || !actor.onboard) return;
+            if (session == null || session.phase != SessionPhase.Playing || actor == null || actor.downed || !actor.onboard || !session.IsStationUnlocked(kind)) return;
             if (IsOpen && station == kind) return;
             Close(); station = kind; actor.controlsCaptured = true; previousMove = Vector2.zero;
             panel.SetActive(true); titleText.text = GameNames.Role(actor.role) + " / " + GameNames.Station(kind);
@@ -69,7 +69,7 @@ namespace Lifeline
         }
         public void Close()
         {
-            if (actor != null) actor.controlsCaptured = false;
+            if (actor != null) { actor.controlsCaptured = false; session?.craftingManager?.ClearInteractionContext(actor); }
             if (session != null && IsOpen && station == StationKind.Winch) session.SetWinchActive(false);
             if (panel != null) panel.SetActive(false);
             fishingActive = false; heldButton = null; previousMove = Vector2.zero;
@@ -138,19 +138,22 @@ namespace Lifeline
             {
                 case StationKind.Workbench:
                 case StationKind.HullRepair:
-                    detailText.text = "普通作业 " + session.GetCraftDuration().ToString("0") + "秒；快速修补用时减半。校准成功加进度，离开仍继续，不返还已投入材料。";
+                    detailText.text = station == StationKind.Workbench
+                        ? string.Format(UiLocalization.Text("制作作业 {0}秒。校准成功加进度，离开仍继续，不返还已投入材料。"), session.GetCraftDuration().ToString("0"))
+                        : "普通作业 " + session.GetCraftDuration().ToString("0") + "秒；快速修补用时减半。校准成功加进度，离开仍继续，不返还已投入材料。";
                     foreach (CraftJob job in session.jobs)
                     {
                         if (!JobBelongsHere(job)) continue;
-                        int id = job.id; Add("选择校准：" + job.recipe.displayName, () => { selectedJobId = id; });
+                        int id = job.id; Add("选择校准：" + job.recipe.displayName, () => { selectedJobId = id; session.craftingManager?.SetInteractionContext(actor, id, station); });
                         if (selectedJobId == 0) selectedJobId = id;
                     }
                     foreach (RecipeDefinition recipe in session.recipes)
                     {
                         if (recipe == null || (station == StationKind.HullRepair) != (recipe.repairAmount > 0)) continue;
                         RecipeDefinition chosen = recipe;
-                        Add(recipe.displayName + "  " + Costs(recipe.cost) + " / " + session.GetCraftDuration(recipe).ToString("0.#") + "s", () => ActionAndRefresh(() => session.TryCraft(chosen.id, actor)), session.jobs.Count < session.CraftCapacity);
+                        Add(recipe.displayName + "  " + RecipeCosts(recipe) + " / " + session.GetCraftDuration(recipe).ToString("0.#") + "s", () => ActionAndRefresh(() => session.TryCraft(chosen.id, actor)), session.jobs.Count < session.CraftCapacity);
                     }
+                    session.craftingManager?.SetInteractionContext(actor, selectedJobId, station);
                     break;
                 case StationKind.TotalControl:
                     detailText.text = "设施升级和救援航程。航行请前往旁边独立船舵。";
@@ -169,7 +172,7 @@ namespace Lifeline
                     Add("完成电台后：向东启程救援", () => ActionAndRefresh(() => session.StartRescueVoyage()), session.radioStage >= 3 && session.diver.onboard);
                     break;
                 case StationKind.Winch:
-                    detailText.text = "基础判定 +10%；T2累计 +20%。成功立即收绳，失败回滑。";
+                    detailText.text = "绿色判定区在转满一圈或每次判定后换位。成功收绳，失败回滑。";
                     Add("节奏校准 [" + actor.input.GetBindingLabel("Melee") + "]", () => session.TryWinchQte(WinchAngle()), true);
                     break;
                 case StationKind.Generator:
@@ -217,7 +220,7 @@ namespace Lifeline
             if (repaired) { detailText.text = "设备运行正常。"; return; }
             if (!repairStarted)
             {
-                detailText.text = station == StationKind.Filter ? "消耗1铁板，旋转管道把左侧入口连到右侧出口。" : station == StationKind.Circuit ? "消耗1纤维束，逐条连接四路同名端子。" : session.engineEverRepaired ? "免费重新检修：清理四处油污并匹配四种故障零件。" : "初次消耗3铁板：清理四处油污并匹配四种故障零件。";
+                detailText.text = station == StationKind.Filter ? "消耗2铁板，旋转管道把左侧入口连到右侧出口。" : station == StationKind.Circuit ? "消耗1纤维束，逐条连接四路同名端子。" : session.engineEverRepaired ? "免费重新检修：清理四处油污并匹配四种故障零件。" : "初次消耗2铁板：清理四处油污并匹配四种故障零件。";
                 Add("开始维修", () => { if (session.TryRepairDevice(station)) { repairStarted = true; BuildActions(); } });
                 return;
             }
@@ -231,7 +234,7 @@ namespace Lifeline
         public void ScrubEngineAt(int index,float seconds)
         {
             if(session==null||session.phase!=SessionPhase.Playing||!IsOpen||station!=StationKind.Engine||!repairStarted||index<0||index>=session.engineFaultClean.Length)return;
-            selectedFault=index;session.engineFaultClean[index]=Mathf.Clamp01(session.engineFaultClean[index]+seconds/Mathf.Max(.1f,scrubSecondsPerFault));
+            selectedFault=index;session.engineFaultClean[index]=Mathf.Clamp01(session.engineFaultClean[index]+seconds*session.GetDeviceInteractionEfficiency(actor)/Mathf.Max(.1f,scrubSecondsPerFault));
         }
 
         private void ScrubSelected(float delta)
@@ -241,10 +244,18 @@ namespace Lifeline
         }
         private void Crank()
         {
-            float beat = Mathf.Repeat(session.elapsed, session.tuning.generatorStrokeInterval) / Mathf.Max(.1f, session.tuning.generatorStrokeInterval);
+            float interval = session.GetGeneratorStrokeInterval(actor);
+            float beat = Mathf.Repeat(session.elapsed, interval) / interval;
             float previous = session.lastCrankAt;
-            bool good = session.CrankGenerator(beat >= generatorWindow.x && beat <= generatorWindow.y);
+            bool good = session.CrankGenerator(beat >= generatorWindow.x && beat <= generatorWindow.y, actor);
             if (session.lastCrankAt != previous) { generatorGood = good; generatorFeedback = qteView != null && qteView.theme != null ? qteView.theme.feedbackSeconds : .65f; }
+        }
+        private static string RecipeCosts(RecipeDefinition recipe)
+        {
+            string label = Costs(recipe.cost);
+            if (recipe.consumedToolIds != null) foreach (string id in recipe.consumedToolIds)
+                label += UiLocalization.Text(id == "harpoon" ? "鱼叉" : id) + "×1 ";
+            return label;
         }
         private void StartFishing()
         {
@@ -252,7 +263,7 @@ namespace Lifeline
             float x = session.ship.Position.x;
             float chance = x < session.tuning.shallowBoundary ? session.tuning.qualityFishShallow : x < session.tuning.deepBoundary ? session.tuning.qualityFishMiddle : session.tuning.qualityFishDeep;
             fishingQuality = UnityEngine.Random.value < chance;
-            fishingActive = true; fishWait = UnityEngine.Random.Range(fishWaitSeconds.x, fishWaitSeconds.y);
+            fishingActive = true; fishWait = UnityEngine.Random.Range(fishWaitSeconds.x, fishWaitSeconds.y) / session.GetDeviceInteractionEfficiency(actor);
             fishingTime = 0; fishingProgress = .35f; fishingZone = .5f; fishingVelocity = 0;
         }
         private void UpdateFishing(float dt)
@@ -266,7 +277,7 @@ namespace Lifeline
             fishingZone = Mathf.Clamp(fishingZone + fishingVelocity * dt, fishZoneHalfWidth, 1 - fishZoneHalfWidth);
             fishingFish = Mathf.Clamp01(.5f + Mathf.Sin(fishingTime * (fishingQuality ? fishMoveSpeeds.y : fishMoveSpeeds.x)) * .3f + Mathf.Sin(fishingTime * 3.42f) * .12f);
             bool inRange = Mathf.Abs(fishingFish - fishingZone) <= fishZoneHalfWidth;
-            fishingProgress = Mathf.Clamp01(fishingProgress + (inRange ? fishingQuality ? fishGainRates.y : fishGainRates.x : -(fishingQuality ? fishLossRates.y : fishLossRates.x)) * dt);
+            fishingProgress = Mathf.Clamp01(fishingProgress + (inRange ? fishingQuality ? fishGainRates.y * session.GetDeviceInteractionEfficiency(actor) : fishGainRates.x * session.GetDeviceInteractionEfficiency(actor) : -(fishingQuality ? fishLossRates.y : fishLossRates.x)) * dt);
             rhythmFill.fillAmount = fishingProgress;
             SetRhythmRange(fishingZone, fishZoneHalfWidth * 2, fishingFish);
             liveText.text = (fishingQuality ? "优质鱼" : "普通鱼") + " · 区域 " + fishingZone.ToString("P0") + " / 鱼 " + fishingFish.ToString("P0") + "\n捕获 " + fishingProgress.ToString("P0") + " · 按住互动上升，松开下降";
@@ -282,6 +293,7 @@ namespace Lifeline
             {
                 if (lastJobCount != session.jobs.Count) { selectedJobId = 0; BuildActions(); }
                 CraftJob job = session.jobs.Find(candidate => candidate.id == selectedJobId && JobBelongsHere(candidate));
+                session.craftingManager?.SetInteractionContext(actor, job != null ? job.id : 0, station);
                 if (job == null) { liveText.text = "作业槽 " + session.jobs.Count + "/" + session.CraftCapacity; rhythmFill.fillAmount = 0; if (qteView != null) qteView.gameObject.SetActive(false); return; }
                 float offset = job.nextCue - job.elapsed;
                 rhythmFill.fillAmount = Mathf.Clamp01(1 - offset);
@@ -296,16 +308,17 @@ namespace Lifeline
                 float bonus = session.tuning.winchBaseBonus + (session.GetUpgrade(UpgradeKind.Rope) >= 2 ? session.tuning.winchT2Bonus : 0);
                 float half = session.tuning.winchOriginalWidth * (1 + bonus) * .5f;
                 rhythmFill.fillAmount = WinchAngle();
-                SetRhythmRange(session.tuning.winchCenter, half * 2, WinchAngle());
-                if (qteView != null) qteView.ShowCircle(actor.input, WinchAngle(), session.tuning.winchCenter,
+                SetRhythmRange(session.WinchQteCenter, half * 2, WinchAngle());
+                if (qteView != null) qteView.ShowCircle(actor.input, WinchAngle(), session.WinchQteCenter,
                     half * 2, session.winchProgress, session.winchFeedbackTime, session.winchFeedback.Contains("成功") || session.winchProgress >= 1,
                     false);
                 rhythmFill.color = session.winchFeedbackTime > 0 ? session.winchFeedback.Contains("成功") ? new Color(.3f,.9f,.5f) : new Color(.95f,.4f,.3f) : new Color(.83f,.68f,.35f);
-                liveText.text = session.WinchTargetCount + " × " + session.WinchEfficiency.ToString("P0") + " · " + session.winchProgress.ToString("P0") + " · " + session.winchFeedback + "\n指针 " + WinchAngle().ToString("0.00") + " / 绿色窗口 " + (session.tuning.winchCenter - half).ToString("0.000") + " — " + (session.tuning.winchCenter + half).ToString("0.000");
+                liveText.text = session.WinchTargetCount + " × " + session.WinchEfficiency.ToString("P0") + " · " + session.winchProgress.ToString("P0") + " · " + session.winchFeedback + "\n指针 " + WinchAngle().ToString("0.00") + " / 绿色窗口 " + (session.WinchQteCenter - half).ToString("0.000") + " — " + (session.WinchQteCenter + half).ToString("0.000");
             }
             else if (station == StationKind.Generator)
             {
-                float beat = Mathf.Repeat(session.elapsed, session.tuning.generatorStrokeInterval) / Mathf.Max(.1f, session.tuning.generatorStrokeInterval);
+                float interval = session.GetGeneratorStrokeInterval(actor);
+                float beat = Mathf.Repeat(session.elapsed, interval) / interval;
                 rhythmFill.fillAmount = beat;
                 SetRhythmRange((generatorWindow.x + generatorWindow.y) * .5f, generatorWindow.y - generatorWindow.x, beat);
                 if (qteView != null && !session.infinitePower) qteView.ShowCircle(actor.input, beat,

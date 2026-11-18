@@ -35,6 +35,9 @@ namespace Lifeline.Tests
         {
             Assert.That(tuning.routeDistance,Is.EqualTo(200));Assert.That(game.ship.eastLimit,Is.EqualTo(200));
             Assert.That(tuning.shallowBoundary/200,Is.EqualTo(24f/90).Within(.0001f));Assert.That(tuning.deepBoundary/200,Is.EqualTo(56f/90).Within(.0001f));
+            Assert.That(game.hull,Is.EqualTo(70));Assert.That(game.power,Is.Zero);Assert.That(game.generatorInstalled,Is.False);
+            game.power=100;Assert.That(game.TryConsumeSailing(1),Is.False,"repairing the engine is a prerequisite even when electricity is available");
+            game.engineRepaired=true;game.generatorInstalled=true;
             game.power=100;Assert.That(game.TryConsumeSailing(100));Assert.That(game.power,Is.Zero);Assert.That(game.TryConsumeSailing(1),Is.False);
             game.AddResource(ResourceKind.Plate,4);game.AddResource(ResourceKind.Fuel,2);Assert.That(game.UpgradeGenerator());Assert.That(game.BurnFuel());Assert.That(game.power,Is.EqualTo(15));
             Assert.That(game.UpgradeGenerator());Assert.That(game.GetResource(ResourceKind.Plate),Is.Zero);Assert.That(game.BurnFuel());Assert.That(game.power,Is.EqualTo(35));
@@ -45,7 +48,7 @@ namespace Lifeline.Tests
         {
             game.AddResource(ResourceKind.FiberBundle,6);int[] slots={10,14,18};float[] speed={1.25f,1.25f,1.5f};
             for(int i=0;i<3;i++){Assert.That(game.TryUpgrade(UpgradeKind.Backpack));Assert.That(game.diver.BagCapacity,Is.EqualTo(slots[i]));Assert.That(game.GetCollectSpeedMultiplier(game.diver),Is.EqualTo(speed[i]));}
-            Assert.That(game.GetResource(ResourceKind.FiberBundle),Is.Zero);Assert.That(game.captain.BagCapacity,Is.EqualTo(8));Assert.That(game.GetCollectSpeedMultiplier(game.captain),Is.EqualTo(1));
+            Assert.That(game.GetResource(ResourceKind.FiberBundle),Is.Zero);Assert.That(game.captain.BagCapacity,Is.EqualTo(4));Assert.That(game.GetCollectSpeedMultiplier(game.captain),Is.EqualTo(1));
         }
         [Test] public void HitUnitsAndSuitTiersStayIntegerAndCaptainIsAlwaysBaseCapacity()
         {

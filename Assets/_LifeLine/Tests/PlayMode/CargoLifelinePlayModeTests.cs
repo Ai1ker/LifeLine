@@ -108,7 +108,7 @@ namespace Lifeline.Tests
         public void QteSuccessAndFailureAffectAllTargetsAtOneThirdEfficiency(bool good)
         {
             Cargo(); Cargo(); game.SetWinchActive(true);
-            Assert.That(game.TryWinchQte(good ? tuning.winchCenter : 0));
+            Assert.That(game.TryWinchQte(good ? game.WinchQteCenter : Mathf.Repeat(game.WinchQteCenter + .5f, 1)));
             float distance = 5 - (good ? tuning.winchGoodDistance : -tuning.winchBadDistance) / 3;
             Assert.That(game.DiverRopeLength, Is.EqualTo(distance).Within(.005f));
             foreach (var cargo in game.world.pickups)
@@ -150,7 +150,7 @@ namespace Lifeline.Tests
         public void T4BoostsGoodCalibrationWithoutIncreasingFailedCalibrationSlip(bool good)
         {
             Cargo(); Cargo(); game.upgradeLevels[(int)UpgradeKind.Rope] = 4; game.power = 0; game.SetWinchActive(true);
-            Assert.That(game.TryWinchQte(good ? tuning.winchCenter : 0));
+            Assert.That(game.TryWinchQte(good ? game.WinchQteCenter : Mathf.Repeat(game.WinchQteCenter + .5f, 1)));
             float expected = 5 - (good ? tuning.winchGoodDistance * 1.2f : -tuning.winchBadDistance) / 3;
             Assert.That(game.DiverRopeLength, Is.EqualTo(expected).Within(.005f));
             foreach (var cargo in game.world.pickups)

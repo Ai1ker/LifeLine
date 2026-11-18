@@ -22,6 +22,8 @@ namespace Lifeline
         public string LastError;
         public bool loadFailed;
         [Min(1)] public float autoRetrySeconds = 5;
+        [Min(0), Tooltip("Keep automatic save IO off the map-refresh / scene-initialization frame. Manual saves remain immediate.")]
+        public float automaticSaveDelay = .25f;
         public event Action<string> SaveFailed;
         public event Action<SaveSummary> SaveCompleted;
         static bool continueRequested;
@@ -86,8 +88,13 @@ namespace Lifeline
             RequestContinue(); SceneManager.LoadScene(mainMenu.gameplaySceneName);
         }
         void ManualSave() { if (session != null) TrySave(session, SaveReason.Manual, out _); }
-        void OnSessionReady(bool restored) { if (!restored) pendingAutoDay = session.day; }
-        void OnDayReady(int day) { if (day > lastAutoSavedDay) pendingAutoDay = day; }
+        void OnSessionReady(bool restored) { if (!restored) ScheduleAutomaticSave(session.day); }
+        void OnDayReady(int day) { if (day > lastAutoSavedDay) ScheduleAutomaticSave(day); }
+        void ScheduleAutomaticSave(int day)
+        {
+            pendingAutoDay = day;
+            nextAutoAttempt = Time.unscaledTime + Mathf.Max(0, automaticSaveDelay);
+        }
         public bool HasValidSave(out SaveSummary summary)
         {
             summary = null;

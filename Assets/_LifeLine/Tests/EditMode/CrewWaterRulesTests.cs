@@ -51,9 +51,9 @@ namespace Lifeline.Tests
             game.BeginDive();game.diver.RestorePose(false,game.BoatAnchor+Vector3.down*10,Vector3.zero,Vector2.right);
             game.upgradeLevels[(int)UpgradeKind.Rope]=3;game.circuitRepaired=true;game.power=0;
             game.SetWinchActive(true);Assert.That(game.winchActive);Assert.That(game.winchElectric,Is.False);
-            float before=game.DiverRopeLength;Assert.That(game.TryWinchQte(tuning.winchCenter));Assert.That(game.DiverRopeLength,Is.LessThan(before));
+            float before=game.DiverRopeLength;Assert.That(game.TryWinchQte(game.WinchQteCenter));Assert.That(game.DiverRopeLength,Is.LessThan(before));
             game.power=1;game.SetWinchActive(true);Assert.That(game.winchElectric);game.power=0;game.StepSimulation(.01f);
-            Assert.That(game.winchElectric,Is.False);Assert.That(game.winchActive);Assert.That(game.TryWinchQte(tuning.winchCenter));
+            Assert.That(game.winchElectric,Is.False);Assert.That(game.winchActive);Assert.That(game.TryWinchQte(game.WinchQteCenter));
         }
         [Test] public void CaptainUsesBaseOxygenAndOneHitDespiteDiverEquipmentAndFishBuffs()
         {
@@ -72,7 +72,8 @@ namespace Lifeline.Tests
             game.upgradeLevels[(int)UpgradeKind.Rope]=3;game.circuitRepaired=true;game.power=50;game.winchElectric=game.winchSignalAuthorized=true;
             tuning.winchPassiveSpeed=tuning.winchElectricSpeed=0;
             game.HandleCommand(game.captain,new CrewCommand{interactHeld=true});game.StepSimulation(2.9f);Assert.That(game.captain.onboard,Is.False);
-            game.StepSimulation(.11f);Assert.That(game.captain.onboard);Assert.That(game.GetResource(ResourceKind.Fiber),Is.EqualTo(1));Assert.That(game.winchElectric||game.winchSignalAuthorized,Is.False);
+            game.StepSimulation(.11f);Assert.That(game.captain.onboard);Assert.That(game.IsIncapacitated(game.captain),Is.False);Assert.That(game.IsActorInputBlocked(game.captain),Is.False);
+            Assert.That(game.GetResource(ResourceKind.Fiber),Is.EqualTo(1));Assert.That(game.winchElectric||game.winchSignalAuthorized,Is.False);
             game.BeginDive();game.HandleCommand(game.diver,new CrewCommand{interactHeld=true});game.StepSimulation(4);Assert.That(game.diver.onboard,Is.False);
         }
         [Test] public void DiverCanManuallyWinchCaptainAndTwoSwimmersSharePullEfficiency()
@@ -80,7 +81,7 @@ namespace Lifeline.Tests
             game.BeginDive(game.captain);game.captain.RestorePose(false,game.BoatAnchor+Vector3.down*4,Vector3.zero,Vector2.right);
             game.diver.RestorePose(true,game.captainSpawnLocal,Vector3.zero,Vector2.right);
             game.SetWinchActive(true,game.diver);Assert.That(game.winchActive);Assert.That(game.winchOperatorRole,Is.EqualTo(CrewRole.Diver));
-            for(int i=0;i<6&&!game.captain.onboard;i++){game.TryWinchQte(tuning.winchCenter);game.StepSimulation(tuning.winchCycle+.01f);}
+            for(int i=0;i<6&&!game.captain.onboard;i++){game.TryWinchQte(game.WinchQteCenter);game.StepSimulation(tuning.winchCycle+.01f);}
             Assert.That(game.captain.onboard);game.BeginDive(game.captain);game.BeginDive(game.diver);
             Assert.That(game.WinchTargetCount,Is.EqualTo(2));Assert.That(game.WinchEfficiency,Is.EqualTo(.5f));
         }

@@ -119,7 +119,7 @@ namespace Lifeline.Tests
             Assert.That(a.move, Is.EqualTo(Vector2.up));
             Assert.That(a.jump && a.interact && a.melee && a.fire, Is.True);
             Assert.That(a.interactHeld, Is.True);
-            Assert.That(a.collect, Is.False);
+            Assert.That(a.collect, Is.True, "Captain E also holds underwater collection");
             Assert.That(b.move, Is.EqualTo(Vector2.zero));
             Assert.That(b.jump || b.interact || b.melee || b.fire || b.collect, Is.False);
             a = captain.ReadCommand();
@@ -131,7 +131,8 @@ namespace Lifeline.Tests
             Press(Key.UpArrow, Key.Enter, Key.Digit1, Key.Digit2, Key.Digit0, Key.RightShift, Key.Period, Key.Slash, Key.M);
             b = diver.ReadCommand(); a = captain.ReadCommand();
             Assert.That(b.move, Is.EqualTo(Vector2.up));
-            Assert.That(b.jump && b.interact && b.collect && b.fire && b.melee && b.sprint && b.signal && b.bait && b.hide, Is.True);
+            Assert.That(b.jump && b.interact && b.collect && b.fire && b.melee && b.sprint && b.signal && b.bait, Is.True);
+            Assert.That(b.hide, Is.False, "Diver hiding uses Interact; M is no longer a dedicated shortcut");
             Assert.That(a.move, Is.EqualTo(Vector2.zero));
             Assert.That(a.interact || a.collect || a.fire || a.melee || a.sprint, Is.False);
             b = diver.ReadCommand();
@@ -201,7 +202,7 @@ namespace Lifeline.Tests
                 SceneManager.MoveGameObjectToScene(gameObject, scene);
                 var game = gameObject.AddComponent<GameSession>(); game.enabled = false;
                 game.autoStart = false; game.tuning = Keep(ScriptableObject.CreateInstance<GameTuning>());
-                game.phase = SessionPhase.Playing; game.power = 100;
+                game.phase = SessionPhase.Playing; game.power = 100; game.engineRepaired = true;
                 var shipObject = Keep(new GameObject("Ship"));
                 SceneManager.MoveGameObjectToScene(shipObject, scene);
                 var ship = shipObject.AddComponent<ShipMotor>(); ship.enabled = false;

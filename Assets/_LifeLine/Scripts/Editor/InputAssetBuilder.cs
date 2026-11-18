@@ -49,6 +49,23 @@ namespace Lifeline.Editor
             return changes;
         }
 
+        public static List<string> MigrateCrewInteractionBindings(InputActionAsset asset, bool apply) => CrewInputDefaults.MigrateInteractionBindings(asset, apply);
+
+        [MenuItem("LifeLine/Migration/Apply Crew Interaction Bindings")]
+        public static void ApplyCrewInteractionBindings()
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<InputActionAsset>(DefaultPath);
+            if (asset == null || MigrateCrewInteractionBindings(asset, false).Count == 0) return;
+            if (EditorUtility.IsDirty(asset)) throw new InvalidOperationException("Save the edited input asset before migrating crew interactions.");
+            string backupFolder = "Assets/_LifeLine/Documentation/MigrationBackups/" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_fff");
+            Directory.CreateDirectory(backupFolder);
+            File.Copy(DefaultPath, Path.Combine(backupFolder, "LifelineControls.inputactions.bak"));
+            var changes = MigrateCrewInteractionBindings(asset, true);
+            File.WriteAllText(DefaultPath, asset.ToJson());
+            AssetDatabase.ImportAsset(DefaultPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+            Debug.Log("Migrated crew interaction bindings; unrelated bindings and IDs retained.\n" + string.Join("\n", changes));
+        }
+
         [MenuItem("LifeLine/Migration/Repair Legacy Digit Bindings")]
         private static void RepairLegacyDigitAsset()
         {

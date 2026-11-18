@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -29,7 +30,29 @@ namespace Lifeline
             else UnityEngine.Object.DestroyImmediate(draft);
             var asset = InputActionAsset.FromJson(json);
             asset.name = AssetName;
+            MigrateInteractionBindings(asset, true);
             return asset;
+        }
+
+        /// <summary>Retain IDs and custom overrides while retiring only the diver's separate hide action.</summary>
+        public static List<string> MigrateInteractionBindings(InputActionAsset asset, bool apply)
+        {
+            var changes = new List<string>();
+            if (asset == null) return changes;
+            var collect = asset.FindAction("Captain/Collect", false);
+            if (collect != null) for (int i = 0; i < collect.bindings.Count; i++)
+            {
+                if (collect.bindings[i].path != "<Keyboard>/r") continue;
+                changes.Add("Captain/Collect: <Keyboard>/r -> <Keyboard>/e");
+                if (apply) collect.ChangeBinding(i).WithPath("<Keyboard>/e");
+            }
+            var hide = asset.FindAction("Diver/Hide", false);
+            if (hide != null)
+            {
+                changes.Add("Diver/Hide: removed; use Diver/Interact to enter or leave hiding");
+                if (apply) hide.RemoveAction();
+            }
+            return changes;
         }
 
         private static string ReplaceId(string json, Guid original, int index)

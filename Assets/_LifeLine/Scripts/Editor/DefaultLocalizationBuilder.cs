@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -21,12 +21,31 @@ namespace Lifeline.Editor
             if (created) { table = ScriptableObject.CreateInstance<LocalizationTable>(); AssetDatabase.CreateAsset(table, AssetPath); }
             List<LocalizationTable.Entry> defaults = CreateDefaultEntries();
             bool changed = created || overwriteExisting || table.entries == null;
+            if (!overwriteExisting && UpdateKnownUiTimingCopy(table)) changed = true;
             if (overwriteExisting || table.entries == null) table.entries = new List<LocalizationTable.Entry>();
             var keys = new HashSet<string>();
             foreach (LocalizationTable.Entry existing in table.entries) if (existing != null && !string.IsNullOrEmpty(existing.key)) keys.Add(existing.key);
             foreach (LocalizationTable.Entry entry in defaults) if (keys.Add(entry.key)) { table.entries.Add(entry); changed = true; }
             if (changed) { table.NotifyChanged(); EditorUtility.SetDirty(table); AssetDatabase.SaveAssetIfDirty(table); }
             return table;
+        }
+
+        /// <summary>Change only untouched shipped timing copy; edited translations remain authored data.</summary>
+        public static bool UpdateKnownUiTimingCopy(LocalizationTable table)
+        {
+            if (table == null || table.entries == null) return false;
+            bool changed = false;
+            foreach (var current in CreateDefaultEntries())
+            {
+                if (current.key != "copy.127" && current.key != "revive.captain" && current.key != "revive.diver" && current.key != "onboarding.10") continue;
+                string oldZh = current.zh.Replace("4秒", "5秒").Replace("4 秒", "5 秒");
+                string oldEn = current.en.Replace("4 seconds", "5 seconds").Replace("four seconds", "five seconds");
+                foreach (var entry in table.entries)
+                    if (entry != null && entry.key == current.key && entry.zh == oldZh && entry.en == oldEn)
+                    { entry.zh = current.zh; entry.en = current.en; changed = true; }
+            }
+            if (changed) table.NotifyChanged();
+            return changed;
         }
 
         static void EnsureFolder(string folder)
@@ -227,7 +246,7 @@ namespace Lifeline.Editor
                 new LocalizationTable.Entry("copy.124", "潜水员双信号：优先吊运已挂载货箱。", "Diver double signal: Prioritize attached cargo."),
                 new LocalizationTable.Entry("copy.125", "潜水员紧急三信号：请船长立即操作绞盘！", "Diver triple signal: Emergency! Captain, operate the winch now!"),
                 new LocalizationTable.Entry("copy.126", "连续救生信号已触发电动绞盘，正在自动接回潜水员。", "The signal sequence activated the electric winch. The diver is being recovered automatically."),
-                new LocalizationTable.Entry("copy.127", "按住交互5秒，扶起", "Hold Interact for 5 seconds to revive "),
+                new LocalizationTable.Entry("copy.127", "按住交互4秒，扶起", "Hold Interact for 4 seconds to revive "),
                 new LocalizationTable.Entry("copy.128", "；松开或离开会中断。", ". Releasing or moving away interrupts the rescue."),
                 new LocalizationTable.Entry("copy.129", "扶起了", " revived "),
                 new LocalizationTable.Entry("recovery.crew.wipe", "两名船员在救生平台苏醒：仓库、背包、挂载货物与制作中的物资遗失；已安装设备与升级保留。", "Both crew members wake on the rescue platform. Storage, backpacks, attached cargo and unfinished jobs were lost. Installed equipment and upgrades remain."),
@@ -244,6 +263,7 @@ namespace Lifeline.Editor
                 new LocalizationTable.Entry("copy.141", " · 点击一个绑定后按新键；Esc 取消。", " · Select a binding, then press the new key. Esc cancels."),
                 new LocalizationTable.Entry("copy.142", "请按新键 · Esc 取消", "Press a new key · Esc cancels"),
                 new LocalizationTable.Entry("copy.143", "普通作业 ", "Standard job: "),
+                new LocalizationTable.Entry("ui.workbench.auto.note", "制作作业 {0}秒。校准成功加进度，离开仍继续，不返还已投入材料。", "Crafting takes {0}s. Successful calibration adds progress; work continues when you leave. Committed materials are not refunded."),
                 new LocalizationTable.Entry("copy.144", "秒；快速修补用时减半。校准成功加进度，离开仍继续，不返还已投入材料。", "s. Quick repairs take half as long. QTE hits add progress; work continues when you leave. Committed materials are not refunded."),
                 new LocalizationTable.Entry("copy.145", "选择校准：", "Calibrate: "),
                 new LocalizationTable.Entry("copy.146", "设施升级和救援航程。航行请前往旁边独立船舵。", "Equipment upgrades and rescue voyage. Use the separate helm nearby to sail."),
@@ -488,8 +508,9 @@ namespace Lifeline.Editor
                 new LocalizationTable.Entry("repair.pipe.rows", "入口第{0}行，出口第{1}行。逐格顺时针旋转后试水。", "Inlet row {0}; outlet row {1}. Rotate tiles clockwise, then test the flow."),
                 new LocalizationTable.Entry("repair.engine.cleaned", "故障 {0} 清理 {1}", "Fault {0} cleaned {1}"),
                 new LocalizationTable.Entry("craft.slots", "作业槽 {0}/{1}", "Job slots {0}/{1}"),
-                new LocalizationTable.Entry("revive.captain", "按住交互5秒，扶起船长；松开或离开会中断。", "Hold Interact for 5 seconds to revive the captain. Releasing or moving away interrupts the rescue."),
-                new LocalizationTable.Entry("revive.diver", "按住交互5秒，扶起潜水员；松开或离开会中断。", "Hold Interact for 5 seconds to revive the diver. Releasing or moving away interrupts the rescue."),
+                new LocalizationTable.Entry("revive.captain", "按住交互4秒，扶起船长；松开或离开会中断。", "Hold Interact for 4 seconds to revive the captain. Releasing or moving away interrupts the rescue."),
+                new LocalizationTable.Entry("revive.duration", "按住交互{0}秒，扶起{1}；松开或离开会中断。", "Hold Interact for {0} seconds to revive {1}. Releasing or moving away interrupts the rescue."),
+                new LocalizationTable.Entry("revive.diver", "按住交互4秒，扶起潜水员；松开或离开会中断。", "Hold Interact for 4 seconds to revive the diver. Releasing or moving away interrupts the rescue."),
                 new LocalizationTable.Entry("revive.captain.saved.diver", "船长扶起了潜水员。", "The captain revived the diver."),
                 new LocalizationTable.Entry("revive.diver.saved.captain", "潜水员扶起了船长。", "The diver revived the captain."),
                 new LocalizationTable.Entry("lightning.captain.warning", "雷击预警：船长尽快进入船舱！", "Lightning warning: Captain, get into the cabin now!"),
@@ -514,6 +535,44 @@ namespace Lifeline.Editor
                 new LocalizationTable.Entry("world.resource.metal", "金属", "METAL"),
                 new LocalizationTable.Entry("world.resource.fiber", "纤维", "FIBER"),
                 new LocalizationTable.Entry("enemy.piranha.defeated", "食人鱼已击杀。", "Piranha defeated."),
+                new LocalizationTable.Entry("onboarding.00", "合作入门 1/8 · 船长\n靠近制作台按 [{0}] 互动，尝试制作 1 个木板。离开后仍会自动制作。", "Co-op basics 1/8 · Captain\nApproach the workbench and press [{0}]. Try crafting one plank. It keeps crafting after you leave."),
+                new LocalizationTable.Entry("onboarding.01", "合作入门 2/8 · 船长\n靠近设备总控按 [{0}] 查看设备升级。查看升级效果和材料费用，按需改装船只。", "Co-op basics 2/8 · Captain\nApproach total control and press [{0}] to inspect device upgrades. Review each upgrade and its cost to improve the ship."),
+                new LocalizationTable.Entry("onboarding.02", "合作入门 3/8 · 潜水员\n靠近潜水准备台按 [{0}] 下水。留意氧气、背包和绳长，船长留在船上接应。", "Co-op basics 3/8 · Diver\nPress [{0}] at dive preparation to enter the water. Watch oxygen, bag space and rope length; the captain stays aboard to help."),
+                new LocalizationTable.Entry("onboarding.03", "合作入门 4/8 · 潜水员\n靠近水下物资，按住 [{1}] 收集。带回的物资可制作部件并逐步建造船上设备。", "Co-op basics 4/8 · Diver\nApproach underwater loot and hold [{1}] to collect it. Recovered resources make parts and gradually unlock ship equipment."),
+                new LocalizationTable.Entry("onboarding.04", "合作入门 5/8 · 潜水员\n背包满后可到货箱旁按 [{0}] 存入物品；每个货箱可装 3 件。先尝试装入 1 件。", "Co-op basics 5/8 · Diver\nWhen your bag is full, press [{0}] beside a cargo crate to store an item. A crate holds three items. Try loading one."),
+                new LocalizationTable.Entry("onboarding.05", "合作入门 6/8 · 潜水员\n货箱装好后按住 [{1}] 挂绳，交由船长绞盘接回。挂载越多，回收越慢。", "Co-op basics 6/8 · Diver\nAfter loading cargo, hold [{1}] to attach its rope. The captain recovers it with the winch. More attached loads make recovery slower."),
+                new LocalizationTable.Entry("onboarding.06", "合作入门 7/8 · 潜水员\n靠近藏匿处按 [{0}] 进入，再按一次离开。藏匿时无法移动，也不会被索敌或攻击；更深水域会有敌对生物。", "Co-op basics 7/8 · Diver\nPress [{0}] at a hiding place to enter, then press again to leave. You cannot move inside, but enemies cannot target or hurt you. Hostile creatures await in deeper water."),
+                new LocalizationTable.Entry("onboarding.07", "合作入门 8/8 · 船长\n潜水员准备好后，靠近绞盘按 [{0}]，用圆形 QTE 接回潜水员和挂载货箱。成功加快回收，失误损失进度。", "Co-op basics 8/8 · Captain\nWhen the diver is ready, press [{0}] at the winch. Use its circular QTE to recover the diver and attached cargo. Success speeds up recovery; misses lose progress."),
+                new LocalizationTable.Entry("onboarding.08", "海鸥来袭\n海鸥会攻击船体并消耗耐久；靠近后使用近战攻击将它们驱赶。部分海鸥也会打断船员操作。", "Seagulls incoming\nSeagulls attack the hull and drain durability. Drive them off with melee attacks at close range. Some also interrupt crew operations."),
+                new LocalizationTable.Entry("onboarding.09", "第一次夜潜\n夜间水下只能看清附近。建造并开启探照灯可恢复视野，但灯光也会扩大敌对水生生物的索敌范围。", "Your first night dive\nUnderwater visibility is limited at night. Build and activate the searchlight to see farther, but its light also increases hostile aquatic creatures’ detection range."),
+                new LocalizationTable.Entry("onboarding.10", "雷雨警告\n注意雷击落点预警并及时离开危险区域。被击倒后需要同伴持续互动 4 秒扶起；两人都倒下会失败。", "Thunderstorm warning\nWatch the strike warnings and leave marked danger zones. A teammate must hold interact for four seconds to revive a downed crewmate. Both crew down means defeat."),
+                new LocalizationTable.Entry("onboarding.captain.oxygen", "船长氧气", "Captain oxygen"),
+                new LocalizationTable.Entry("filter.pickup", "海水过滤器\n按住 [{0}] 打捞上船 · 不占背包", "Seawater filter\nHold [{0}] to salvage aboard · No backpack slot"),
+                new LocalizationTable.Entry("filter.salvaged", "海水过滤器已打捞上船，需要2铁板修复后启用。", "Seawater filter salvaged aboard. Repair with 2 iron plates before use."),
+                new LocalizationTable.Entry("equipment.generator", "手摇发电机", "Hand-crank generator"),
+                new LocalizationTable.Entry("equipment.repairbench", "船体维修台", "Hull repair bench"),
+                new LocalizationTable.Entry("equipment.generator.description", "2金属、2木材、1纤维建造船舱手摇发电机。", "Build the cabin generator with 2 raw metal, 2 wood and 1 fiber."),
+                new LocalizationTable.Entry("equipment.repairbench.description", "1木材、1金属建造船体维修台。", "Build the hull repair bench with 1 wood and 1 raw metal."),
+                new LocalizationTable.Entry("equipment.harpoon.description", "近战鱼叉；制作射矛枪时消耗1把。", "Melee harpoon; one is consumed when crafting a speargun."),
+                new LocalizationTable.Entry("equipment.speargun.description", "消耗1把鱼叉；独立鱼枪键发射，再按召回。", "Consumes one harpoon. Use the speargun key to fire, and press it again to recall."),
+                new LocalizationTable.Entry("equipment.repairbench.required", "请先在制作台建造船体维修台。", "Build the hull repair bench at the workbench first."),
+                new LocalizationTable.Entry("equipment.duplicate", "这件工具或设备已经制作完成。", "This tool or device is already built."),
+                new LocalizationTable.Entry("equipment.required", "制作需要先获得所需工具。", "Obtain the required tool before crafting."),
+                new LocalizationTable.Entry("equipment.consume", "制作需要消耗对应工具。", "Crafting consumes its required tool."),
+                new LocalizationTable.Entry("equipment.tool.harpoon", "鱼叉", "Harpoon"),
+                new LocalizationTable.Entry("equipment.engine.required", "引擎尚未修复。先准备2铁板并完成引擎检修，才能航行。", "The engine needs repair. Prepare 2 iron plates and repair it before sailing."),
+                new LocalizationTable.Entry("equipment.helm.damaged", "引擎损坏，修复后才能航行。", "The engine is damaged. Repair it before sailing."),
+                new LocalizationTable.Entry("crew.captain.banked.downed", "船长已回船，背包物资已卸入共享仓库。靠近倒地船长按交互进行救助。", "Captain aboard. Backpack materials unloaded into shared storage. Approach the downed captain and hold Interact to revive them."),
+                new LocalizationTable.Entry("equipment.quest.voyage", "总控启动救援航程；修好引擎并备足燃油，接回潜水员后向东航行", "Start the rescue voyage at total control; repair the engine, stock fuel and recover the diver before sailing east"),
+                new LocalizationTable.Entry("equipment.engine.materials", "修理材料不足。引擎首次需要2块铁板，之后损坏可免费重修。", "Not enough repair materials. The first engine repair costs 2 iron plates; later repairs cost no materials."),
+                new LocalizationTable.Entry("filter.active", "海水过滤器启用：船上设备交互效率提升20%，水下移动速度提升20%。", "Filter active: onboard device interaction efficiency +20%; underwater movement speed +20%."),
+                new LocalizationTable.Entry("filter.repair.cost", "消耗2铁板，旋转管道把左侧入口连到右侧出口。", "Spend 2 iron plates, then rotate pipes to connect the left inlet to the right outlet."),
+                new LocalizationTable.Entry("engine.repair.cost", "初次消耗2铁板：清理四处油污并匹配四种故障零件。", "First repair costs 2 iron plates: clean four oily faults and match their repair parts."),
+                new LocalizationTable.Entry("winch.random.window", "绿色判定区在转满一圈或每次判定后换位。成功收绳，失败回滑。", "The green window moves after each revolution or result. Success reels in; a miss slips back."),
+                new LocalizationTable.Entry("light.build.first", "建造探照灯，扩大夜潜视野", "Build a searchlight to expand night-dive visibility"),
+                new LocalizationTable.Entry("equipment.voyage.requirements", "救援航程需要完整三级电台与修复电路，并接回潜水员。修复引擎后才能航行。", "The rescue voyage requires all three radio stages, repaired circuitry and the diver aboard. Repair the engine before sailing."),
+                new LocalizationTable.Entry("save.equipment.version", "存档设备版本不受支持。", "This equipment save version is not supported."),
+                new LocalizationTable.Entry("save.winch.qte", "存档绞盘节奏数据无效。", "The saved winch rhythm state is invalid."),
                 new LocalizationTable.Entry("upgrade.max", "已满级", "MAX"),
                 new LocalizationTable.Entry("upgrade.bag.name", "潜水背包", "Dive Backpack"),
                 new LocalizationTable.Entry("upgrade.suit.name", "潜水服", "Diving Suit"),

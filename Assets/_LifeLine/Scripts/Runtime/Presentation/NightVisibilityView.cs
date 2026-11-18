@@ -30,6 +30,9 @@ namespace Lifeline
         public float CurrentRadiusPixels { get; private set; }
         public Material RuntimeMaterial => materialInstance;
         Material materialInstance, materialSource;
+        Image configuredImage;
+        bool hasViewport;
+        Rect configuredViewport;
         static readonly int FocusId = Shader.PropertyToID("_FocusUV");
         static readonly int ViewportId = Shader.PropertyToID("_ViewportPixels");
         static readonly int RectId = Shader.PropertyToID("_MaskRect");
@@ -62,16 +65,23 @@ namespace Lifeline
         public void RefreshNow()
         {
             if (maskImage == null) return;
-            maskImage.raycastTarget = false;
-            // This is a generated shader quad, not an atlas sprite: its UVs must span 0..1.
-            maskImage.sprite = null; maskImage.overrideSprite = null; maskImage.type = Image.Type.Simple;
+            if (configuredImage != maskImage)
+            {
+                configuredImage = maskImage; hasViewport = false;
+                maskImage.raycastTarget = false;
+                // Configure once. Two crew masks must not reorder each other every night frame:
+                // changing sibling order repeatedly dirties the entire screen-space Canvas.
+                maskImage.sprite = null; maskImage.overrideSprite = null; maskImage.type = Image.Type.Simple;
+                if (placeBehindHud) maskImage.transform.SetAsFirstSibling();
+                EnsureMaterial();
+            }
             CrewActor actor = diver != null ? diver : session != null ? session.diver : null;
             Camera camera = cameraRig != null ? actor!=null&&actor.role==CrewRole.Captain?cameraRig.captainCamera:cameraRig.diverCamera : null;
             bool gameplay = session != null && (session.phase == SessionPhase.Playing || session.phase == SessionPhase.Paused);
             bool localDiverVisible = cameraRig != null && (!cameraRig.onlineView || actor!=null&&cameraRig.localRole == actor.role);
             bool night = gameplay && session.IsNight && actor != null && !actor.onboard
                 && localDiverVisible && camera != null && camera.enabled;
-            float opacity = session != null && session.LightEffective && session.GetUpgrade(UpgradeKind.Searchlight) >= 1
+            float opacity = session != null && session.LightEffective && session.GetUpgrade(UpgradeKind.Searchlight) >= 2
                 ? upgradedLightOpacity : nightOpacity;
             if (!night || opacity <= .0001f)
             {
@@ -79,13 +89,16 @@ namespace Lifeline
                 return;
             }
             if (!EnsureMaterial()) { maskImage.enabled = false; return; }
-            if (placeBehindHud && maskImage.transform.GetSiblingIndex() != 0) maskImage.transform.SetAsFirstSibling();
             // The Image must be a child of a full-screen RectTransform (the Canvas or a stretch container).
             Rect viewport = camera.rect;
             RectTransform rect = maskImage.rectTransform;
-            rect.anchorMin = new Vector2(viewport.xMin, viewport.yMin);
-            rect.anchorMax = new Vector2(viewport.xMax, viewport.yMax);
-            rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
+            if (!hasViewport || configuredViewport != viewport)
+            {
+                configuredViewport = viewport; hasViewport = true;
+                rect.anchorMin = new Vector2(viewport.xMin, viewport.yMin);
+                rect.anchorMax = new Vector2(viewport.xMax, viewport.yMax);
+                rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
+            }
             Vector3 focus = camera.WorldToViewportPoint(actor.transform.position + focusWorldOffset);
             CurrentRadiusPixels = session.LightEffective ? searchlightRadiusPixels : personalRadiusPixels;
             materialInstance.SetVector(FocusId, new Vector4(focus.x, focus.y, 0, 0));

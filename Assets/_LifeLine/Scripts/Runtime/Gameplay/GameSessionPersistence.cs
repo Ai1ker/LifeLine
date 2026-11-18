@@ -21,7 +21,7 @@ namespace Lifeline
             RefreshLifelines();
             var data = new GameSaveData
             {
-                areaStrikes=areaStrikes.ToArray(), coordinateVersion = 1, balanceVersion=1, routeDistance=tuning.routeDistance, savedUtc = DateTime.UtcNow.ToString("O"), state = new SessionSaveState(),
+                areaStrikes=areaStrikes.ToArray(), coordinateVersion = 1, balanceVersion=1, equipmentProgressionVersion=1, routeDistance=tuning.routeDistance, savedUtc = DateTime.UtcNow.ToString("O"), state = new SessionSaveState(),
                 cycleSeconds = tuning.daySeconds, daylightSeconds = tuning.daySeconds * tuning.dayFraction, duskSeconds = tuning.daySeconds * tuning.duskFraction,
                 shipPosition = ship != null ? ShipToWaterPoint(ship.Position) : Vector3.zero,
                 captainRopeContacts=captainRope!=null?captainRope.CaptureContacts():Array.Empty<Vector3>(),
@@ -29,6 +29,9 @@ namespace Lifeline
                 cargoRopeContacts = cargoRope != null ? cargoRope.CaptureContacts() : Array.Empty<Vector3>()
             };
             CopySaveFields(this, data.state);
+            TutorialProgress tutorial = GetComponent<TutorialProgress>();
+            data.hasTutorial = tutorial != null;
+            if (tutorial != null) data.tutorial = tutorial.Capture();
             data.captain = CaptureCrew(captain); data.diver = CaptureCrew(diver);
             CraftingManager manager = GetOrCreateCraftingManager(); data.nextJobId = manager.nextJobId;
             var work = new List<CraftSaveState>();
@@ -105,8 +108,13 @@ namespace Lifeline
             if (data.world.present && (world == null || data.world.activeDay != data.state.day || WorldGenerator.ComputeDaySeed(data.state.worldSeed, data.world.activeDay, world.dailySeedStride) != data.world.generatedSeed))
             { error = "存档世界种子与当前地图配置不兼容。"; return false; }
             // All semantic checks above happen before replacing the active world or its inventory.
+            // JsonUtility embeds inline serializable classes and can inflate null into an empty
+            // object. Preserve explicit presence separately so a legacy save skips basic lessons.
+            bool tutorialPresent = data.hasTutorial && data.tutorial != null;
             data = CloneSave(data);
+            if (!tutorialPresent) data.tutorial = null;
             bool migratedBalance=BalanceSaveMigration.Upgrade(data,tuning);
+            UpgradeEquipmentSave(data);
             float clockOffset = restoredElapsed - data.state.elapsed;
             data.state.elapsed = restoredElapsed;
             data.state.lastCrankAt += clockOffset; data.state.lastSignalAt += clockOffset;
@@ -176,6 +184,10 @@ namespace Lifeline
                 winchActive = false; diverSprinting = false;captainBoardProgress=0;captainBoardHeld=false;
                 reviveHeld = new bool[2]; reviveTargets = new CrewActor[2]; reviveProgress = new float[2];
                 if (hud != null && data.repairUI != null && data.repairUI.present) { hud.filterPuzzle = data.repairUI.filterPuzzle; hud.circuitConnected = data.repairUI.circuitConnected; }
+                RefreshEquipmentVisibility();
+                TutorialProgress tutorial = GetComponent<TutorialProgress>();
+                if (tutorial == null) tutorial = gameObject.AddComponent<TutorialProgress>();
+                tutorial.Restore(data.tutorial);
                 previousDay = day; initialized = true; notifyClock = 0;
                 Physics.SyncTransforms();
                 phase = SessionPhase.Playing; Time.timeScale = 1; hud?.SetPause(false); UpdateQuest(); Changed(); SessionReady?.Invoke(true); return true;

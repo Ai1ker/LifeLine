@@ -182,7 +182,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 40
+    m_MaxSize: 48
     m_Alignment: 3
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -647,6 +647,7 @@ MonoBehaviour:
   LastError: 
   loadFailed: 0
   autoRetrySeconds: 5
+  automaticSaveDelay: 0.25
 --- !u!4 &449478885
 Transform:
   m_ObjectHideFlags: 0
@@ -1943,6 +1944,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.MainMenuController
   gameplaySceneName: Gameplay
+  newGameFadeSeconds: 0.2
+  newGameFadeOutSeconds: 0.1
   localCoopButton: {fileID: 858265405}
   controlsButton: {fileID: 226240143}
   quitButton: {fileID: 585719251}

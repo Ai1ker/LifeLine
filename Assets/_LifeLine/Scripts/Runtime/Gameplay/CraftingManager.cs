@@ -24,6 +24,36 @@ namespace Lifeline
         [Tooltip("Short-lived QTE feedback, in real simulation seconds.")]
         public float feedbackSeconds = .8f;
 
+        readonly CrewActor[] interactionActors = new CrewActor[2];
+        readonly int[] interactionJobs = new int[2];
+        readonly StationKind[] interactionStations = new StationKind[2];
+
+        public void SetInteractionContext(CrewActor actor, int jobId, StationKind station)
+        {
+            if (actor == null || actor.session != session) return;
+            int index = (int)actor.role;
+            interactionActors[index] = actor; interactionJobs[index] = jobId; interactionStations[index] = station;
+        }
+        public void ClearInteractionContext(CrewActor actor)
+        {
+            if (actor == null) return;
+            int index = (int)actor.role;
+            if (interactionActors[index] != actor) return;
+            interactionActors[index] = null; interactionJobs[index] = 0;
+        }
+        public float GetInteractionRate(CraftJob job)
+        {
+            if (job == null || session == null) return 1;
+            for (int i = 0; i < interactionActors.Length; i++)
+            {
+                CrewActor actor = interactionActors[i];
+                if (interactionJobs[i] == job.id && actor != null && actor.session == session && actor.onboard &&
+                    !actor.downed && actor.controlsCaptured && interactionStations[i] == JobStation(job) &&
+                    session.IsStationUnlocked(interactionStations[i])) return session.GetDeviceInteractionEfficiency(actor);
+            }
+            return 1;
+        }
+
         public int Capacity => session != null && session.GetUpgrade(UpgradeKind.Workbench) >= 3 ? 2 : 1;
 
         public void Initialize(GameSession owner)
@@ -48,6 +78,7 @@ namespace Lifeline
         public void ResetQueue()
         {
             jobs.Clear(); nextJobId = 1;
+            for(int i=0;i<interactionActors.Length;i++){interactionActors[i]=null;interactionJobs[i]=0;}
         }
 
         public void ClearQueue()
@@ -92,10 +123,14 @@ namespace Lifeline
             RecipeDefinition recipe = FindRecipe(recipeId);
             if (recipe == null) { reason = "未找到对应的制作配方。"; return false; }
             if (jobs.Count >= Capacity) { reason = "制作队列已满，T3制作台可同时运行两项工作。"; return false; }
+            if (recipe.repairAmount > 0 && !session.repairBenchInstalled) { reason = "请先在制作台建造船体维修台。"; return false; }
             if (recipe.repairAmount > 0 && session.hull >= session.hullMax) { reason = "船体完好，无需消耗维修材料。"; return false; }
-            if (recipe.toolId == "rod" && session.hasRod || recipe.toolId == "harpoon" && session.hasHarpoon || recipe.toolId == "speargun" && session.hasSpeargun)
-            { reason = "这件工具已经制作完成。"; return false; }
-            if (recipe.toolId == "speargun" && !session.hasHarpoon) { reason = "先制作近战鱼叉，再制作射矛枪；鱼叉会保留。"; return false; }
+            if (!string.IsNullOrEmpty(recipe.toolId) && session.HasEquipment(recipe.toolId))
+            { reason = "这件工具或设备已经制作完成。"; return false; }
+            if (recipe.requiredToolIds != null) foreach (string tool in recipe.requiredToolIds)
+                if (string.IsNullOrEmpty(tool) || !session.HasEquipment(tool)) { reason = "制作需要先获得所需工具。"; return false; }
+            if (recipe.consumedToolIds != null) foreach (string tool in recipe.consumedToolIds)
+                if (string.IsNullOrEmpty(tool) || !session.HasEquipment(tool)) { reason = "制作需要消耗对应工具。"; return false; }
             foreach (CraftJob queued in jobs)
             {
                 if (queued == null || queued.recipe == null) continue;
@@ -124,6 +159,7 @@ namespace Lifeline
             if (!CanCraft(recipeId, actor, out reason)) { if (session != null && !string.IsNullOrEmpty(reason)) session.Tell(reason); return false; }
             RecipeDefinition recipe = FindRecipe(recipeId);
             if (!session.Spend(recipe.cost)) { session.Tell("制作材料不足。"); return false; }
+            if (recipe.consumedToolIds != null) foreach (string tool in new HashSet<string>(recipe.consumedToolIds)) session.ConsumeEquipment(tool);
             SynchronizeNextJobId();
             jobs.Add(new CraftJob
             {
@@ -131,6 +167,8 @@ namespace Lifeline
                 duration = GetCraftDuration(recipe), nextCue = session.tuning.craftCueInterval,
                 noteDirection = UnityEngine.Random.Range(0, 4)
             });
+            if (actor.role == CrewRole.Captain && recipe.output != null && Array.Exists(recipe.output, output => output != null && output.resource == ResourceKind.Plank && output.amount > 0))
+                session.GetComponent<TutorialProgress>()?.Observe(TutorialAction.CraftPlank);
             session.Tell(recipe.displayName + "开始自动制作，离开工作台仍会继续。"); session.Changed(); return true;
         }
 
@@ -175,7 +213,8 @@ namespace Lifeline
             foreach (CraftJob job in jobs.ToArray())
             {
                 if (job == null || job.recipe == null) { jobs.Remove(job); continue; }
-                job.elapsed += dt; job.progress = Mathf.Min(job.duration, job.progress + dt);
+                float effectiveDt = dt * GetInteractionRate(job);
+                job.elapsed += effectiveDt; job.progress = Mathf.Min(job.duration, job.progress + effectiveDt);
                 job.feedbackTime = Mathf.Max(0, job.feedbackTime - dt);
                 while (job.elapsed > job.nextCue + GetCraftQteWindow(job))
                 {
@@ -202,9 +241,7 @@ namespace Lifeline
             // Remove before notifying inventory listeners, so they cannot see or complete a finished job twice.
             jobs.Remove(job);
             if (recipe.output != null) foreach (ResourceAmount output in recipe.output) if (output != null) session.AddResource(output.resource, output.amount);
-            if (recipe.toolId == "rod") session.hasRod = true;
-            if (recipe.toolId == "harpoon") session.hasHarpoon = true;
-            if (recipe.toolId == "speargun") session.hasSpeargun = true;
+            if (!string.IsNullOrEmpty(recipe.toolId)) session.UnlockEquipment(recipe.toolId);
             if (recipe.radioStage > 0) session.radioStage = Mathf.Max(session.radioStage, recipe.radioStage);
             ApplyRepairProgress(job);
             if (recipe.radioStage == 1) session.Tell("无线电1/3：「……有人吗？我们在东边，浮筏上还有孩子……」");

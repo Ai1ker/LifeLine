@@ -71,6 +71,22 @@ namespace Lifeline
             if(actor.body!=null)actor.body.linearVelocity=Vector3.zero;
             Tell(GameNames.Role(actor.role)+"昏厥，需要同伴用绞盘接回。");Changed();
         }
+        // An E hold near loose cargo must collect it rather than silently start the boarding channel.
+        bool HasNearbyCaptainWaterInteraction(CrewActor actor)
+        {
+            if (world == null || actor == null || actor.onboard) return false;
+            if (world.IsAtHideSpot(actor)) return true;
+            foreach (LootPickup pickup in world.pickups)
+            {
+                if (pickup == null || pickup.attached || !pickup.InRange(actor)) continue;
+                if (pickup.isCrate)
+                {
+                    if (pickup.contents.Count > 0 || actor.backpack.Count > 0 && pickup.contents.Count < pickup.capacity) return true;
+                }
+                else if (actor.backpack.Count < actor.BagCapacity || pickup.GetComponent<FilterSalvage>() != null) return true;
+            }
+            return false;
+        }
         void UpdateCaptainBoard(float dt)
         {
             if(captain==null||captain.onboard||IsIncapacitated(captain)||IsHidden(captain)||!captainBoardHeld||Vector3.Distance(captain.Position,BoatAnchor)>3)
@@ -82,13 +98,15 @@ namespace Lifeline
         {
             if(actor==null||actor.onboard)return;
             if(actor==diver){BankDiver();return;}
+            bool needsRevive=IsIncapacitated(actor);
             foreach(var item in actor.backpack)AddResource(item,1);actor.backpack.Clear();
-            actor.SetHidden(false);actor.fainted=false;if(!actor.downed)actor.health=actor.maxHealth;actor.SetOnboard(true,ShipPoint(captainSpawnLocal));
+            actor.SetHidden(false);actor.fainted=false;if(!needsRevive)actor.health=actor.maxHealth;
+            actor.SetOnboard(true,ShipPoint(captainSpawnLocal));actor.SetDowned(needsRevive);
             if(captainRope!=null)captainRope.ResetRoute();actor.oxygenMax=GetOxygenMax(actor);actor.oxygen=actor.oxygenMax;
             signalCount=0;
             if(WinchTargetCount==0){winchActive=winchElectric=winchSignalAuthorized=false;winchStartDistance=0;winchTargetKind="";}
             else PrepareWinchTarget();
-            Tell("船长已回船，背包物资已卸入共享仓库。");Changed();
+            Tell(needsRevive?"船长已回船，背包物资已卸入共享仓库。靠近倒地船长按交互进行救助。":"船长已回船，背包物资已卸入共享仓库。");Changed();
         }
         public void SignalWinch(CrewActor actor)
         {

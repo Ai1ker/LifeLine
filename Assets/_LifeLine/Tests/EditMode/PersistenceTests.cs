@@ -56,6 +56,8 @@ namespace Lifeline.Tests
         [Test] public void FullRoundTripRestoresCrewEconomyJobsFaultsBuffsAndPuzzleWithoutNewGameReset()
         {
             game.AddResource(ResourceKind.Wood, 7); game.AddResource(ResourceKind.Metal, 9);
+            game.generatorInstalled = game.repairBenchInstalled = game.filterInstalled = true;
+            game.upgradeLevels[(int)UpgradeKind.Searchlight] = 2;
             game.upgradeLevels[(int)UpgradeKind.Workbench] = 3;
             Assert.That(game.TryCraft(recipe.id, game.captain)); Assert.That(game.TryCraft(recipe.id, game.diver));
             game.jobs[0].elapsed = 2; game.jobs[0].progress = 8; game.jobs[0].nextCue = 3; game.jobs[0].noteDirection = 2; game.jobs[0].attempted = true; game.jobs[0].hits = 2;
@@ -78,6 +80,8 @@ namespace Lifeline.Tests
             Assert.That(game.diver.onboard, Is.False); Assert.That(game.diver.oxygen, Is.EqualTo(18)); Assert.That(game.diver.health, Is.EqualTo(62));
             Assert.That(game.diver.backpack, Is.EqualTo(new[] { ResourceKind.Fiber, ResourceKind.Metal })); Assert.That(game.captain.Facing, Is.EqualTo(Vector2.left));
             Assert.That(game.ship.Position.x, Is.EqualTo(1037)); Assert.That(game.engineRepairVersion, Is.EqualTo(3)); Assert.That(game.engineFaultFixed[2]);
+            Assert.That(game.generatorInstalled && game.repairBenchInstalled && game.filterInstalled, Is.True);
+            Assert.That(game.GetUpgrade(UpgradeKind.Searchlight), Is.EqualTo(2));
             Assert.That(game.repairAuthorized[(int)StationKind.Engine]); Assert.That(game.captainBuffs.move, Is.EqualTo(23)); Assert.That(game.diverBuffs.attack, Is.EqualTo(41));
             Assert.That(hud.filterPuzzle.masks, Is.EqualTo(data.repairUI.filterPuzzle.masks)); Assert.That(hud.circuitConnected[1]);
             game.StartGame(); Assert.That(game.power, Is.EqualTo(34)); Assert.That(game.hull, Is.EqualTo(77)); Assert.That(game.jobs.Count, Is.EqualTo(2));
@@ -124,6 +128,7 @@ namespace Lifeline.Tests
         [TestCase(false)] [TestCase(true)]
         public void UnopenedHudPuzzleAutoSavesThenGeneratesOnceAndPreservesRotatedProgress(bool sceneUsesEmptyArrays)
         {
+            game.filterInstalled = true;
             var hud = root.AddComponent<GameHUDController>(); hud.enabled = false; hud.session = game; saves.hud = hud;
             hud.filterPuzzle = new PipeRepairPuzzle
             {

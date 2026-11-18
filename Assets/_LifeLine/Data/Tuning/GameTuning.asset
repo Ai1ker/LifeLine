@@ -18,10 +18,11 @@ MonoBehaviour:
   jumpSpeed: 7
   gravity: 20
   bagCapacity: 8
+  captainBagCapacity: 4
   baseOxygen: 50
   sprintOxygenMultiplier: 2
   reviveDistance: 2.5
-  reviveSeconds: 5
+  reviveSeconds: 4
   baseDiverHitCapacity: 2
   upgradedDiverHitCapacity: 3
   upgradedSuitImmunity: 0.25
@@ -58,7 +59,8 @@ MonoBehaviour:
   boatSpeed: 3
   diveBoatMultiplier: 0.3
   baseHull: 100
-  initialPower: 20
+  initialHull: 70
+  initialPower: 0
   maxPower: 100
   routePowerCost: 200
   routeDistance: 200
@@ -101,7 +103,7 @@ MonoBehaviour:
   craftQteHalfWindow: 0.16
   workbenchWindowMultiplier: 1.3
   craftCueInterval: 1
-  firstEngineRepairPlates: 3
+  firstEngineRepairPlates: 2
   engineFaultCount: 4
   winchCycle: 1.7
   winchCenter: 0.69

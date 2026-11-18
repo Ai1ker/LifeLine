@@ -73,7 +73,7 @@ namespace Lifeline
                 int woodAfterStart = game.GetResource(ResourceKind.Wood);
                 Check(game.CancelCraft(game.jobs[0].id) && game.GetResource(ResourceKind.Wood) == woodAfterStart, "cancel consumes materials without refund", log);
 
-                game.generatorTier = 1; game.power = 10; game.AddResource(ResourceKind.Fuel, 1);
+                game.generatorInstalled = true; game.generatorTier = 1; game.power = 10; game.AddResource(ResourceKind.Fuel, 1);
                 Check(game.BurnFuel() && Mathf.Approximately(game.power, 25), "one fuel adds exactly 15 percent", log);
                 game.lastCrankAt = -100;
                 game.generatorTier = 1;
@@ -96,16 +96,16 @@ namespace Lifeline
                 game.SetWinchActive(true); game.diver.SetOnboard(false, game.BoatAnchor + Vector3.down * 10);
                 game.winchStartDistance = .5f;
                 float before = Vector3.Distance(game.diver.Position, game.BoatAnchor);
-                Check(game.TryWinchQte(tuning.winchCenter), "captain good winch cue accepted", log);
+                Check(game.TryWinchQte(game.WinchQteCenter), "captain good winch cue accepted", log);
                 float after = Vector3.Distance(game.diver.Position, game.BoatAnchor);
                 Check(Mathf.Abs((before - after) - tuning.winchGoodDistance) < .01f, "opening winch early never teleports a later deep diver", log);
-                game.winchAttemptedThisCycle = false;
-                Check(game.TryWinchQte(0), "bad winch cue accepted for failure feedback", log);
+                game.winchAttemptedThisCycle = false; game.winchCueCooldown = 0;
+                Check(game.TryWinchQte(Mathf.Repeat(game.WinchQteCenter + .5f, 1)), "bad winch cue accepted for failure feedback", log);
                 Check(Vector3.Distance(game.diver.Position, game.BoatAnchor) >= after, "failed winch cue cannot pull target closer", log);
-                game.winchJam = 0; game.winchAttemptedThisCycle = false;
+                game.winchJam = 0; game.winchAttemptedThisCycle = false; game.winchCueCooldown = 0;
                 game.diver.SetOnboard(false, game.BoatAnchor + Vector3.down * .5f);
                 game.diver.backpack.Add(ResourceKind.Metal); int metalBefore = game.GetResource(ResourceKind.Metal);
-                game.TryWinchQte(tuning.winchCenter);
+                game.TryWinchQte(game.WinchQteCenter);
                 Check(game.diver.onboard && game.diver.backpack.Count == 0 && game.GetResource(ResourceKind.Metal) == metalBefore + 1, "only captain winch boards and banks exact backpack", log);
 
                 game.diver.SetOnboard(false, game.BoatAnchor + Vector3.down * 10);
@@ -126,12 +126,12 @@ namespace Lifeline
                 game.diver.SetOnboard(true, game.captain.Position + Vector3.right);
                 game.diver.SetDowned(true);
                 game.HandleCommand(game.captain, new CrewCommand { role = CrewRole.Captain, interactHeld = true });
-                game.StepSimulation(4.9f);
-                Check(game.diver.downed, "revive cannot complete before five seconds", log);
+                game.StepSimulation(3.9f);
+                Check(game.diver.downed, "revive cannot complete before four seconds", log);
                 game.HandleCommand(game.captain, new CrewCommand { role = CrewRole.Captain }); game.StepSimulation(.01f);
                 Check(game.reviveProgress[0] == 0, "release interrupts revive and resets progress", log);
-                game.HandleCommand(game.captain, new CrewCommand { role = CrewRole.Captain, interactHeld = true }); game.StepSimulation(5);
-                Check(!game.diver.downed, "five continuous seconds revive teammate", log);
+                game.HandleCommand(game.captain, new CrewCommand { role = CrewRole.Captain, interactHeld = true }); game.StepSimulation(4);
+                Check(!game.diver.downed, "four continuous seconds revive teammate", log);
 
                 game.radioStage = 2; game.elapsed = tuning.daySeconds * 2 + tuning.daySeconds * .9f;
                 Check(!game.IsShadowSpawnAllowed, "shadow excluded before three complete days", log);

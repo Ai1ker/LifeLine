@@ -25,7 +25,7 @@ namespace Lifeline
                 world.middleResourceWeights = new Vector4(0, 1, 0, 0);
                 world.deepResourceWeights = new Vector4(0, 0, 1, 0);
                 world.Generate(8417);
-                Require(world.layouts.Count == 10, "three areas x three depth bands plus forced cave");
+                Require(world.layouts.Count == 27, "route coverage expands the original nine ruins to twenty-six, plus forced cave");
                 foreach (var maze in world.layouts)
                 {
                     int roots = 0;
@@ -38,7 +38,7 @@ namespace Lifeline
                 var actualCounts = new int[9];
                 foreach (var pickup in world.pickups)
                 {
-                    if (pickup.mazeIndex < 0 || pickup.mazeIndex >= 9 || pickup.isCrate || pickup.resource == ResourceKind.Fish) continue;
+                    if (pickup.mazeIndex < 0 || pickup.mazeIndex >= 9 || pickup.isCrate || pickup.resource == ResourceKind.Fish || pickup.GetComponent<FilterSalvage>() != null) continue;
                     actualCounts[pickup.mazeIndex]++;
                     ResourceKind expected = world.weightedResourceKinds[pickup.mazeIndex / 3];
                     if (pickup.isCabinet) foreach (var item in pickup.contents) Require(item == expected, "cabinet uses sea-area weights at every depth");

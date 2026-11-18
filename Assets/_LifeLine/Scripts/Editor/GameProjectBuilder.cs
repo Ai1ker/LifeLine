@@ -423,6 +423,8 @@ namespace Lifeline.Editor
             AppendFields(text, UnityEngine.Object.FindAnyObjectByType<ShipRouteView>());
             AppendFields(text, UnityEngine.Object.FindAnyObjectByType<DiverLifelineView>());
             AppendFields(text, UnityEngine.Object.FindAnyObjectByType<GameSaveManager>());
+            AppendFields(text, UnityEngine.Object.FindAnyObjectByType<TutorialProgress>());
+            AppendFields(text, UnityEngine.Object.FindAnyObjectByType<OnboardingView>());
             var hud = UnityEngine.Object.FindAnyObjectByType<GameHUDController>();
             if (hud != null) AppendFields(text, hud.filterPuzzle);
             text.Append("\n## 可替换预制体的参数\n\n以下为预制体 Inspector 值。敌人生命等运行初始化值另见机制文档，不以此处未生成的运行状态代替。\n");
@@ -439,6 +441,7 @@ namespace Lifeline.Editor
             {
                 text.Append("\n## 配方 ").Append(recipe.id).Append(" / ").Append(recipe.displayName).Append("\n\n");
                 text.Append("成本：").Append(Amounts(recipe.cost)).Append("；产出：").Append(Amounts(recipe.output)).Append("；工具=").Append(recipe.toolId).Append("；电台阶段=").Append(recipe.radioStage).Append("；船体恢复=").Append(recipe.repairAmount).Append("；制作时间倍率=").Append(recipe.craftTimeMultiplier).Append("。\n");
+                text.Append("前置工具：").Append(recipe.requiredToolIds == null || recipe.requiredToolIds.Length == 0 ? "无" : string.Join(", ", recipe.requiredToolIds)).Append("；消耗工具：").Append(recipe.consumedToolIds == null || recipe.consumedToolIds.Length == 0 ? "无" : string.Join(", ", recipe.consumedToolIds)).Append("。\n");
             }
             File.WriteAllText(Root + "/Documentation/02_实际数值参考.md", text.ToString());
         }

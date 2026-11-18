@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 namespace Lifeline
 {
@@ -18,11 +18,8 @@ namespace Lifeline
             if(power!=null){power.enabled=visible;power.text=UiLocalization.Text("电力")+" "+session.power.ToString("0")+" / "+session.tuning.maxPower.ToString("0")+"%";}
             if(oxygen!=null)
             {
-                oxygen.enabled=visible;string text="";
-                foreach(var actor in session.Crew)if(actor!=null&&!actor.onboard)
-                    text+=(text.Length>0?"   ":"")+UiLocalization.Text(GameNames.Role(actor.role)+"氧气")+" "+actor.oxygen.ToString("0")+" / "+session.GetOxygenMax(actor).ToString("0")+"s";
-                if(text=="")text=UiLocalization.Text("潜水员氧气")+" "+session.diver.oxygen.ToString("0")+" / "+session.GetOxygenMax().ToString("0")+"s";
-                oxygen.text=text;
+                oxygen.enabled=visible && session.diver!=null;
+                if(session.diver!=null)oxygen.text=UiLocalization.Text("潜水员氧气")+" "+session.diver.oxygen.ToString("0")+" / "+session.GetOxygenMax().ToString("0")+"s";
             }
         }
     }

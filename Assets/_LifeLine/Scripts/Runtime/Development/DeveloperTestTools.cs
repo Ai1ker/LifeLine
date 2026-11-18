@@ -11,6 +11,7 @@ namespace Lifeline.Development
         public Rect window = new Rect(15, 200, 390, 420);
         public int resourceAmount = 10;
         public int testDay = 2;
+        public bool skipInteractionQte;
         GameSaveManager save;
         string previousPath;
         float previousScale = 1;
@@ -28,6 +29,7 @@ namespace Lifeline.Development
             if (Keyboard.current != null && Keyboard.current.f8Key.wasPressedThisFrame) visible = !visible;
             // Test commands must not overwrite the player's automatic/manual slot.
             if (save != null && save.gameObject.scene != UnityEngine.SceneManagement.SceneManager.GetActiveScene()) ReleaseSave();
+            if (skipInteractionQte) CompleteOpenInteractions();
         }
         void IsolateSave()
         {
@@ -49,6 +51,9 @@ namespace Lifeline.Development
             if (game == null || !game.IsInitialized) { GUILayout.Label(T("Start a local game first.")); GUI.DragWindow(); return; }
             GUILayout.Label(T("Commands use a separate developer save slot."));
             GUILayout.Label("DAY " + game.day + " · " + game.WinchTargetCount + " × " + game.WinchEfficiency.ToString("P0"));
+            bool skip = GUILayout.Toggle(skipInteractionQte, T("Skip active interaction QTE"));
+            if (skip != skipInteractionQte) { IsolateSave(); skipInteractionQte = skip; }
+            if (GUILayout.Button(T("Complete current interaction"))) { IsolateSave(); CompleteOpenInteractions(); }
             GUILayout.BeginHorizontal();
             testDay = Mathf.Clamp(testDay, 1, 99);
             if (GUILayout.Button("-")) { testDay = Mathf.Max(1,testDay-1); SetTime(game,game.DayProgress); }
@@ -88,6 +93,19 @@ namespace Lifeline.Development
         {
             if(game==null||game.world==null)return;
             IsolateSave();testDay=game.day+1;game.world.forceCaveDay=testDay;game.SetDayClock(testDay,.1f);
+        }
+        public bool CompleteOpenInteractions()
+        {
+            var game = GameSession.Current;
+            if (game == null || !game.IsInitialized || game.phase != SessionPhase.Playing) return false;
+            IsolateSave(); bool completed = false;
+            foreach (var hud in FindObjectsByType<GameHUDController>())
+                if (hud.session == game)
+                {
+                    completed |= game.DeveloperCompleteInteraction(hud.captainPanel, game.captain, hud);
+                    completed |= game.DeveloperCompleteInteraction(hud.diverPanel, game.diver, hud);
+                }
+            return completed;
         }
         public void SetTime(GameSession game, float fraction)
         {

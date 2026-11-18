@@ -17,6 +17,9 @@ namespace Lifeline
         // match the logical water map. Version 1 normalizes ship-map positions on write.
         public int coordinateVersion;
         public int balanceVersion;
+        public int equipmentProgressionVersion;
+        public bool hasTutorial;
+        public TutorialSave tutorial;
         public float routeDistance;
         public float cycleSeconds, daylightSeconds, duskSeconds;
         public AreaStrike[] areaStrikes = Array.Empty<AreaStrike>();
@@ -43,6 +46,7 @@ namespace Lifeline
         public int[] upgradeLevels;
         public CrewBuffs captainBuffs, diverBuffs;
         public bool hasRod, hasHarpoon, hasSpeargun;
+        public bool generatorInstalled, repairBenchInstalled, filterInstalled;
         public float hull, hullMax, power;
         public bool filterRepaired, circuitRepaired, engineRepaired, engineEverRepaired;
         public int engineRepairVersion, generatorTier, turretTier;
@@ -61,6 +65,8 @@ namespace Lifeline
         public CrewRole winchOperatorRole;
         public float winchProgress, winchCycleTime, winchJam, winchStartDistance;
         public bool winchAttemptedThisCycle;
+        public float winchTargetCenter, winchCueCooldown;
+        public bool winchCenterInitialized;
         public string winchTargetKind;
         public string winchCargoId;
         public float lastSignalAt;

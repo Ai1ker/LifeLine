@@ -17,6 +17,7 @@ namespace Lifeline
             {
                 Require(data != null && data.version == GameSaveData.CurrentVersion, "存档版本不受支持。");
                 Require(data.balanceVersion >= 0 && data.balanceVersion <= 1 && data.routeDistance >= 0, "存档版本不受支持。");
+                Require(data.equipmentProgressionVersion >= 0 && data.equipmentProgressionVersion <= 1, "存档设备版本不受支持。");
                 Require(data.coordinateVersion >= 0 && data.coordinateVersion <= 1, "存档版本不受支持。");
                 Require((data.diverRopeContacts == null || data.diverRopeContacts.Length <= 256) && (data.cargoRopeContacts == null || data.cargoRopeContacts.Length <= 256), "存档世界数据不完整。");
                 CheckFinite(data, new HashSet<object>());
@@ -24,6 +25,7 @@ namespace Lifeline
                 Require(data.areaStrikes==null||data.areaStrikes.Length<=128,"存档战斗数据不完整。");
                 if(data.areaStrikes!=null)foreach(var strike in data.areaStrikes)Require(strike!=null&&EnumValue(strike.kind)&&strike.remaining>=0&&strike.duration>0&&strike.radius>0&&strike.hullDamage>=0,"存档战斗数据不完整。");
                 SessionSaveState state = data.state;
+                if (state != null) Require(state.winchTargetCenter >= 0 && state.winchTargetCenter <= 1 && state.winchCueCooldown >= 0, "存档绞盘节奏数据无效。");
                 Require(state != null && state.day >= 1 && state.elapsed >= 0 && data.lastAutoSavedDay >= 0 && data.lastAutoSavedDay <= state.day, "存档时间无效。");
                 Require(state.bank != null && state.upgradeLevels != null && state.upgradeLevels.Length == Enum.GetValues(typeof(UpgradeKind)).Length, "存档经济数据不完整。");
                 foreach (ResourceAmount amount in state.bank) Require(amount != null && amount.amount >= 0 && EnumValue(amount.resource), "存档物资数量无效。");

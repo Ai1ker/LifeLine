@@ -13,6 +13,8 @@ namespace Lifeline.Development
                 case "Start a local game first.": return "请先进入本地游戏。";
                 case "Commands use a separate developer save slot.": return "测试命令使用独立开发存档，不覆盖玩家存档。";
                 case "Next day with cave": return "下一天（必出洞穴）";
+                case "Skip active interaction QTE": return "跳过当前设备QTE（保留材料消耗）";
+                case "Complete current interaction": return "立即完成当前设备交互";
                 case "Daylight": return "白天";
                 case "Thunderstorm": return "雷雨夜";
                 case "Move both crew into cabin": return "两名船员移入船舱";

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,6 +13,7 @@ namespace Lifeline
         public SessionAuthority authority;
         public Text bankText, shipText, captainText, diverText, questText, messageText, clockText;
         public Text questChapterText;
+        public OnboardingView onboarding;
         public Image hullFill, powerFill, oxygenFill;
         public CrewStationPanel captainPanel, diverPanel;
         public Button pauseButton, controlsButton, resumeButton, restartButton, menuButton;
@@ -59,6 +60,9 @@ namespace Lifeline
             endingMenuButton?.onClick.AddListener(ReturnMenu);
             if (pausePanel != null) pausePanel.SetActive(false);
             if (endingPanel != null) endingPanel.SetActive(false);
+            if (onboarding == null) onboarding = GetComponent<OnboardingView>();
+            if (onboarding == null) onboarding = gameObject.AddComponent<OnboardingView>();
+            onboarding.Initialize(this);
             initialized = true;
         }
         private void OnDestroy()
@@ -93,8 +97,7 @@ namespace Lifeline
             clockText.text = "DAY " + session.day + " · " + (session.IsNight ? "夜晚" : session.IsDusk ? "黄昏" : "白昼") + "  " + (session.elapsed % session.tuning.daySeconds).ToString("0") + "s";
             hullFill.fillAmount = session.hullMax > 0 ? session.hull / session.hullMax : 0;
             powerFill.fillAmount = session.power / Mathf.Max(1, session.tuning.maxPower);
-            var oxygenActor=session.captain!=null&&!session.captain.onboard?session.captain:session.diver;
-            oxygenFill.fillAmount=oxygenActor.oxygenMax>0?oxygenActor.oxygen/oxygenActor.oxygenMax:0;
+            if(oxygenFill!=null && session.diver!=null)oxygenFill.fillAmount=session.diver.oxygenMax>0?session.diver.oxygen/session.diver.oxygenMax:0;
         }
         private string CrewLabel(CrewActor actor)
         {

@@ -47,6 +47,7 @@ namespace Lifeline
                 try { runtimeActions.LoadBindingOverridesFromJson(saved); }
                 catch (Exception error) { Debug.LogWarning("Could not load " + role + " input overrides: " + error.Message, this); }
             }
+            CrewInputDefaults.MigrateInteractionBindings(runtimeActions, true);
             moveAction = map.FindAction("Move", true);
             interactAction = map.FindAction("Interact", true);
             collectAction = map.FindAction("Collect", true);

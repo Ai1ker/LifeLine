@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -8,6 +8,9 @@ namespace Lifeline
     public class MainMenuController : MonoBehaviour
     {
         public string gameplaySceneName = "Gameplay";
+        [Min(0)] public float newGameFadeSeconds = .2f;
+        [Min(0)] public float newGameFadeOutSeconds = .1f;
+        public bool IsStartingGame { get; private set; }
         public Button localCoopButton, controlsButton, quitButton;
         public Button settingsButton;
         public Button continueButton;
@@ -23,7 +26,7 @@ namespace Lifeline
             if (captainInput != null) captainInput.Initialize(CrewRole.Captain, inputAsset);
             if (diverInput != null) diverInput.Initialize(CrewRole.Diver, inputAsset);
             if (controls != null) { controls.captainInput = captainInput; controls.diverInput = diverInput; }
-            if (localCoopButton != null) localCoopButton.onClick.AddListener(() => SceneManager.LoadScene(gameplaySceneName));
+            if (localCoopButton != null) localCoopButton.onClick.AddListener(RequestStartGame);
             if (continueButton != null) continueButton.onClick.AddListener(RequestContinue);
             if (controlsButton != null) controlsButton.onClick.AddListener(() => controls.Open());
             if (settingsButton != null) settingsButton.onClick.AddListener(() => settings.Open());
@@ -42,8 +45,21 @@ namespace Lifeline
             if (settings != null && settings.IsOpen) { settings.Close(); return true; }
             return false;
         }
-        public void RequestContinue() { ContinueRequested?.Invoke(); }
-        public void SetContinueAvailable(bool available) { if (continueButton != null) continueButton.interactable = available; }
+        public void RequestContinue() { if (!IsStartingGame) ContinueRequested?.Invoke(); }
+        public void RequestStartGame()
+        {
+            if (IsStartingGame || SceneFadeTransition.IsTransitioning) return;
+            IsStartingGame = true; GameSaveManager.RequestNewGame();
+            if (localCoopButton != null) localCoopButton.interactable = false;
+            if (continueButton != null) continueButton.interactable = false;
+            SceneFadeTransition.Begin(gameplaySceneName, newGameFadeSeconds, newGameFadeOutSeconds);
+        }
+        public void SetContinueAvailable(bool available)
+        {
+            if (continueButton == null) return;
+            continueButton.gameObject.SetActive(available);
+            continueButton.interactable = available && !IsStartingGame;
+        }
         public void SetSaveStatus(string status) { if (saveStatusText != null) saveStatusText.text = status; }
         public void Quit()
         {

@@ -38,6 +38,7 @@ namespace Lifeline.Tests
         }
         [Test] public void RepairHealsContinuouslyRejectsSecondRepairAndDoesNotHealTwiceAfterLoad()
         {
+            game.repairBenchInstalled=true;
             game.hull=40;game.upgradeLevels[(int)UpgradeKind.Workbench]=3;
             Assert.That(game.TryCraft(repair.id,game.captain),Is.True);
             Assert.That(game.TryCraft(otherRepair.id,game.diver),Is.False,"two slots must not allow two simultaneous hull repairs");

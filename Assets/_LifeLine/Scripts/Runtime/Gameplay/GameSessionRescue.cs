@@ -128,7 +128,7 @@ namespace Lifeline
             winchOperatorRole=actor.role;winchActive = true;
             winchSignalAuthorized = false;
             winchElectric = IsElectricWinch && circuitRepaired && (power > 0 || infinitePower);
-            winchCycleTime = 0; winchAttemptedThisCycle = false;
+            winchCycleTime = 0; winchAttemptedThisCycle = false; ResetWinchTarget();
             PrepareWinchTarget();
             Tell(winchElectric ? "船长启动了电动绞盘，关闭面板后仍会继续接回目标。" : "手动绞盘缓慢收绳。成功校准加进度，失败会回滑。"); Changed();
         }
@@ -169,6 +169,7 @@ namespace Lifeline
         void UpdateWinch(float dt)
         {
             winchJam = Mathf.Max(0, winchJam - dt);
+            winchCueCooldown = Mathf.Max(0, winchCueCooldown - dt);
             winchFeedbackTime = Mathf.Max(0, winchFeedbackTime - dt);
             if (winchFeedbackTime <= 0 && !winchActive && !winchElectric && winchProgress >= 1) { winchTargetKind = ""; winchProgress = 0; }
             if (winchElectric && !infinitePower && power <= 0) { winchElectric = false; winchSignalAuthorized = false; }
@@ -176,21 +177,24 @@ namespace Lifeline
             if (!CaptainCanWinch()) { winchActive = winchElectric = false; return; }
             PrepareWinchTarget();
             float cycle = Mathf.Max(.1f, tuning.winchCycle);
-            if (winchCycleTime + dt >= cycle) winchAttemptedThisCycle = false;
-            winchCycleTime = Mathf.Repeat(winchCycleTime + dt, cycle);
+            float interactionDt = dt * WinchInteractionSpeed;
+            if (!winchCenterInitialized) ResetWinchTarget();
+            if (winchCycleTime + interactionDt >= cycle) { winchAttemptedThisCycle = false; RefreshWinchTarget(); }
+            winchCycleTime = Mathf.Repeat(winchCycleTime + interactionDt, cycle);
             if (winchTargetKind == "" || winchTargetKind == "survivors" || winchJam > 0) return;
-            MoveWinch(tuning.winchPassiveSpeed * dt + (winchElectric ? tuning.winchElectricSpeed * dt : 0));
+            MoveWinch(tuning.winchPassiveSpeed * interactionDt + (winchElectric ? tuning.winchElectricSpeed * interactionDt : 0));
         }
 
         public float WinchQteWidth => tuning.winchOriginalWidth * (1 + tuning.winchBaseBonus + (GetUpgrade(UpgradeKind.Rope) >= 2 ? tuning.winchT2Bonus : 0));
 
         public bool TryWinchQte(float normalizedAngle)
         {
-            if (phase != SessionPhase.Playing || (!winchActive && !winchElectric) || !CaptainCanWinch() || winchJam > 0 || winchAttemptedThisCycle) return false;
+            if (phase != SessionPhase.Playing || (!winchActive && !winchElectric) || !CaptainCanWinch() || winchJam > 0 || winchCueCooldown > 0) return false;
             PrepareWinchTarget();
             if (string.IsNullOrEmpty(winchTargetKind)) return false;
             winchAttemptedThisCycle = true;
-            bool good = Mathf.Abs(Mathf.Repeat(normalizedAngle, 1) - tuning.winchCenter) <= WinchQteWidth * .5f;
+            bool good = CircularQteDistance(normalizedAngle, WinchQteCenter) <= WinchQteWidth * .5f;
+            winchCueCooldown = winchMinimumInputInterval;
             winchFeedback = good ? "校准成功 +" + (tuning.winchGoodDistance * WinchEfficiency).ToString("0.00") + "m" : "校准失败 −" + (tuning.winchBadDistance / Mathf.Max(1, WinchTargetCount)).ToString("0.00") + "m";
             winchFeedbackTime = 1.2f;
             if (winchTargetKind == "survivors")
@@ -200,6 +204,7 @@ namespace Lifeline
             }
             else MoveWinch(good ? tuning.winchGoodDistance : -tuning.winchBadDistance);
             if (!good) { winchJam = .3f; AttractEnemies(BoatAnchor); }
+            RefreshWinchTarget();
             Changed(); return true; // accepted mistakes also return true so the UI can show failure feedback.
         }
 
@@ -244,12 +249,14 @@ namespace Lifeline
         void BankDiver()
         {
             if (diver == null || diver.onboard) return;
+            bool needsRevive = IsIncapacitated(diver);
             foreach (ResourceKind item in diver.backpack) AddResource(item, 1);
             int delivered = diver.backpack.Count; diver.backpack.Clear();
             diver.SetHidden(false);diver.fainted=false;
             diver.SetOnboard(true, ShipPoint(bankArrivalLocal));
             if (diverRope != null) diverRope.ResetRoute();
-            diverFainted = false; diverHidden = false; diverSprinting = false; diverBites = 0; diverInvulnerable = 0;
+            diverFainted = false; diverHidden = false; diverSprinting = false; diverBites = needsRevive ? GetMaxDiverBites() : 0; diverInvulnerable = 0;
+            diver.SetDowned(needsRevive);
             diver.oxygenMax = GetOxygenMax(); diver.oxygen = diver.oxygenMax;
             signalCount = 0;
             Tell("船长接回潜水员，" + delivered + "件物资已卸入共享仓库。" + (diver.downed ? "靠近倒地潜水员按交互进行救助。" : ""));
@@ -276,7 +283,7 @@ namespace Lifeline
             if (other == null || !other.downed) return false;
             if (!CanReviveFrom(actor, other)) return false;
             int index = (int)actor.role;
-            if (reviveTargets[index] != other) { reviveTargets[index] = other; reviveProgress[index] = 0; Tell("按住交互5秒，扶起" + GameNames.Role(other.role) + "；松开或离开会中断。"); }
+            if (reviveTargets[index] != other) { reviveTargets[index] = other; reviveProgress[index] = 0; Tell(string.Format("按住交互{0}秒，扶起{1}；松开或离开会中断。", tuning.reviveSeconds.ToString("0.#"), GameNames.Role(other.role))); }
             return true;
         }
 

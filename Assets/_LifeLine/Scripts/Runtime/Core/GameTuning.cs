@@ -12,10 +12,11 @@ namespace Lifeline
         public float jumpSpeed = 7f;
         public float gravity = 20f;
         [Min(1)] public int bagCapacity = 8;
+        [Min(1), Tooltip("Captain-only fixed capacity; unaffected by backpack upgrades or fish capacity buffs.")] public int captainBagCapacity = 4;
         public float baseOxygen = 50f;
         public float sprintOxygenMultiplier = 2f;
         public float reviveDistance = 2.5f;
-        [Min(.1f)] public float reviveSeconds = 5f;
+        [Min(.1f)] public float reviveSeconds = 4f;
         [Tooltip("Hit units: base 2, suit T1 3, T2/T3 4. T3 adds immunity.")]
         [Min(1)] public int baseDiverHitCapacity = 2;
         [Min(1)] public int upgradedDiverHitCapacity = 3;
@@ -41,7 +42,8 @@ namespace Lifeline
         public float boatSpeed = 3f;
         [Range(.01f, 1)] public float diveBoatMultiplier = .3f;
         public float baseHull = 100f;
-        public float initialPower = 20f;
+        [Min(0), Tooltip("Starting current durability; baseHull remains the upgradeable maximum.")] public float initialHull = 70f;
+        public float initialPower = 0f;
         public float maxPower = 100f;
         public float routePowerCost = 200f;
         public float routeDistance = 200f;
@@ -79,7 +81,7 @@ namespace Lifeline
         public float craftQteHalfWindow = .16f;
         public float workbenchWindowMultiplier = 1.3f;
         public float craftCueInterval = 1f;
-        public int firstEngineRepairPlates = 3;
+        public int firstEngineRepairPlates = 2;
         public int engineFaultCount = 4;
 
         [Header("绞盘 / Winch")]

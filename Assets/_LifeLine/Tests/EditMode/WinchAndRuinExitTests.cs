@@ -56,7 +56,7 @@ namespace Lifeline.Tests
             Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Workbench), Does.Contain("20s").And.Not.Contain("+30%"));
             game.upgradeLevels[(int)UpgradeKind.Backpack] = 1;
             Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Backpack), Does.Contain("+4").And.Not.Contain("25%"));
-            Assert.That(UpgradeSummary.DisplayTier(UpgradeKind.Searchlight, 1), Is.EqualTo(2));
+            Assert.That(UpgradeSummary.DisplayTier(UpgradeKind.Searchlight, 1), Is.EqualTo(1));
         }
 
         [TestCase(8417)] [TestCase(17017)] [TestCase(-514)] [TestCase(2026)]
@@ -64,7 +64,7 @@ namespace Lifeline.Tests
         {
             var world = Child("World").AddComponent<WorldGenerator>(); world.tuning = tuning; world.session = game;
             world.geometryLayer = 20; world.pickupLayer = 21; world.drawLabels = false; world.forceCave = true; game.world = world;
-            world.Generate(seed); Assert.That(world.layouts.Count, Is.EqualTo(10));
+            world.Generate(seed); Assert.That(world.layouts.Count, Is.EqualTo(27));
             foreach (var maze in world.layouts)
             {
                 var exits = maze.ExteriorExits().ToArray();

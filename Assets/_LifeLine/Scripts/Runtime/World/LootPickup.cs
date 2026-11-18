@@ -41,22 +41,30 @@ namespace Lifeline
         public bool TryCollect(CrewActor actor)
         {
             if (!InRange(actor) || attached) return false;
+            var filter = GetComponent<FilterSalvage>();
             if (isCrate && contents.Count == 0) return false;
-            if (!isCrate && actor.backpack.Count >= actor.BagCapacity) return false;
+            if (!isCrate && filter == null && actor.backpack.Count >= actor.BagCapacity) return false;
             float now = Time.time;
             if (collector != actor || now - lastCollectAt > .2f)
             {
                 collector = actor; startedAt = now; CollectionProgress = 0;
             }
             lastCollectAt = now;
-            float duration = isCrate ? attachSeconds : isCabinet ? cabinetSeconds : collectSeconds;
+            float duration = filter != null ? filter.salvageSeconds : isCrate ? attachSeconds : isCabinet ? cabinetSeconds : collectSeconds;
             if (actor.session != null) duration /= Mathf.Max(.01f, actor.session.GetCollectSpeedMultiplier(actor));
             CollectionProgress = Mathf.Clamp01((now - startedAt) / Mathf.Max(.01f, duration));
             if (CollectionProgress < 1) return true;
-            if (isCrate)
+            int backpackBefore = actor.backpack.Count;
+            if (filter != null)
+            {
+                if (!filter.TryAcquire(actor)) return false;
+                Consume();
+            }
+            else if (isCrate)
             {
                 attached = true;
                 if (actor.session != null) actor.session.RegisterAttachedCargo(this);
+                actor.session?.GetComponent<TutorialProgress>()?.Observe(TutorialAction.AttachCargo);
             }
             else if (isCabinet)
             {
@@ -74,6 +82,8 @@ namespace Lifeline
                 }
                 if (amount == 0) Consume();
             }
+            if (actor.role == CrewRole.Diver && actor.backpack.Count > backpackBefore)
+                actor.session?.GetComponent<TutorialProgress>()?.Observe(TutorialAction.Collect);
             collector = null; CollectionProgress = 0; lastCollectAt = -100f;
             RefreshVisual();
             return true;
@@ -85,6 +95,8 @@ namespace Lifeline
                 return false;
             int last = actor.backpack.Count - 1;
             contents.Add(actor.backpack[last]); actor.backpack.RemoveAt(last);
+            if (actor.role == CrewRole.Diver)
+                actor.session?.GetComponent<TutorialProgress>()?.Observe(TutorialAction.LoadCargo);
             RefreshVisual();
             return true;
         }
@@ -148,8 +160,9 @@ namespace Lifeline
         void RefreshLabel()
         {
             if (label == null) return;
+            var filter = GetComponent<FilterSalvage>();
             string progress = CollectionProgress > 0 ? " " + Mathf.RoundToInt(CollectionProgress * 100) + "%" : "";
-            label.text = isLostCargo ? LostCargoPrompt() + progress : isCrate ? (attached ? "CARGO / ATTACHED" : "CARGO " + contents.Count + "/" + capacity) + progress
+            label.text = filter != null ? filter.Prompt() + progress : isLostCargo ? LostCargoPrompt() + progress : isCrate ? (attached ? "CARGO / ATTACHED" : "CARGO " + contents.Count + "/" + capacity) + progress
                 : isCabinet ? "SALVAGE " + contents.Count + progress : GameNames.Resource(resource) + progress;
             label.text = UiLocalization.Text(label.text);
         }

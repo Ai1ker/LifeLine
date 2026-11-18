@@ -8,7 +8,7 @@ namespace Lifeline
         static string F(string source, params object[] values) => string.Format(UiLocalization.Text(source), values);
         static string N(float value) => value.ToString("0.#");
         static float At(float[] values, int level) => values[Mathf.Clamp(level, 0, values.Length - 1)];
-        public static int DisplayTier(UpgradeKind kind, int level) => level + (kind == UpgradeKind.Searchlight ? 1 : 0);
+        public static int DisplayTier(UpgradeKind kind, int level) => level;
 
         public static string NextEffect(GameSession game, UpgradeKind kind)
         {
@@ -28,7 +28,7 @@ namespace Lifeline
                 case UpgradeKind.Sail:
                     return next == 1 ? F("航速 +{0}%", N(game.sailSpeedBonus * 100))
                         : F("风暴漂移减少 {0}%", N((1 - t.sailT2DriftMultiplier) * 100));
-                case UpgradeKind.Searchlight: return UiLocalization.Text("夜潜全视野；海鸥刷新减少40%");
+                case UpgradeKind.Searchlight: return UiLocalization.Text(next == 1 ? "建造探照灯，扩大夜潜视野" : "夜潜全视野；海鸥刷新减少40%");
                 case UpgradeKind.Backpack:
                     string bag = F("背包 +{0}格", t.backpackSlotsByLevel[next] - t.backpackSlotsByLevel[level]);
                     return next == 1 || next == 3 ? bag + F("；采集速度 +{0}%", N(t.backpackCollectionBonus * 100)) : bag;

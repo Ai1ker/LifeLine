@@ -135,7 +135,7 @@ namespace Lifeline
             }
             if (IsNight)
             {
-                float rate = LightEffective && GetUpgrade(UpgradeKind.Searchlight) >= 1 ? tuning.upgradedLightBirdRate : 1;
+                float rate = LightEffective && GetUpgrade(UpgradeKind.Searchlight) >= 2 ? tuning.upgradedLightBirdRate : 1;
                 birdCountdown -= dt * rate;
                 if (birdCountdown <= 0)
                 {
@@ -223,6 +223,7 @@ namespace Lifeline
             if (phase != SessionPhase.Playing || turretInstalled || !circuitRepaired) return false;
             if (!Spend(turretBuildCost)) return false;
             turretInstalled = true; turretTier = 1; turretOn = true; turretPowerClock = turretShotClock = 0;
+            RefreshEquipmentVisibility();
             Tell("甲板炮塔已安装。每3秒消耗1%电力，自动驱鸟并对抗深渊巨影。"); Changed(); return true;
         }
 

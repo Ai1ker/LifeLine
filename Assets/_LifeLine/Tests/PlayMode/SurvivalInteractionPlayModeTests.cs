@@ -42,7 +42,7 @@ namespace Lifeline.Tests
             var craft=ScriptableObject.CreateInstance<RecipeDefinition>();var repair=ScriptableObject.CreateInstance<RecipeDefinition>();
             try
             {
-                craft.id="craft";craft.displayName="Craft";craft.cost=new ResourceAmount[0];repair.id="repair";repair.displayName="Repair";repair.repairAmount=10;repair.cost=new ResourceAmount[0];game.recipes=new[]{craft,repair};game.upgradeLevels[(int)UpgradeKind.Workbench]=3;game.hull=50;
+                craft.id="craft";craft.displayName="Craft";craft.cost=new ResourceAmount[0];repair.id="repair";repair.displayName="Repair";repair.repairAmount=10;repair.cost=new ResourceAmount[0];game.recipes=new[]{craft,repair};game.upgradeLevels[(int)UpgradeKind.Workbench]=3;game.hull=50;game.repairBenchInstalled=true;
                 Assert.That(game.TryCraft("craft",game.captain));Assert.That(game.TryCraft("repair",game.captain));var crafting=game.jobs[0];var fixing=game.jobs[1];
                 var panel=Child("Panel controller").AddComponent<CrewStationPanel>();panel.panel=new GameObject("Panel",typeof(RectTransform));panel.panel.transform.SetParent(root.transform);panel.titleText=Label("Title",panel.panel.transform);panel.detailText=Label("Detail",panel.panel.transform);panel.liveText=Label("Live",panel.panel.transform);
                 panel.actionsRoot=new GameObject("Actions",typeof(RectTransform)).GetComponent<RectTransform>();panel.actionsRoot.SetParent(panel.panel.transform);
@@ -64,7 +64,7 @@ namespace Lifeline.Tests
             var bag=game.world.pickups.Single(p=>p.isLostCargo);bag.attached=true;game.RegisterAttachedCargo(bag);
             game.SetWinchActive(true);Assert.That(game.winchActive);Assert.That(game.winchElectric,Is.False);
             for(int i=0;i<20&&(!game.diver.onboard||!bag.consumed);i++)
-            {game.TryWinchQte(tuning.winchCenter);game.StepSimulation(tuning.winchCycle+.01f);yield return null;}
+            {game.TryWinchQte(game.WinchQteCenter);game.StepSimulation(tuning.winchCycle+.01f);yield return null;}
             Assert.That(game.diver.onboard,Is.True,"pos="+game.diver.Position+" anchor="+game.BoatAnchor+" active="+game.winchActive+" targets="+game.WinchTargetCount+" blocked="+game.diverRope.IsBlocked+" path="+game.diverRope.PathLength+" cap="+game.captain.Position+" phase="+game.phase+" feedback="+game.winchFeedback);Assert.That(bag.consumed,Is.True,"cargo="+bag.transform.position+" active="+game.winchActive+" targets="+game.WinchTargetCount);Assert.That(game.phase,Is.EqualTo(SessionPhase.Playing));
             game.power=100;game.BeginDive();game.diver.RestorePose(false,game.BoatAnchor+Vector3.down*4,Vector3.zero,Vector2.up);game.SetWinchActive(true);game.SetWinchActive(false);
             for(int i=0;i<40&&!game.diver.onboard;i++){game.StepSimulation(.1f);yield return null;}Assert.That(game.diver.onboard,Is.True,"powered T3 continues after leaving panel at night");

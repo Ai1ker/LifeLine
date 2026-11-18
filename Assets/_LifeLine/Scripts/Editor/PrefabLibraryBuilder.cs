@@ -476,8 +476,10 @@ namespace Lifeline.Editor
                 Recipe("03_Bundle","bundle","纤维束","2份纤维加工为1束。",new[] { Cost(ResourceKind.Fiber,2) },new[] { Cost(ResourceKind.FiberBundle,1) }),
                 Recipe("04_Bait","bait","鲨鱼诱饵","投放后将附近鲨鱼引开8秒。",new[] { Cost(ResourceKind.Fish,1),Cost(ResourceKind.Fiber,1) },new[] { Cost(ResourceKind.Bait,1) }),
                 Recipe("05_Rod","rod","钓鱼竿","解锁垂钓与优质鱼。",new[] { Cost(ResourceKind.Plank,1),Cost(ResourceKind.FiberBundle,1) },tool:"rod"),
-                Recipe("06_Harpoon","harpoon","鱼叉","永久近战工具，制作鱼枪时保留。",new[] { Cost(ResourceKind.Plate,1) },tool:"harpoon"),
-                Recipe("07_Speargun","speargun","射矛枪","先制作鱼叉；独立鱼枪键发射，再按召回。",new[] { Cost(ResourceKind.Plate,1),Cost(ResourceKind.FiberBundle,1) },tool:"speargun"),
+                Recipe("06_Harpoon","harpoon","鱼叉","近战鱼叉；制作射矛枪时消耗1把。",new[] { Cost(ResourceKind.Plate,2) },tool:"harpoon"),
+                Recipe("07_Speargun","speargun","射矛枪","消耗1把鱼叉；独立鱼枪键发射，再按召回。",new[] { Cost(ResourceKind.Plate,2),Cost(ResourceKind.FiberBundle,2) },tool:"speargun",consumedTools:new[]{"harpoon"}),
+                Recipe("14_Generator","generator","手摇发电机","2金属、2木材、1纤维建造船舱手摇发电机。",new[]{Cost(ResourceKind.Metal,2),Cost(ResourceKind.Wood,2),Cost(ResourceKind.Fiber,1)},tool:"generator"),
+                Recipe("15_RepairBench","repair-bench","船体维修台","1木材、1金属建造船体维修台。",new[]{Cost(ResourceKind.Wood,1),Cost(ResourceKind.Metal,1)},tool:"repair-bench"),
                 Recipe("08_Antenna","antenna","无线电·天线","先修复船舱电路。",new[] { Cost(ResourceKind.Plank,1),Cost(ResourceKind.Plate,1) },radio:1),
                 Recipe("09_Receiver","receiver","无线电·接收器","接收并定位求救信号。",new[] { Cost(ResourceKind.Plate,2),Cost(ResourceKind.FiberBundle,1) },radio:2),
                 Recipe("10_Amplifier","amplifier","无线电·放大器","完成电台后从总控发起救援。",new[] { Cost(ResourceKind.Plate,2),Cost(ResourceKind.FiberBundle,2) },radio:3),
@@ -488,13 +490,13 @@ namespace Lifeline.Editor
         }
 
         static ResourceAmount Cost(ResourceKind resource,int amount) => new ResourceAmount(resource,amount);
-        static RecipeDefinition Recipe(string filename,string id,string title,string description,ResourceAmount[] cost,ResourceAmount[] output=null,string tool="",int radio=0,float repair=0,float timeMultiplier=1f)
+        static RecipeDefinition Recipe(string filename,string id,string title,string description,ResourceAmount[] cost,ResourceAmount[] output=null,string tool="",int radio=0,float repair=0,float timeMultiplier=1f,string[] consumedTools=null)
         {
             var path = Root+"/Data/Recipes/"+filename+".asset";
             var existing = AssetDatabase.LoadAssetAtPath<RecipeDefinition>(path); if (existing != null) return existing;
             var recipe = ScriptableObject.CreateInstance<RecipeDefinition>(); recipe.id=id; recipe.displayName=title; recipe.description=description;
             recipe.cost=cost; recipe.output=output??Array.Empty<ResourceAmount>(); recipe.toolId=tool; recipe.radioStage=radio; recipe.repairAmount=repair;
-            recipe.craftTimeMultiplier=timeMultiplier;
+            recipe.craftTimeMultiplier=timeMultiplier; recipe.consumedToolIds=consumedTools??Array.Empty<string>();
             AssetDatabase.CreateAsset(recipe,path); return recipe;
         }
         static T LoadOrCreateData<T>(string path) where T:ScriptableObject

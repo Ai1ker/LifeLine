@@ -198,7 +198,7 @@
                 {
                     "name": "",
                     "id": "14693dbe-c3f1-4a80-9f00-000000000014",
-                    "path": "<Keyboard>/r",
+                    "path": "<Keyboard>/e",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -380,16 +380,6 @@
                     "priority": 0
                 },
                 {
-                    "name": "Hide",
-                    "type": "Button",
-                    "id": "14693dbe-c3f1-4a80-9f00-000000000026",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false,
-                    "priority": 0
-                },
-                {
                     "name": "Pause",
                     "type": "Button",
                     "id": "14693dbe-c3f1-4a80-9f00-000000000027",
@@ -541,17 +531,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "Bait",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "14693dbe-c3f1-4a80-9f00-000000000035",
-                    "path": "<Keyboard>/m",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Hide",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
