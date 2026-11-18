@@ -35,8 +35,8 @@ namespace Lifeline
         public float birdExtraOneChance = .2f, birdExtraTwoChance = .1f, birdExtraDailyChance = .01f;
         public float birdExtraOneCap = .5f, birdExtraTwoCap = .25f;
         public float birdInterruptChance = .25f, armoredBirdInterruptChance = .5f;
-        [Tooltip("Base / T1 / T2 / T3 / T4 rope length in metres. T4 extends the electric winch to 100m.")]
-        public float[] ropeLengths = { 28f, 44f, 54f, 74f, 100f };
+        [Tooltip("Base / T1 / T2 / T3 / T4 / T5 rope length in metres. T3 retains electric recovery; T4 adds 20% recovery efficiency.")]
+        public float[] ropeLengths = { 38f, 54f, 74f, 100f, 150f, 200f };
 
         [Header("船舶与动力 / Ship")]
         public float boatSpeed = 3f;
@@ -53,7 +53,8 @@ namespace Lifeline
         public float eelHullMultiplier = 1.3f;
         public float eelSpeedMultiplier = 1.2f;
         public float[] hullLevels = { 100f, 150f, 220f };
-        public float[] oxygenLevels = { 50f, 75f, 120f, 150f };
+        [Tooltip("Diver oxygen in seconds: base / T1 / T2 / T3 / T4. Captain always uses baseOxygen.")]
+        public float[] oxygenLevels = { 50f, 90f, 135f, 175f, 250f };
 
         [Header("昼夜 / Day-night")]
         public float daySeconds = 200f;

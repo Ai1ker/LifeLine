@@ -22,6 +22,7 @@ namespace Lifeline.Editor
             List<LocalizationTable.Entry> defaults = CreateDefaultEntries();
             bool changed = created || overwriteExisting || table.entries == null;
             if (!overwriteExisting && UpdateKnownUiTimingCopy(table)) changed = true;
+            if (!overwriteExisting && UpdateKnownWinchCopy(table)) changed = true;
             if (overwriteExisting || table.entries == null) table.entries = new List<LocalizationTable.Entry>();
             var keys = new HashSet<string>();
             foreach (LocalizationTable.Entry existing in table.entries) if (existing != null && !string.IsNullOrEmpty(existing.key)) keys.Add(existing.key);
@@ -46,6 +47,22 @@ namespace Lifeline.Editor
             }
             if (changed) table.NotifyChanged();
             return changed;
+        }
+
+        /// <summary>Replace the former shipped winch instruction without overwriting authored translations.</summary>
+        public static bool UpdateKnownWinchCopy(LocalizationTable table)
+        {
+            if (table == null || table.entries == null) return false;
+            foreach (var entry in table.entries)
+            {
+                if (entry == null || entry.key != "winch.random.window"
+                    || entry.zh != "绿色判定区在转满一圈或每次判定后换位。成功收绳，失败回滑。"
+                    || entry.en != "The green window moves after each revolution or result. Success reels in; a miss slips back.") continue;
+                entry.zh = "绿色判定区仅在每次判定后换位，指针转圈不会换位。成功收绳，失败回滑。";
+                entry.en = "The green window moves only after each input result, not after a revolution. Success reels in; a miss slips back.";
+                table.NotifyChanged(); return true;
+            }
+            return false;
         }
 
         static void EnsureFolder(string folder)
@@ -97,6 +114,7 @@ namespace Lifeline.Editor
                 new LocalizationTable.Entry("save.error.upgrades", "存档升级等级无效。", "The saved upgrade levels are invalid."),
                 new LocalizationTable.Entry("save.error.time", "存档时间无效。", "The saved time is invalid."),
                 new LocalizationTable.Entry("save.error.world", "存档世界数据不完整。", "World data is missing from the save."),
+                new LocalizationTable.Entry("save.error.world.events", "存档世界事件日期无效。", "The saved world event dates are invalid."),
                 new LocalizationTable.Entry("save.error.world.seed", "存档世界种子与当前地图配置不兼容。", "The saved world seed does not match the current map configuration."),
                 new LocalizationTable.Entry("save.error.projectiles", "存档投射物数据无效。", "The saved projectile data is invalid."),
                 new LocalizationTable.Entry("save.error.puzzle", "存档维修小游戏数据不完整。", "Repair puzzle data is missing from the save."),
@@ -568,7 +586,7 @@ namespace Lifeline.Editor
                 new LocalizationTable.Entry("filter.active", "海水过滤器启用：船上设备交互效率提升20%，水下移动速度提升20%。", "Filter active: onboard device interaction efficiency +20%; underwater movement speed +20%."),
                 new LocalizationTable.Entry("filter.repair.cost", "消耗2铁板，旋转管道把左侧入口连到右侧出口。", "Spend 2 iron plates, then rotate pipes to connect the left inlet to the right outlet."),
                 new LocalizationTable.Entry("engine.repair.cost", "初次消耗2铁板：清理四处油污并匹配四种故障零件。", "First repair costs 2 iron plates: clean four oily faults and match their repair parts."),
-                new LocalizationTable.Entry("winch.random.window", "绿色判定区在转满一圈或每次判定后换位。成功收绳，失败回滑。", "The green window moves after each revolution or result. Success reels in; a miss slips back."),
+                new LocalizationTable.Entry("winch.random.window", "绿色判定区仅在每次判定后换位，指针转圈不会换位。成功收绳，失败回滑。", "The green window moves only after each input result, not after a revolution. Success reels in; a miss slips back."),
                 new LocalizationTable.Entry("light.build.first", "建造探照灯，扩大夜潜视野", "Build a searchlight to expand night-dive visibility"),
                 new LocalizationTable.Entry("equipment.voyage.requirements", "救援航程需要完整三级电台与修复电路，并接回潜水员。修复引擎后才能航行。", "The rescue voyage requires all three radio stages, repaired circuitry and the diver aboard. Repair the engine before sailing."),
                 new LocalizationTable.Entry("save.equipment.version", "存档设备版本不受支持。", "This equipment save version is not supported."),

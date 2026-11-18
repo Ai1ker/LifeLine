@@ -21,7 +21,7 @@ namespace Lifeline
             RefreshLifelines();
             var data = new GameSaveData
             {
-                areaStrikes=areaStrikes.ToArray(), coordinateVersion = 1, balanceVersion=1, equipmentProgressionVersion=1, routeDistance=tuning.routeDistance, savedUtc = DateTime.UtcNow.ToString("O"), state = new SessionSaveState(),
+                areaStrikes=areaStrikes.ToArray(), coordinateVersion = 1, balanceVersion=BalanceSaveMigration.CurrentVersion, equipmentProgressionVersion=1, routeDistance=tuning.routeDistance, savedUtc = DateTime.UtcNow.ToString("O"), state = new SessionSaveState(),
                 cycleSeconds = tuning.daySeconds, daylightSeconds = tuning.daySeconds * tuning.dayFraction, duskSeconds = tuning.daySeconds * tuning.duskFraction,
                 shipPosition = ship != null ? ShipToWaterPoint(ship.Position) : Vector3.zero,
                 captainRopeContacts=captainRope!=null?captainRope.CaptureContacts():Array.Empty<Vector3>(),
@@ -44,6 +44,7 @@ namespace Lifeline
             if (world != null)
             {
                 data.world.forceCaveDay=world.forceCaveDay;
+                data.world.forceFilterDay=world.forceFilterDay;
                 data.world.present = true; data.world.activeDay = world.activeDay; data.world.generatedSeed = world.generatedSeed;
                 var pickups = new List<PickupSaveState>();
                 string prefix = world.generatedSeed + ":" + world.activeDay + ":";
@@ -139,7 +140,7 @@ namespace Lifeline
                 {
                     foreach (LootPickup old in world.pickups.ToArray())
                         if (old != null && (world.generatedRoot == null || !old.transform.IsChildOf(world.generatedRoot))) RemoveSavedObject(old.gameObject);
-                    world.session = this; world.tuning = tuning;world.forceCaveDay=data.world.forceCaveDay; world.Generate(worldSeed);
+                    world.session = this; world.tuning = tuning;world.forceCaveDay=data.world.forceCaveDay;world.forceFilterDay=data.world.forceFilterDay; world.Generate(worldSeed);
                     RestoreWorld(data.world);
                 }
                 RestoreCrew(captain, data.captain); RestoreCrew(diver, data.diver); IgnoreCrewCollision();

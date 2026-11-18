@@ -30,7 +30,7 @@ namespace Lifeline
         void RefreshWinchTarget()
         {
             float next = Random.value;
-            // Visibly change the window after every result/revolution, including near the 0/1 seam.
+            // Only an accepted player result moves the window; idle revolutions leave it in place.
             if (CircularQteDistance(next, winchTargetCenter) < .15f) next = Mathf.Repeat(winchTargetCenter + Random.Range(.2f, .8f), 1);
             winchTargetCenter = next; winchCenterInitialized = true;
         }

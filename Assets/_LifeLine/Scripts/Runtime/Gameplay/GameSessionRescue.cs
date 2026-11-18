@@ -30,6 +30,9 @@ namespace Lifeline
             route.ApplyLengthLimit(actor, ropeLength);
         }
 
+        // Optional implementation lives in the removable Development folder.
+        partial void OverrideOxygenDrain(CrewActor actor, ref float drain);
+
         void UpdateOxygen(float dt)
         {
             if (diver == null) return;
@@ -51,6 +54,7 @@ namespace Lifeline
             }
             if (diver.downed) return;
             float drain = (diverSprinting ? tuning.sprintOxygenMultiplier : 1) * (IsNight ? nightOxygenMultiplier : 1);
+            OverrideOxygenDrain(diver, ref drain);
             diver.oxygen = Mathf.Max(0, diver.oxygen - dt * drain);
             if (diver.oxygen <= 0) FaintDiver("氧气耗尽");
         }
@@ -179,7 +183,6 @@ namespace Lifeline
             float cycle = Mathf.Max(.1f, tuning.winchCycle);
             float interactionDt = dt * WinchInteractionSpeed;
             if (!winchCenterInitialized) ResetWinchTarget();
-            if (winchCycleTime + interactionDt >= cycle) { winchAttemptedThisCycle = false; RefreshWinchTarget(); }
             winchCycleTime = Mathf.Repeat(winchCycleTime + interactionDt, cycle);
             if (winchTargetKind == "" || winchTargetKind == "survivors" || winchJam > 0) return;
             MoveWinch(tuning.winchPassiveSpeed * interactionDt + (winchElectric ? tuning.winchElectricSpeed * interactionDt : 0));

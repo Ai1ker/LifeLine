@@ -16,7 +16,7 @@ namespace Lifeline
             try
             {
                 Require(data != null && data.version == GameSaveData.CurrentVersion, "存档版本不受支持。");
-                Require(data.balanceVersion >= 0 && data.balanceVersion <= 1 && data.routeDistance >= 0, "存档版本不受支持。");
+                Require(data.balanceVersion >= 0 && data.balanceVersion <= BalanceSaveMigration.CurrentVersion && data.routeDistance >= 0, "存档版本不受支持。");
                 Require(data.equipmentProgressionVersion >= 0 && data.equipmentProgressionVersion <= 1, "存档设备版本不受支持。");
                 Require(data.coordinateVersion >= 0 && data.coordinateVersion <= 1, "存档版本不受支持。");
                 Require((data.diverRopeContacts == null || data.diverRopeContacts.Length <= 256) && (data.cargoRopeContacts == null || data.cargoRopeContacts.Length <= 256), "存档世界数据不完整。");
@@ -48,6 +48,7 @@ namespace Lifeline
                 foreach (CraftSaveState job in data.jobs)
                     Require(job != null && job.id > 0 && jobIds.Add(job.id) && job.id < data.nextJobId && !string.IsNullOrEmpty(job.recipeId) && EnumValue(job.owner) && job.duration > 0 && job.progress >= 0 && job.progress < job.duration && job.elapsed >= 0 && job.nextCue >= 0 && job.noteDirection >= 0 && job.noteDirection < 4 && job.hits >= 0 && job.misses >= 0, "存档作业数据无效。");
                 Require(data.world != null && data.world.pickups != null && data.world.gates != null, "存档世界数据不完整。");
+                Require(data.world.forceCaveDay >= -1 && data.world.forceFilterDay >= -1, "存档世界事件日期无效。");
                 var pickupIds = new HashSet<string>();
                 foreach (PickupSaveState pickup in data.world.pickups)
                 {

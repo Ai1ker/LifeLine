@@ -99,5 +99,26 @@ namespace Lifeline.Tests
             if (maximum > 0) Assert.That(world.piranhaSpawnPoints.Count, Is.GreaterThanOrEqualTo(1));
             Assert.That(world.piranhaSpawnPoints.Distinct().Count(), Is.EqualTo(world.piranhaSpawnPoints.Count));
         }
+        [Test] public void DeveloperNextDayForcesUniqueCityFilterDespiteZeroChanceAndRoundTripsUntilItExpires()
+        {
+            world.filterSalvageChance = 0; world.Generate(game.worldSeed);
+            var tools = DeveloperTestAccess.AddTools(root);
+            DeveloperTestAccess.Invoke(tools, "NextDayWithFilter", game);
+            Assert.That(game.day, Is.EqualTo(2)); Assert.That(world.forceFilterDay, Is.EqualTo(2));
+            Assert.That(world.filterSalvage, Is.Not.Null);
+            var pickup = world.filterSalvage.pickup;
+            Assert.That(pickup.transform.position.x, Is.InRange(tuning.shallowBoundary, tuning.deepBoundary));
+            Assert.That(world.WaterSurface - pickup.transform.position.y, Is.InRange(20, 35));
+            var saved = game.CaptureSaveData(); Assert.That(saved.world.forceFilterDay, Is.EqualTo(2));
+            world.forceFilterDay = -1;
+            Assert.That(game.TryRestoreSaveData(saved, out string error), Is.True, error);
+            Assert.That(world.forceFilterDay, Is.EqualTo(2));
+            Assert.That(world.pickups.Count(p => p.GetComponent<FilterSalvage>() != null && !p.consumed), Is.EqualTo(1));
+            game.SetDayClock(3, .1f);
+            Assert.That(world.forceFilterDay, Is.EqualTo(-1)); Assert.That(world.filterSalvage, Is.Null);
+            game.filterInstalled = true; world.forceFilterDay = 4; game.SetDayClock(4, .1f);
+            Assert.That(world.filterSalvage, Is.Null);
+            DeveloperTestAccess.Invoke(tools, "NextDayWithFilter", game); Assert.That(game.day, Is.EqualTo(4), "Already acquired equipment must not regenerate or advance a day.");
+        }
     }
 }

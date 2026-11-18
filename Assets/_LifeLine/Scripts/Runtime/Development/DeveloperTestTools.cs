@@ -8,10 +8,13 @@ namespace Lifeline.Development
     public sealed class DeveloperTestTools : MonoBehaviour
     {
         public bool visible;
-        public Rect window = new Rect(15, 200, 390, 420);
+        public Rect window = new Rect(15, 100, 390, 540);
         public int resourceAmount = 10;
         public int testDay = 2;
         public bool skipInteractionQte;
+        public bool infiniteOxygen;
+        GameSession oxygenSession;
+        Vector2 scroll;
         GameSaveManager save;
         string previousPath;
         float previousScale = 1;
@@ -29,6 +32,9 @@ namespace Lifeline.Development
             if (Keyboard.current != null && Keyboard.current.f8Key.wasPressedThisFrame) visible = !visible;
             // Test commands must not overwrite the player's automatic/manual slot.
             if (save != null && save.gameObject.scene != UnityEngine.SceneManagement.SceneManager.GetActiveScene()) ReleaseSave();
+            if (!infiniteOxygen && oxygenSession != null) { oxygenSession.developerInfiniteOxygen = false; oxygenSession = null; }
+            if (infiniteOxygen && GameSession.Current != null && GameSession.Current.IsInitialized && oxygenSession != GameSession.Current)
+                SetInfiniteOxygen(GameSession.Current, true);
             if (skipInteractionQte) CompleteOpenInteractions();
         }
         void IsolateSave()
@@ -39,7 +45,7 @@ namespace Lifeline.Development
             manager.pathOverride = System.IO.Path.Combine(Application.persistentDataPath, "LifeLine", "developer-test.json");
         }
         void ReleaseSave() { if (save != null) save.pathOverride = previousPath; save = null; }
-        void OnDestroy() { ReleaseSave(); if (Time.timeScale > 1) Time.timeScale = previousScale; }
+        void OnDestroy() { if (oxygenSession != null) oxygenSession.developerInfiniteOxygen = false; ReleaseSave(); if (Time.timeScale > 1) Time.timeScale = previousScale; }
         string T(string english) => DeveloperToolsText.Get(english);
         void OnGUI()
         {
@@ -49,10 +55,13 @@ namespace Lifeline.Development
         {
             var game = GameSession.Current;
             if (game == null || !game.IsInitialized) { GUILayout.Label(T("Start a local game first.")); GUI.DragWindow(); return; }
+            scroll = GUILayout.BeginScrollView(scroll);
             GUILayout.Label(T("Commands use a separate developer save slot."));
             GUILayout.Label("DAY " + game.day + " · " + game.WinchTargetCount + " × " + game.WinchEfficiency.ToString("P0"));
             bool skip = GUILayout.Toggle(skipInteractionQte, T("Skip active interaction QTE"));
             if (skip != skipInteractionQte) { IsolateSave(); skipInteractionQte = skip; }
+            bool unlimited = GUILayout.Toggle(infiniteOxygen, T("Infinite oxygen / both crew"));
+            if (unlimited != infiniteOxygen) SetInfiniteOxygen(game, unlimited);
             if (GUILayout.Button(T("Complete current interaction"))) { IsolateSave(); CompleteOpenInteractions(); }
             GUILayout.BeginHorizontal();
             testDay = Mathf.Clamp(testDay, 1, 99);
@@ -65,6 +74,9 @@ namespace Lifeline.Development
             if (GUILayout.Button(T("Thunderstorm"))) SetTime(game, game.tuning.dayFraction + game.tuning.duskFraction + .02f);
             GUILayout.EndHorizontal();
             if(GUILayout.Button(T("Next day with cave")))NextDayWithCave(game);
+            GUI.enabled = !game.filterInstalled;
+            if (GUILayout.Button(T(game.filterInstalled ? "Seawater filter already acquired" : "Next day with City seawater filter"))) NextDayWithFilter(game);
+            GUI.enabled = true;
             if (GUILayout.Button(T("Move both crew into cabin")))
             {
                 IsolateSave(); game.captain.RestorePose(true, game.ShipPoint(new Vector3(-3, -3.1f, 0)), Vector3.zero, Vector2.right);
@@ -87,12 +99,27 @@ namespace Lifeline.Development
             if (GUILayout.Button(T("Speed x4"))) { previousScale = 1; if (game.phase == SessionPhase.Playing) Time.timeScale = 4; }
             GUILayout.EndHorizontal();
             GUILayout.Label(T("Delete Scripts/Runtime/Development to remove all tools."));
+            GUILayout.EndScrollView();
             GUI.DragWindow(new Rect(0, 0, window.width, 24));
         }
         public void NextDayWithCave(GameSession game)
         {
             if(game==null||game.world==null)return;
             IsolateSave();testDay=game.day+1;game.world.forceCaveDay=testDay;game.SetDayClock(testDay,.1f);
+        }
+        public void SetInfiniteOxygen(GameSession game, bool enabled)
+        {
+            if (game == null) return;
+            IsolateSave();
+            if (oxygenSession != null && oxygenSession != game) oxygenSession.developerInfiniteOxygen = false;
+            infiniteOxygen = enabled; oxygenSession = enabled ? game : null;
+            game.developerInfiniteOxygen = enabled;
+        }
+        public void NextDayWithFilter(GameSession game)
+        {
+            if (game == null || game.world == null || game.filterInstalled) return;
+            IsolateSave(); testDay = game.day + 1; game.world.forceFilterDay = testDay;
+            game.SetDayClock(testDay, .1f);
         }
         public bool CompleteOpenInteractions()
         {

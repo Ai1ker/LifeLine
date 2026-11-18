@@ -24,17 +24,31 @@ namespace Lifeline.Tests
             Time.timeScale = scale; Random.state = random;
         }
 
-        [Test] public void T4CostsTwoBundlesHasHundredMetreRopeAndRoundTripsWithoutAcceptingT5()
+        [Test] public void ExtendedRopeTiersUseThreeBundlesAndRoundTripWithoutAcceptingT6()
         {
-            game.upgradeLevels[(int)UpgradeKind.Rope] = 3; game.ropeLength = 74;
-            game.AddResource(ResourceKind.FiberBundle, 1); Assert.That(game.TryUpgrade(UpgradeKind.Rope), Is.False);
+            Assert.That(game.ropeLength, Is.EqualTo(38));
+            game.AddResource(ResourceKind.FiberBundle, 6);
+            for(int tier=1;tier<=3;tier++)
+            {
+                Assert.That(game.GetUpgradeCost(UpgradeKind.Rope).Single().amount, Is.EqualTo(2));
+                Assert.That(game.TryUpgrade(UpgradeKind.Rope));Assert.That(game.ropeLength, Is.EqualTo(tuning.ropeLengths[tier]));
+            }
+            game.AddResource(ResourceKind.FiberBundle, 2); Assert.That(game.TryUpgrade(UpgradeKind.Rope), Is.False);
             game.AddResource(ResourceKind.FiberBundle, 1); Assert.That(game.TryUpgrade(UpgradeKind.Rope));
-            Assert.That(game.ropeLength, Is.EqualTo(100)); Assert.That(game.GetResource(ResourceKind.FiberBundle), Is.Zero);
+            Assert.That(game.ropeLength, Is.EqualTo(150)); Assert.That(game.GetResource(ResourceKind.FiberBundle), Is.Zero);
+            Assert.That(game.GetUpgradeCost(UpgradeKind.Rope).Single().amount, Is.EqualTo(3));
+            game.AddResource(ResourceKind.FiberBundle,3);Assert.That(game.TryUpgrade(UpgradeKind.Rope));
+            Assert.That(game.ropeLength, Is.EqualTo(200));
             Assert.That(game.IsElectricWinch); Assert.That(game.TryUpgrade(UpgradeKind.Rope), Is.False);
             var save = game.CaptureSaveData(); Assert.That(game.TryRestoreSaveData(save, out string error), Is.True, error);
-            Assert.That(game.GetUpgrade(UpgradeKind.Rope), Is.EqualTo(4)); Assert.That(game.ropeLength, Is.EqualTo(100));
-            save.state.upgradeLevels[(int)UpgradeKind.Rope] = 5;
+            Assert.That(game.GetUpgrade(UpgradeKind.Rope), Is.EqualTo(5)); Assert.That(game.ropeLength, Is.EqualTo(200));
+            Assert.That(game.GetUpgradeCost(UpgradeKind.Rope), Is.Empty);
+            save.state.upgradeLevels[(int)UpgradeKind.Rope] = 6;
             Assert.That(GameSaveValidation.Validate(save, out error), Is.False);
+        }
+
+        [Test] public void OriginalT4MigrationPreservesCustomLengths()
+        {
             tuning.ropeLengths = new[] { 31f, 47f, 60f, 81f };
             Lifeline.Editor.WinchT4Migration.UpdateTuning(tuning);
             Assert.That(tuning.ropeLengths, Is.EqualTo(new[] { 31f, 47f, 60f, 81f, 100f }));
@@ -42,14 +56,61 @@ namespace Lifeline.Tests
             Assert.That(tuning.ropeLengths[4], Is.EqualTo(105));
         }
 
+        [Test] public void OxygenHasFourUpgradesAndCaptainRetainsFiftySeconds()
+        {
+            game.AddResource(ResourceKind.Plate,8);
+            for(int tier=1;tier<=4;tier++)
+            {
+                Assert.That(game.GetUpgradeCost(UpgradeKind.Oxygen).Single().amount,Is.EqualTo(2));
+                Assert.That(game.TryUpgrade(UpgradeKind.Oxygen));
+                Assert.That(game.GetOxygenMax(),Is.EqualTo(tuning.oxygenLevels[tier]));
+                Assert.That(game.captain.oxygenMax,Is.EqualTo(50));
+            }
+            Assert.That(game.GetOxygenMax(),Is.EqualTo(250));Assert.That(game.GetResource(ResourceKind.Plate),Is.Zero);
+            Assert.That(game.TryUpgrade(UpgradeKind.Oxygen),Is.False);Assert.That(game.GetUpgradeCost(UpgradeKind.Oxygen),Is.Empty);
+            var save=game.CaptureSaveData();Assert.That(game.TryRestoreSaveData(save,out string error),Is.True,error);
+            Assert.That(game.GetUpgrade(UpgradeKind.Oxygen),Is.EqualTo(4));Assert.That(game.GetOxygenMax(),Is.EqualTo(250));
+            save.state.upgradeLevels[(int)UpgradeKind.Oxygen]=5;Assert.That(GameSaveValidation.Validate(save,out error),Is.False);
+        }
+
+        [Test] public void ExpandedAssetMigrationPreservesAuthoredValuesAndIsIdempotent()
+        {
+            tuning.ropeLengths=new[]{28f,49f,54f,74f,100f};tuning.oxygenLevels=new[]{50f,80f,120f,150f};
+            Lifeline.Editor.WinchOxygenExpansionMigration.UpdateTuning(tuning);
+            Assert.That(tuning.ropeLengths,Is.EqualTo(new[]{38f,49f,74f,100f,150f,200f}));
+            Assert.That(tuning.oxygenLevels,Is.EqualTo(new[]{50f,80f,135f,175f,250f}));
+            tuning.ropeLengths[0]=28;tuning.oxygenLevels[1]=75;
+            Lifeline.Editor.WinchOxygenExpansionMigration.UpdateTuning(tuning);
+            Assert.That(tuning.ropeLengths[0],Is.EqualTo(28));Assert.That(tuning.oxygenLevels[1],Is.EqualTo(75));
+        }
+
+        [Test] public void PreviousTierSaveMigratesOnceWithoutRefillingOxygenOrChangingCaller()
+        {
+            game.upgradeLevels[(int)UpgradeKind.Rope]=4;game.ropeLength=100;
+            game.upgradeLevels[(int)UpgradeKind.Oxygen]=3;game.diver.oxygenMax=150;game.diver.oxygen=75;
+            var save=game.CaptureSaveData();save.balanceVersion=1;
+            Assert.That(game.TryRestoreSaveData(save,out string error),Is.True,error);
+            Assert.That(game.ropeLength,Is.EqualTo(150));Assert.That(game.diver.oxygenMax,Is.EqualTo(175));
+            Assert.That(game.diver.oxygen,Is.EqualTo(87.5f));Assert.That(game.captain.oxygenMax,Is.EqualTo(50));
+            Assert.That(save.state.ropeLength,Is.EqualTo(100));Assert.That(save.diver.oxygenMax,Is.EqualTo(150));
+            Assert.That(save.balanceVersion,Is.EqualTo(1));
+            // Versioned saves can contain a developer's custom value equal to an old default.
+            game.ropeLength=100;game.diver.oxygenMax=150;game.diver.oxygen=75;
+            var current=game.CaptureSaveData();Assert.That(current.balanceVersion,Is.EqualTo(BalanceSaveMigration.CurrentVersion));
+            Assert.That(game.TryRestoreSaveData(current,out error),Is.True,error);
+            Assert.That(game.ropeLength,Is.EqualTo(100));Assert.That(game.diver.oxygenMax,Is.EqualTo(150));Assert.That(game.diver.oxygen,Is.EqualTo(75));
+        }
+
         [Test] public void UpgradePreviewShowsOnlyTheNextTierAndMaxHasNoFutureEffect()
         {
-            Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Rope), Does.Contain("44m").And.Not.Contain("74m").And.Not.Contain("100m"));
+            Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Rope), Does.Contain("54m").And.Not.Contain("74m").And.Not.Contain("100m"));
             game.upgradeLevels[(int)UpgradeKind.Rope] = 2;
-            Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Rope), Does.Contain("74m").And.Not.Contain("100m"));
+            Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Rope), Does.Contain("100m").And.Not.Contain("150m"));
             game.upgradeLevels[(int)UpgradeKind.Rope] = 3;
-            Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Rope), Does.Contain("100m").And.Contain("+20%"));
+            Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Rope), Does.Contain("150m").And.Contain("+20%"));
             game.upgradeLevels[(int)UpgradeKind.Rope] = 4;
+            Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Rope), Does.Contain("200m").And.Not.Contain("+20%"));
+            game.upgradeLevels[(int)UpgradeKind.Rope] = 5;
             Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Rope), Is.EqualTo(UiLocalization.Text("已满级")));
             Assert.That(UpgradeSummary.NextEffect(game, UpgradeKind.Workbench), Does.Contain("30s").And.Contain("+30%"));
             game.upgradeLevels[(int)UpgradeKind.Workbench] = 1;

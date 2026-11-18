@@ -51,11 +51,12 @@ MonoBehaviour:
   birdInterruptChance: 0.25
   armoredBirdInterruptChance: 0.5
   ropeLengths:
-  - 28
-  - 44
+  - 38
   - 54
   - 74
   - 100
+  - 150
+  - 200
   boatSpeed: 3
   diveBoatMultiplier: 0.3
   baseHull: 100
@@ -75,9 +76,10 @@ MonoBehaviour:
   - 220
   oxygenLevels:
   - 50
-  - 75
-  - 120
-  - 150
+  - 90
+  - 135
+  - 175
+  - 250
   daySeconds: 200
   dayFraction: 0.703
   duskFraction: 0.117

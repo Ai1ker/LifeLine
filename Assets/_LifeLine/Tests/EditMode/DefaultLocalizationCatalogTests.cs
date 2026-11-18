@@ -43,6 +43,20 @@ namespace Lifeline.Tests
         }
 
         [Test]
+        public void WinchCopyMigrationUpdatesShippedTextAndPreservesAuthoredText()
+        {
+            table.entries = new List<LocalizationTable.Entry> { new LocalizationTable.Entry("winch.random.window",
+                "绿色判定区在转满一圈或每次判定后换位。成功收绳，失败回滑。",
+                "The green window moves after each revolution or result. Success reels in; a miss slips back.") };
+            Assert.That(DefaultLocalizationBuilder.UpdateKnownWinchCopy(table));
+            Assert.That(table.entries[0].zh, Does.Contain("仅在每次判定后"));
+            Assert.That(DefaultLocalizationBuilder.UpdateKnownWinchCopy(table), Is.False);
+            table.entries[0].zh = "自定义提示";
+            Assert.That(DefaultLocalizationBuilder.UpdateKnownWinchCopy(table), Is.False);
+            Assert.That(table.entries[0].zh, Is.EqualTo("自定义提示"));
+        }
+
+        [Test]
         public void DynamicHudCraftingRepairBuffDeathAndQuestCopyLeavesNoChineseInEnglish()
         {
             string[] samples =

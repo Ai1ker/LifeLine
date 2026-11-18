@@ -32,14 +32,18 @@ namespace Lifeline
                     && rig.captainCamera.rect == new Rect(0, 0, 1, 1), "aboard defaults to shared full-screen");
                 Vector3 focus;
                 float fitted = rig.GetSharedFraming(cap.transform.position, div.transform.position, Vector3.zero, 16f / 9, out focus);
-                Require(Mathf.Abs(focus.x) < .001f && fitted * 16f / 9 >= rig.shipHalfWidth + rig.sharedPadding.x,
-                    "shared view follows crew midpoint and fits complete ship");
+                Require(Mathf.Abs(focus.x) < .001f && fitted * (16f / 9) + .001f >= rig.shipHalfWidth + rig.sharedPadding.x,
+                    "shared view fits the usable deck/cabin and both crew");
+                float nearBow=rig.GetSharedFraming(new Vector3(10,.9f,0),new Vector3(11,.9f,0),Vector3.zero,16f/9,out focus);
+                Require(Mathf.Abs(nearBow-fitted)<.001f&&Mathf.Abs(focus.x)<.001f&&nearBow<8,
+                    "both crew walking to the same ship end must not zoom out into empty space");
                 rig.SetShipSplitPreference(true, false);
                 CheckSplit(rig);
                 rig.SetShipSplitPreference(false, false);
                 div.onboard = false; div.transform.position = new Vector3(0, -20, 0);
                 rig.RefreshViewNow(); CheckSplit(rig);
                 Require(rig.diverConfiner.BoundingShape2D == rig.waterBoundary, "underwater diver uses water confinement");
+                Require(Mathf.Abs(rig.diverVirtualCamera.Lens.OrthographicSize-rig.diverSize)<.026f,"underwater lens size is unchanged");
                 div.onboard = true; rig.RefreshViewNow();
                 Require(rig.IsSharedView && !rig.diverCamera.enabled, "boarding restores shared preference");
                 rig.SetNetworkView(true, CrewRole.Captain);
@@ -53,7 +57,7 @@ namespace Lifeline
                 Require(rig.captainBrain.ChannelMask == Unity.Cinemachine.OutputChannels.Channel01
                     && rig.diverBrain.ChannelMask == Unity.Cinemachine.OutputChannels.Channel02,
                     "independent Cinemachine channels");
-                return "PASS camera modes: shared ship default + full-ship framing, optional ship split, forced diving split, boarding restoration, online role full-screen, saved preference, separate CM channels. Obstacle response still needs a Play-mode scene check.";
+                return "PASS camera modes: compact usable-deck shared framing without near-bow zoom-out, optional ship split, unchanged underwater lens, forced diving split, boarding restoration, online role full-screen, saved preference, separate CM channels. Obstacle response still needs a Play-mode scene check.";
             }
             finally
             {

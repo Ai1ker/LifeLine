@@ -105,6 +105,8 @@ namespace Lifeline
         int[] labelFrames={-1,-1};
         Transform[] labelTargets=new Transform[2];
         public int forceCaveDay=-1;
+        [Tooltip("Optional one-day filter salvage override. Acquired filters remain unique.")]
+        public int forceFilterDay=-1;
         public Color nightOceanColor=new Color(.025f,.075f,.14f),duskOceanColor=new Color(.07f,.19f,.27f);
         Material[] fallbackMaterials;
 
@@ -153,6 +155,7 @@ namespace Lifeline
                         cargo.Add(pickup);
                     }
             ResetWorld(); hideSpots.Clear();if(activeDay>forceCaveDay)forceCaveDay=-1;
+            if (activeDay > forceFilterDay) forceFilterDay = -1;
             generatedSeed = ComputeDaySeed(seed, activeDay, dailySeedStride);
             var random = new System.Random(generatedSeed);
             generatedRoot = Child(transform, "Generated");
@@ -519,7 +522,8 @@ namespace Lifeline
 
         void BuildFilterSalvage(Transform lootRoot)
         {
-            if (session != null && session.filterInstalled || !RollFilterSalvage(generatedSeed, filterSalvageChance)) return;
+            if (session != null && session.filterInstalled) return;
+            if (forceFilterDay != activeDay && !RollFilterSalvage(generatedSeed, filterSalvageChance)) return;
             int index = bandRoomCounts.Length + 1; // Second sea area, middle depth band; caves excluded.
             if (areaCenters.Length < 2 || bandRoomCounts.Length < 2 || index >= layouts.Count) return;
             var maze = layouts[index];

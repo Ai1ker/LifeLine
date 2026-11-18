@@ -172,7 +172,7 @@ namespace Lifeline
                     Add("完成电台后：向东启程救援", () => ActionAndRefresh(() => session.StartRescueVoyage()), session.radioStage >= 3 && session.diver.onboard);
                     break;
                 case StationKind.Winch:
-                    detailText.text = "绿色判定区在转满一圈或每次判定后换位。成功收绳，失败回滑。";
+                    detailText.text = "绿色判定区仅在每次判定后换位，指针转圈不会换位。成功收绳，失败回滑。";
                     Add("节奏校准 [" + actor.input.GetBindingLabel("Melee") + "]", () => session.TryWinchQte(WinchAngle()), true);
                     break;
                 case StationKind.Generator:

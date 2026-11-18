@@ -59,7 +59,7 @@ namespace Lifeline.Tests
         {
             game.upgradeLevels[(int)UpgradeKind.Oxygen]=3;game.upgradeLevels[(int)UpgradeKind.DivingSuit]=2;tuning.upgradedSuitImmunity=1;
             game.captainBuffs.oxygen=120;Assert.That(game.BeginDive(game.captain));Assert.That(game.captain.oxygenMax,Is.EqualTo(tuning.baseOxygen));
-            Assert.That(game.GetOxygenMax(game.diver),Is.EqualTo(150));game.StepSimulation(1);
+            Assert.That(game.GetOxygenMax(game.diver),Is.EqualTo(175));game.StepSimulation(1);
             Assert.That(game.captain.oxygen,Is.EqualTo(tuning.baseOxygen-1).Within(.001f));
             game.captain.ReceiveDamage(2);Assert.That(game.IsFainted(game.captain));Assert.That(game.IsActorInputBlocked(game.captain));
             Assert.That(game.GetMaxDiverBites(),Is.EqualTo(4));

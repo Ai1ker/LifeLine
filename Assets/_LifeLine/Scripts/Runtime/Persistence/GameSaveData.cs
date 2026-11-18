@@ -107,6 +107,7 @@ namespace Lifeline
         public bool present;
         public int activeDay, generatedSeed;
         public int forceCaveDay=-1;
+        public int forceFilterDay=-1;
         public PickupSaveState[] pickups = Array.Empty<PickupSaveState>();
         public GateSaveState[] gates = Array.Empty<GateSaveState>();
     }

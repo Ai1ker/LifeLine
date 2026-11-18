@@ -48,7 +48,7 @@ namespace Lifeline
                 Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 10, "backpack T1 adds two slots", log);
                 Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 14, "backpack T2 adds four more slots", log);
                 Check(game.TryUpgrade(UpgradeKind.Backpack) && game.diver.BagCapacity == 18 && Mathf.Approximately(game.GetCollectSpeedMultiplier(game.diver), 1.5f), "backpack T3 gives cumulative 50 percent collection speed", log);
-                Check(Mathf.Approximately(game.GetOxygenMax(), 50) && Mathf.Approximately(tuning.oxygenLevels[3], 150) && Mathf.Approximately(tuning.ropeLengths[3], 74) && Mathf.Approximately(tuning.ropeLengths[4], 100), "rebalanced oxygen, 74m T3 and 100m T4 rope", log);
+                Check(Mathf.Approximately(game.GetOxygenMax(), 50) && Mathf.Approximately(tuning.oxygenLevels[4], 250) && Mathf.Approximately(tuning.ropeLengths[3], 100) && Mathf.Approximately(tuning.ropeLengths[4], 150) && Mathf.Approximately(tuning.ropeLengths[5], 200), "extended oxygen T4 and 100m/150m/200m rope T3-T5", log);
                 game.upgradeLevels[(int)UpgradeKind.Workbench] = 0;
                 recipe.id = "test_plank"; recipe.displayName = "Test plank";
                 recipe.cost = new[] { new ResourceAmount(ResourceKind.Wood, 1) };

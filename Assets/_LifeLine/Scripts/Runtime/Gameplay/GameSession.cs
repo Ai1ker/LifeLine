@@ -58,8 +58,10 @@ namespace Lifeline
         [Tooltip("Indexed by UpgradeKind. Workbench: 0 base, 1 wider QTE, 2 faster, 3 two jobs.")]
         public int[] upgradeLevels = new int[8];
         public ResourceAmount[] initialResources = { new ResourceAmount(ResourceKind.Wood, 2) };
-        [Tooltip("Cost for EACH tier of the corresponding upgrade; crafted materials, not raw loot.")]
+        [Tooltip("Cost for rope T1-T3; crafted materials, not raw loot.")]
         public ResourceAmount[] ropeUpgradeCost = { new ResourceAmount(ResourceKind.FiberBundle, 2) };
+        [Tooltip("Cost for EACH of rope T4 (150m) and T5 (200m).")]
+        public ResourceAmount[] longRopeUpgradeCost = { new ResourceAmount(ResourceKind.FiberBundle, 3) };
         public ResourceAmount[] oxygenUpgradeCost = { new ResourceAmount(ResourceKind.Plate, 2) };
         public ResourceAmount[] hullUpgradeCost = { new ResourceAmount(ResourceKind.Plate, 3) };
         public ResourceAmount[] sailUpgradeCost = { new ResourceAmount(ResourceKind.Plank, 1), new ResourceAmount(ResourceKind.FiberBundle, 1) };
@@ -452,7 +454,7 @@ namespace Lifeline
         }
 
         public int GetUpgrade(UpgradeKind kind) => upgradeLevels != null && (int)kind < upgradeLevels.Length ? upgradeLevels[(int)kind] : 0;
-        public static int UpgradeLevelLimit(UpgradeKind kind) => kind == UpgradeKind.Rope ? 4 : kind == UpgradeKind.Hull || kind == UpgradeKind.Sail ? 2 : kind == UpgradeKind.Searchlight ? 2 : 3;
+        public static int UpgradeLevelLimit(UpgradeKind kind) => kind == UpgradeKind.Rope ? 5 : kind == UpgradeKind.Oxygen ? 4 : kind == UpgradeKind.Hull || kind == UpgradeKind.Sail ? 2 : kind == UpgradeKind.Searchlight ? 2 : 3;
         public int GetMaxUpgrade(UpgradeKind kind) => UpgradeLevelLimit(kind);
         public int MaxUpgradeLevel(UpgradeKind kind) => GetMaxUpgrade(kind);
         public ResourceAmount[] GetUpgradeCost(UpgradeKind kind)
@@ -460,7 +462,7 @@ namespace Lifeline
             if (GetUpgrade(kind) >= GetMaxUpgrade(kind)) return new ResourceAmount[0];
             switch (kind)
             {
-                case UpgradeKind.Rope: return ropeUpgradeCost;
+                case UpgradeKind.Rope: return GetUpgrade(kind) >= 3 ? longRopeUpgradeCost : ropeUpgradeCost;
                 case UpgradeKind.Oxygen: return oxygenUpgradeCost;
                 case UpgradeKind.Hull: return hullUpgradeCost;
                 case UpgradeKind.Sail: return sailUpgradeCost;

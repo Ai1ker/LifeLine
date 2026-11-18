@@ -50,6 +50,7 @@ namespace Lifeline
             }
             if(captain.downed)return;
             float drain=(captainSprinting?tuning.sprintOxygenMultiplier:1)*(IsNight?nightOxygenMultiplier:1);
+            OverrideOxygenDrain(captain, ref drain);
             captain.oxygen=Mathf.Max(0,captain.oxygen-dt*drain);
             if(captain.oxygen<=0)FaintCrew(captain,"氧气耗尽");
         }

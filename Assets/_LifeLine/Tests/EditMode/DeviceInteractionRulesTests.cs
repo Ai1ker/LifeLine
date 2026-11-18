@@ -58,17 +58,20 @@ namespace Lifeline.Tests
             GameSession.RestoreCurrentAfterValidation(previous); Time.timeScale = scale; Random.state = random;
         }
 
-        [Test] public void WinchTargetMovesAfterAFullRevolutionAndAfterEitherResult()
+        [Test] public void WinchTargetStaysAcrossIdleRevolutionsAndMovesAfterEitherResult()
         {
             StartManualWinch(); float previousCenter = game.WinchQteCenter;
-            game.StepSimulation(tuning.winchCycle + .01f);
-            Assert.That(GameSession.CircularQteDistance(game.WinchQteCenter, previousCenter), Is.GreaterThan(.14f));
+            game.StepSimulation(tuning.winchCycle * 3 + .01f);
+            Assert.That(game.WinchQteCenter, Is.EqualTo(previousCenter));
             previousCenter = game.WinchQteCenter;
             Assert.That(game.TryWinchQte(previousCenter)); Assert.That(game.winchFeedback, Does.Contain("成功"));
             Assert.That(GameSession.CircularQteDistance(game.WinchQteCenter, previousCenter), Is.GreaterThan(.14f));
             game.StepSimulation(.2f); previousCenter = game.WinchQteCenter;
             Assert.That(game.TryWinchQte(Mathf.Repeat(previousCenter + .5f, 1))); Assert.That(game.winchFeedback, Does.Contain("失败"));
             Assert.That(GameSession.CircularQteDistance(game.WinchQteCenter, previousCenter), Is.GreaterThan(.14f));
+            previousCenter = game.WinchQteCenter;
+            Assert.That(game.TryWinchQte(previousCenter), Is.False, "A rejected input during the miss jam must not move the window.");
+            Assert.That(game.WinchQteCenter, Is.EqualTo(previousCenter));
         }
 
         [Test] public void WinchAcceptsTheCircularSeamAndRejectsRapidRepeatInputs()
@@ -127,15 +130,15 @@ namespace Lifeline.Tests
         [Test] public void DeveloperCompletionHonorsInstallationAndFirstRepairCosts()
         {
             CrewStationPanel view = DeveloperPanel(StationKind.Generator);
-            Assert.That(game.DeveloperCompleteInteraction(view, game.captain, null), Is.False);
-            game.UnlockEquipment("generator"); Assert.That(game.DeveloperCompleteInteraction(view, game.captain, null)); Assert.That(game.power, Is.EqualTo(1));
+            Assert.That((bool)DeveloperTestAccess.Invoke(game, "DeveloperCompleteInteraction", view, game.captain, null), Is.False);
+            game.UnlockEquipment("generator"); Assert.That((bool)DeveloperTestAccess.Invoke(game, "DeveloperCompleteInteraction", view, game.captain, null)); Assert.That(game.power, Is.EqualTo(1));
             view.station = StationKind.Filter; game.AddResource(ResourceKind.Plate, 2);
-            Assert.That(game.DeveloperCompleteInteraction(view, game.captain, null), Is.False); Assert.That(game.GetResource(ResourceKind.Plate), Is.EqualTo(2));
-            game.AcquireFilter(); Assert.That(game.DeveloperCompleteInteraction(view, game.captain, null));
+            Assert.That((bool)DeveloperTestAccess.Invoke(game, "DeveloperCompleteInteraction", view, game.captain, null), Is.False); Assert.That(game.GetResource(ResourceKind.Plate), Is.EqualTo(2));
+            game.AcquireFilter(); Assert.That((bool)DeveloperTestAccess.Invoke(game, "DeveloperCompleteInteraction", view, game.captain, null));
             Assert.That(game.filterRepaired); Assert.That(game.GetResource(ResourceKind.Plate), Is.Zero);
             view.station = StationKind.Engine;
-            Assert.That(game.DeveloperCompleteInteraction(view, game.captain, null), Is.False); Assert.That(game.engineRepaired, Is.False);
-            game.AddResource(ResourceKind.Plate, 2); Assert.That(game.DeveloperCompleteInteraction(view, game.captain, null));
+            Assert.That((bool)DeveloperTestAccess.Invoke(game, "DeveloperCompleteInteraction", view, game.captain, null), Is.False); Assert.That(game.engineRepaired, Is.False);
+            game.AddResource(ResourceKind.Plate, 2); Assert.That((bool)DeveloperTestAccess.Invoke(game, "DeveloperCompleteInteraction", view, game.captain, null));
             Assert.That(game.engineRepaired); Assert.That(game.GetResource(ResourceKind.Plate), Is.Zero);
         }
 
@@ -144,14 +147,14 @@ namespace Lifeline.Tests
             Recipe("plank", new[] { new ResourceAmount(ResourceKind.Wood, 2) }, new[] { new ResourceAmount(ResourceKind.Plank, 1) });
             Recipe("patch", new[] { new ResourceAmount(ResourceKind.Plank, 1), new ResourceAmount(ResourceKind.Plate, 1) }, repair: 10);
             CrewStationPanel view = DeveloperPanel(StationKind.Workbench);
-            Assert.That(game.DeveloperCompleteInteraction(view, game.captain, null), Is.False); Assert.That(game.GetResource(ResourceKind.Plank), Is.Zero);
+            Assert.That((bool)DeveloperTestAccess.Invoke(game, "DeveloperCompleteInteraction", view, game.captain, null), Is.False); Assert.That(game.GetResource(ResourceKind.Plank), Is.Zero);
             Assert.That(game.TryCraft("plank", game.captain)); Assert.That(game.GetResource(ResourceKind.Wood), Is.Zero);
-            Assert.That(game.DeveloperCompleteInteraction(view, game.captain, null)); Assert.That(game.GetResource(ResourceKind.Plank), Is.EqualTo(1)); Assert.That(game.jobs, Is.Empty);
+            Assert.That((bool)DeveloperTestAccess.Invoke(game, "DeveloperCompleteInteraction", view, game.captain, null)); Assert.That(game.GetResource(ResourceKind.Plank), Is.EqualTo(1)); Assert.That(game.jobs, Is.Empty);
             view.station = StationKind.HullRepair; game.AddResource(ResourceKind.Plate, 1);
-            Assert.That(game.TryCraft("patch", game.captain), Is.False); Assert.That(game.DeveloperCompleteInteraction(view, game.captain, null), Is.False);
+            Assert.That(game.TryCraft("patch", game.captain), Is.False); Assert.That((bool)DeveloperTestAccess.Invoke(game, "DeveloperCompleteInteraction", view, game.captain, null), Is.False);
             game.UnlockEquipment("repair-bench"); Assert.That(game.TryCraft("patch", game.captain));
             Assert.That(game.GetResource(ResourceKind.Plank), Is.Zero); Assert.That(game.GetResource(ResourceKind.Plate), Is.Zero);
-            Assert.That(game.DeveloperCompleteInteraction(view, game.captain, null)); Assert.That(game.hull, Is.EqualTo(80)); Assert.That(game.jobs, Is.Empty);
+            Assert.That((bool)DeveloperTestAccess.Invoke(game, "DeveloperCompleteInteraction", view, game.captain, null)); Assert.That(game.hull, Is.EqualTo(80)); Assert.That(game.jobs, Is.Empty);
         }
 #endif
     }

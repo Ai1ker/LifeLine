@@ -44,14 +44,19 @@ namespace Lifeline
         public BoxCollider2D shipBoundary, waterBoundary;
 
         [Header("Framing (metres)")]
+        [Tooltip("Orthographic camera depth for geometry/collision. Zoom is controlled by the sizes below.")]
         [Min(1)] public float cameraDistance = 24;
         [Min(1)] public float captainSize = 6.3f;
         [Min(1)] public float diverSize = 7.2f;
-        [Min(1)] public float sharedMinimumSize = 7.5f;
-        [Min(1)] public float sharedMaximumSize = 24;
-        public Vector2 sharedPadding = new Vector2(1.8f, 1.3f);
-        public float shipHalfWidth = 12;
-        public Vector2 shipVerticalRange = new Vector2(-5, 3);
+        [Tooltip("Shared onboard orthographic half-height limits. Normal 16:9 framing is about 7.3m.")]
+        [Min(1)] public float sharedMinimumSize = 5.4f;
+        [Min(1)] public float sharedMaximumSize = 12;
+        public Vector2 sharedPadding = new Vector2(.8f, .65f);
+        [Tooltip("Playable deck/cabin and station footprint, not decorative hull/sail renderer bounds.")]
+        [Min(1)] public float shipHalfWidth = 12.15f;
+        public Vector2 shipVerticalRange = new Vector2(-4.5f, 2.5f);
+        [Tooltip("Extra half-width / half-height around each crew centre; includes heads and jumping bodies.")]
+        public Vector2 sharedCrewHalfExtents = new Vector2(.5f, 1f);
         public Vector2 captainOffset = new Vector2(0, .8f);
         public Vector2 diverOffset = new Vector2(0, -.35f);
         public bool keepUnderwaterViewBelowSurface = true;
@@ -318,15 +323,18 @@ namespace Lifeline
 
         public float GetSharedFraming(Vector3 captainPosition, Vector3 diverPosition, Vector3 boatPosition, float aspect, out Vector3 focus)
         {
-            focus = (captainPosition + diverPosition) * .5f + Vector3.up * .45f;
-            focus.z = 0;
-            float left = Mathf.Min(boatPosition.x - shipHalfWidth, Mathf.Min(captainPosition.x, diverPosition.x));
-            float right = Mathf.Max(boatPosition.x + shipHalfWidth, Mathf.Max(captainPosition.x, diverPosition.x));
-            float bottom = Mathf.Min(boatPosition.y + shipVerticalRange.x, Mathf.Min(captainPosition.y, diverPosition.y));
-            float top = Mathf.Max(boatPosition.y + shipVerticalRange.y, Mathf.Max(captainPosition.y, diverPosition.y));
-            float halfWidth = Mathf.Max(focus.x - left, right - focus.x) + sharedPadding.x;
-            float halfHeight = Mathf.Max(focus.y - bottom, top - focus.y) + sharedPadding.y;
-            return Mathf.Clamp(Mathf.Max(halfHeight, halfWidth / Mathf.Max(.1f, aspect)), sharedMinimumSize, sharedMaximumSize);
+            float crewWidth = Mathf.Max(0, sharedCrewHalfExtents.x), crewHeight = Mathf.Max(0, sharedCrewHalfExtents.y);
+            float left = Mathf.Min(boatPosition.x - shipHalfWidth, Mathf.Min(captainPosition.x, diverPosition.x) - crewWidth);
+            float right = Mathf.Max(boatPosition.x + shipHalfWidth, Mathf.Max(captainPosition.x, diverPosition.x) + crewWidth);
+            float bottom = Mathf.Min(boatPosition.y + Mathf.Min(shipVerticalRange.x, shipVerticalRange.y), Mathf.Min(captainPosition.y, diverPosition.y) - crewHeight);
+            float top = Mathf.Max(boatPosition.y + Mathf.Max(shipVerticalRange.x, shipVerticalRange.y), Mathf.Max(captainPosition.y, diverPosition.y) + crewHeight);
+            // Centre the actual usable footprint. Using the crew midpoint and measuring to
+            // the far ship edge doubles empty space when both players walk to the same end.
+            focus = new Vector3((left + right) * .5f, (bottom + top) * .5f, 0);
+            float halfWidth = (right - left) * .5f + Mathf.Max(0, sharedPadding.x);
+            float halfHeight = (top - bottom) * .5f + Mathf.Max(0, sharedPadding.y);
+            float minimum = Mathf.Max(1, sharedMinimumSize), maximum = Mathf.Max(minimum, sharedMaximumSize);
+            return Mathf.Clamp(Mathf.Max(halfHeight, halfWidth / Mathf.Max(.1f, aspect)), minimum, maximum);
         }
 
         void UpdateLens(CinemachineCamera vcam, CinemachineConfiner2D confiner, float target, ref float last, bool snap)
