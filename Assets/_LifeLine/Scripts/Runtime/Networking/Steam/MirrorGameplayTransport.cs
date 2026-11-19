@@ -3,7 +3,6 @@ using System;
 using System.Globalization;
 using System.Text;
 using Mirror;
-using Mirror.FizzySteam;
 using UnityEngine;
 using Channel = Mirror.Channels;
 
@@ -48,6 +47,16 @@ namespace Lifeline.Steam
         public int received;
     }
 
+    public struct LifeLineCrewMotion : NetworkMessage
+    {
+        public OnlineCrewMotion motion;
+    }
+
+    public struct LifeLineCrewAttack : NetworkMessage
+    {
+        public byte role, kind;
+    }
+
     public sealed class MirrorGameplayTransport : IOnlineGameplayTransport
     {
         const int MaxActionBytes = 2048;
@@ -60,6 +69,7 @@ namespace Lifeline.Steam
         public NetworkConnectionState State { get; private set; }
         public bool IsHost => State == NetworkConnectionState.Hosting;
         public bool CanQueueReliableState => admittedConnection != null && pendingBaseline == null;
+        public float StateDownloadProgress => incoming == null ? 0 : incoming.sent / (float)incoming.bytes.Length;
         public NetworkPeerIdentity LocalPeer { get; private set; }
 
         public event Action<NetworkPeerIdentity> PeerJoined;
@@ -70,10 +80,13 @@ namespace Lifeline.Steam
         public event Action<string> AdmissionReady;
         public event Action<ArraySegment<byte>> WorldStateReceived;
         public event Action<string, string> ActionReceived;
+        public event Action<OnlineCrewMotion> MotionReceived;
+        public event Action<CrewRole, CrewVisualEvent> AttackReceived;
 
         MirrorGameplayManager manager;
         Func<string, NetworkPeerIdentity> admitPeer;
         NetworkConnectionToClient pendingConnection;
+        NetworkConnectionToClient rejectedConnection;
         NetworkConnectionToClient admittedConnection;
         NetworkPeerIdentity remotePeer;
         ulong localSteamId, expectedHost;
@@ -115,6 +128,7 @@ namespace Lifeline.Steam
                 manager.StartServer();
                 if (!NetworkServer.active || !manager.transport.ServerActive())
                     throw new InvalidOperationException("Steam could not open the gameplay connection.");
+                Debug.Log("LifeLine Steam: gameplay listener ready.");
             });
         }
 
@@ -165,9 +179,11 @@ namespace Lifeline.Steam
                 throw new InvalidOperationException("Another Mirror NetworkManager is active.");
             var root = new GameObject("LifeLine Steam gameplay");
             root.SetActive(false);
-            var transport = root.AddComponent<FizzySteamworks>();
-            transport.UseNextGenSteamNetworking = true;
+            var transport = root.AddComponent<FizzyGameplayTransport>();
+            // App ID 480 can use direct P2P with relay fallback via Fizzy's SteamNetworking path.
+            transport.UseNextGenSteamNetworking = false;
             transport.AllowSteamRelay = true;
+            transport.Timeout = (int)ConnectTimeout;
             manager = root.AddComponent<MirrorGameplayManager>();
             manager.Link = this;
             manager.transport = transport;
@@ -190,10 +206,28 @@ namespace Lifeline.Steam
         {
             NetworkClient.RegisterHandler<LifeLinePeerWelcome>(ReceiveWelcome);
             NetworkClient.RegisterHandler<LifeLineStateChunk>(ReceiveChunk);
+            NetworkClient.RegisterHandler<LifeLineCrewMotion>(message =>
+            {
+                if (State == NetworkConnectionState.Connected) MotionReceived?.Invoke(message.motion);
+            });
+            NetworkClient.RegisterHandler<LifeLineCrewAttack>(message =>
+            {
+                var kind = (CrewVisualEvent)message.kind;
+                if (State == NetworkConnectionState.Connected && message.role <= (byte)CrewRole.Diver &&
+                    (kind == CrewVisualEvent.Melee || kind == CrewVisualEvent.Fire))
+                    AttackReceived?.Invoke((CrewRole)message.role, kind);
+            });
         }
+
+        public void BroadcastMotion(OnlineCrewMotion motion) =>
+            admittedConnection?.Send(new LifeLineCrewMotion { motion = motion }, Channel.Unreliable);
+
+        public void BroadcastAttack(CrewRole role, CrewVisualEvent kind) =>
+            admittedConnection?.Send(new LifeLineCrewAttack { role = (byte)role, kind = (byte)kind }, Channel.Reliable);
 
         internal void AwaitAdmission(NetworkConnectionToClient connection)
         {
+            Debug.Log("LifeLine Steam: guest transport connected; checking room membership.");
             connection.isAuthenticated = false;
             pendingConnection = connection;
             connectionDeadline = Time.realtimeSinceStartupAsDouble + ConnectTimeout;
@@ -201,6 +235,7 @@ namespace Lifeline.Steam
 
         internal void ClientConnected()
         {
+            Debug.Log("LifeLine Steam: host transport connected; sending gameplay admission request.");
             NetworkClient.Send(new LifeLinePeerHello
             {
                 protocol = NetworkCrewCommand.ProtocolVersion,
@@ -210,20 +245,20 @@ namespace Lifeline.Steam
 
         void ReceiveHello(NetworkConnectionToClient connection, LifeLinePeerHello hello)
         {
-            if (!IsHost || connection != pendingConnection || admittedConnection != null)
+            if (!IsHost || connection != pendingConnection || connection == rejectedConnection || admittedConnection != null)
                 return;
             string address = manager.transport.ServerGetClientAddress(connection.connectionId);
             if (hello.protocol != NetworkCrewCommand.ProtocolVersion
                 || !TryParseSteamId(address, out ulong authenticatedSteamId)
                 || authenticatedSteamId == localSteamId || hello.steamId != authenticatedSteamId)
             {
-                connection.Disconnect();
+                RejectAdmission(connection, "The gameplay protocol or Steam identity did not match.");
                 return;
             }
             NetworkPeerIdentity peer = ResolvePeer(address);
             if (peer == null)
             {
-                connection.Disconnect();
+                RejectAdmission(connection, "The Steam user did not match the room's assigned teammate.");
                 return;
             }
 
@@ -243,6 +278,12 @@ namespace Lifeline.Steam
             }, Channel.Reliable);
             PeerJoined?.Invoke(peer);
             AdmissionReady?.Invoke(address);
+        }
+
+        void RejectAdmission(NetworkConnectionToClient connection, string reason)
+        {
+            Debug.LogWarning("LifeLine Steam: " + reason);
+            rejectedConnection = connection;
         }
 
         void ReceiveWelcome(LifeLinePeerWelcome welcome)
@@ -457,12 +498,23 @@ namespace Lifeline.Steam
             double now = Time.realtimeSinceStartupAsDouble;
             if (State == NetworkConnectionState.Connecting && now >= connectionDeadline)
             {
-                Fail("The Steam gameplay connection timed out.");
+                Fail(NetworkClient.isConnected ? "Steam connected but gameplay admission timed out." :
+                    "The Steam gameplay transport timed out before connecting to the host.");
                 return;
             }
             if (IsHost)
             {
-                if (pendingConnection != null && now >= connectionDeadline) pendingConnection.Disconnect();
+                if (rejectedConnection != null)
+                {
+                    var connection = rejectedConnection;
+                    rejectedConnection = null;
+                    connection.Disconnect();
+                }
+                else if (pendingConnection != null && now >= connectionDeadline)
+                {
+                    Debug.LogWarning("LifeLine Steam: guest gameplay admission timed out.");
+                    pendingConnection.Disconnect();
+                }
                 SendChunks(now);
             }
             if (incoming != null && now >= incoming.deadline) Fail("The host gameplay state did not finish downloading.");
@@ -470,6 +522,7 @@ namespace Lifeline.Steam
 
         internal void ServerDisconnected(NetworkConnectionToClient connection)
         {
+            if (connection == rejectedConnection) rejectedConnection = null;
             if (connection == pendingConnection) pendingConnection = null;
             if (connection != admittedConnection) return;
             admittedConnection = null;
@@ -519,7 +572,7 @@ namespace Lifeline.Steam
             }
             finally
             {
-                admittedConnection = pendingConnection = null;
+                admittedConnection = pendingConnection = rejectedConnection = null;
                 remotePeer = null;
                 incoming = outgoing = pendingBaseline = pendingUpdate = null;
                 scheduledFailure = null;

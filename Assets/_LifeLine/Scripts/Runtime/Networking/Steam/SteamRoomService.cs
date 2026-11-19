@@ -28,6 +28,7 @@ namespace Lifeline
         sealed class RoomState
         {
             public bool started;
+            public bool hostTransportReady;
             public bool resume;
             public bool closed;
             public int hostRole = Unassigned;
@@ -82,6 +83,7 @@ namespace Lifeline
         public override bool InRoom => lobby.m_SteamID != 0 && state != null && !state.closed;
         public override bool IsHost => InRoom && localId == ownerId;
         public override bool Started => InRoom && state.started;
+        public override bool HostTransportReady => Started && state.hostTransportReady;
         public override bool ResumeSavedGame => InRoom && state.resume;
         public override string RoomCode => code;
         public override string StatusKey => status;
@@ -341,6 +343,16 @@ namespace Lifeline
             if (!WriteState(next)) { SetStatus("online.room.updateFailed"); return; }
             status = "";
             NotifyChanged();
+        }
+
+        public override bool PublishHostTransportReady()
+        {
+            if (!IsHost || !Started) return false;
+            RoomState next = state.Copy();
+            next.hostTransportReady = true;
+            if (!WriteState(next)) return false;
+            NotifyChanged();
+            return true;
         }
 
         public override bool TryGetAssignedRole(string steamId, out CrewRole role)

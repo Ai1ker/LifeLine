@@ -5,8 +5,11 @@ using UnityEngine.SceneManagement;
 namespace Lifeline
 {
     /// <summary>Lifetime of one Steam voyage, including menu-to-game loading and guest rejoining.</summary>
+    [DefaultExecutionOrder(-140)]
     public sealed class OnlineVoyage : MonoBehaviour
     {
+        const float StartupTimeout = 45f;
+
         public static OnlineVoyage Current { get; private set; }
         static string menuNotice;
         public static string ConsumeMenuNotice()
@@ -31,8 +34,9 @@ namespace Lifeline
         string matchId;
         bool isHost, remoteConnected, ready, waiting, pausedForPeer, ending;
         bool needBaseline;
-        float sceneDeadline, nextSend, nextWorld, nextInput;
-        uint sequence;
+        float sceneDeadline, nextSend, nextWorld, nextInput, nextMotion;
+        uint sequence, motionSequence;
+        int lastWorldSignature;
         GameSaveManager save;
         GameSession game;
         GameHUDController hud;
@@ -40,6 +44,7 @@ namespace Lifeline
         OnlineWorldFrame queuedBaseline;
         string deferredFailure;
         AsyncOperation sceneLoad;
+        string pendingRoom;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Install()
@@ -47,6 +52,31 @@ namespace Lifeline
             var root = new GameObject("Online voyage coordinator");
             DontDestroyOnLoad(root);
             Current = root.AddComponent<OnlineVoyage>();
+            root.AddComponent<OnlineLoadingView>().voyage = Current;
+        }
+
+        public bool TryGetLoadingProgress(out float progress, out string stage)
+        {
+            progress = 0f;
+            stage = "";
+            if (ending || ready || room == null || !room.Started) return false;
+            if (sceneLoad == null)
+            {
+                bool transportReady = room.HostTransportReady;
+                progress = transportReady ? .30f : .12f;
+                stage = transportReady ? "online.loading.connect" : "online.loading.prepare";
+            }
+            else if (!sceneLoad.isDone)
+            {
+                progress = Mathf.Lerp(.45f, .75f, Mathf.Clamp01(sceneLoad.progress / .9f));
+                stage = "online.loading.scene";
+            }
+            else
+            {
+                progress = queuedBaseline != null ? .97f : Mathf.Lerp(.75f, .95f, link?.StateDownloadProgress ?? 0f);
+                stage = isHost ? "online.loading.scene" : "online.loading.state";
+            }
+            return true;
         }
 
         void Update()
@@ -55,7 +85,9 @@ namespace Lifeline
             if (link == null)
             {
                 room = OnlineRoomService.Existing;
-                if (room != null && room.InRoom && room.Started) Begin(room);
+                if (room == null || !room.Started) { pendingRoom = null; return; }
+                if (room.IsHost || room.HostTransportReady) Begin(room);
+                else WaitForHostTransport();
                 return;
             }
             if (sceneLoad != null && !sceneLoad.isDone) return;
@@ -72,7 +104,14 @@ namespace Lifeline
             float now = Time.unscaledTime;
             if (!ready && now > sceneDeadline)
             {
+                Debug.LogWarning(game == null ? "LifeLine online: timed out waiting for gameplay admission." :
+                    "LifeLine online: timed out waiting for the initial gameplay state.");
                 ExitToMenu("online.connection.timeout", false);
+                return;
+            }
+            if (sceneLoad == null && remoteConnected)
+            {
+                LoadGameplay();
                 return;
             }
             if (game == null || hud == null) return;
@@ -87,6 +126,18 @@ namespace Lifeline
                 }
                 if (ready) UpdateGuest(now);
             }
+        }
+
+        void WaitForHostTransport()
+        {
+            if (pendingRoom != room.MatchId)
+            {
+                pendingRoom = room.MatchId;
+                sceneDeadline = Time.unscaledTime + StartupTimeout;
+            }
+            if (Time.unscaledTime < sceneDeadline) return;
+            Debug.LogWarning("LifeLine online: the host did not publish a ready gameplay transport.");
+            ExitToMenu("online.connection.timeout", false);
         }
 
         void Begin(OnlineRoomService activeRoom)
@@ -110,8 +161,9 @@ namespace Lifeline
             matchId = activeRoom.MatchId;
             ready = remoteConnected = false;
             waiting = true;
-            sceneDeadline = Time.unscaledTime + 45;
-            sequence = 0;
+            sceneDeadline = Time.unscaledTime + StartupTimeout;
+            sequence = motionSequence = 0;
+            nextMotion = 0;
             link.Configure(local, Admit);
             link.AdmissionReady += OnAdmitted;
             link.PeerLeft += OnPeerLeft;
@@ -119,9 +171,22 @@ namespace Lifeline
             link.CommandReceived += OnCommand;
             link.WorldStateReceived += OnState;
             link.ActionReceived += OnAction;
-            if (isHost) link.Host(); else link.Join(activeRoom.HostSteamId);
-            if (!string.IsNullOrEmpty(deferredFailure)) return;
+            link.MotionReceived += OnMotion;
+            link.AttackReceived += OnAttack;
+            if (!isHost)
+            {
+                link.Join(activeRoom.HostSteamId);
+                return;
+            }
+            link.Host();
+            if (link.IsHost && !activeRoom.PublishHostTransportReady())
+                OnLinkFailed("LifeLine online: could not publish gameplay transport readiness to Steam.");
+        }
+
+        void LoadGameplay()
+        {
             var menu = FindAnyObjectByType<MainMenuController>();
+            sceneDeadline = Time.unscaledTime + StartupTimeout;
             sceneLoad = SceneManager.LoadSceneAsync(menu != null ? menu.gameplaySceneName : "Gameplay");
         }
 
@@ -141,6 +206,7 @@ namespace Lifeline
         {
             if (remote.steamId != peerId) return;
             remoteConnected = true;
+            Debug.Log("LifeLine online: Steam teammate admitted to gameplay.");
             if (!isHost) return;
             authority?.BindRemoteInput();
             needBaseline = true;
@@ -196,6 +262,8 @@ namespace Lifeline
             }
             else game.Initialize();
             ready = true;
+            game.captain.PresentationEvent += ForwardAttack;
+            game.diver.PresentationEvent += ForwardAttack;
             ConfigureViews();
             authority.BindRemoteInput();
             if (!remoteConnected) authority.ReleaseRemoteInput();
@@ -208,6 +276,7 @@ namespace Lifeline
             authority.localPeer = local;
             authority.remotePeer = remote;
             authority.SetOnlineView(true, local.role);
+            hud.crewOverlay?.Configure(true);
             var own = Actor(local.role);
             var other = Actor(remote.role);
             own.input?.Initialize(local.role, own.input.actions, true);
@@ -247,14 +316,26 @@ namespace Lifeline
                 if (!link.CanQueueReliableState) return;
                 needBaseline = false;
                 SendFrame(true, true);
+                lastWorldSignature = game.OnlineWorldSignature();
                 nextWorld = now + .5f;
                 nextSend = now + .08f;
             }
+            if (now >= nextMotion)
+            {
+                nextMotion = now + 1f / 30f;
+                link.BroadcastMotion(game.CaptureOnlineMotion(++motionSequence));
+            }
             if (now < nextSend) return;
             nextSend = now + .08f;
-            bool world = now >= nextWorld && link.CanQueueReliableState;
-            if (world) nextWorld = now + .65f;
-            SendFrame(false, world);
+            bool changedWorld = false;
+            if (now >= nextWorld && link.CanQueueReliableState)
+            {
+                nextWorld = now + .65f;
+                int signature = game.OnlineWorldSignature();
+                changedWorld = signature != lastWorldSignature;
+                lastWorldSignature = signature;
+            }
+            SendFrame(false, changedWorld);
         }
 
         void SendFrame(bool baseline, bool includeWorld)
@@ -307,10 +388,32 @@ namespace Lifeline
             game.ResetOnlineReplicaCombat();
             game.FreezeOnlineReplica();
             game.phase = frame.phase;
+            game.StatusAudienceRole = frame.statusAudienceRole;
             waiting = frame.waitingForCrew || frame.hostPaused;
             ConfigureViews();
             Panel(local.role)?.ApplyOnlineStation(frame.station);
             ready = true;
+        }
+
+        void ForwardAttack(CrewActor actor, CrewVisualEvent kind, float strength)
+        {
+            if (remoteConnected && (kind == CrewVisualEvent.Melee || kind == CrewVisualEvent.Fire))
+                link?.BroadcastAttack(actor.role, kind);
+        }
+
+        void OnAttack(CrewRole role, CrewVisualEvent kind)
+        {
+            if (!isHost && ready && queuedBaseline == null) Actor(role)?.EmitPresentationEvent(kind);
+        }
+
+        void OnMotion(OnlineCrewMotion motion)
+        {
+            if (!isHost && ready && queuedBaseline == null) game.BufferOnlineMotion(motion);
+        }
+
+        void LateUpdate()
+        {
+            if (!isHost && ready && game != null) game.RenderOnlineMotion(Time.unscaledDeltaTime);
         }
 
         void UpdateGuest(float now)
@@ -320,6 +423,7 @@ namespace Lifeline
             var input = Actor(local.role).input;
             var command = input != null ? input.ReadCommand() : default;
             if (command.pause) hud.HandleEscape();
+            if (command.backpack && !LocalMenuOpen && !waiting) hud.crewOverlay?.ToggleBackpack();
             if (LocalMenuOpen || waiting) command = default;
             command.pause = false;
             command.role = local.role;
@@ -376,10 +480,16 @@ namespace Lifeline
             link?.Dispose();
             link = null;
             room?.Leave();
+            if (isHost && game != null)
+            {
+                if (game.captain != null) game.captain.PresentationEvent -= ForwardAttack;
+                if (game.diver != null) game.diver.PresentationEvent -= ForwardAttack;
+            }
             room = null;
             save = null; game = null; hud = null; authority = null;
             ready = waiting = remoteConnected = pausedForPeer = needBaseline = false;
             sceneLoad = null;
+            pendingRoom = null;
             LocalMenuOpen = false;
             deferredFailure = null;
             queuedBaseline = null;

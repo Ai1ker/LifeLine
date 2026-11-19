@@ -17,7 +17,7 @@ namespace Lifeline
     [Serializable]
     public struct NetworkCrewCommand
     {
-        public const int ProtocolVersion = 1;
+        public const int ProtocolVersion = 3;
         public int version;
         public uint sequence;
         public uint tick;

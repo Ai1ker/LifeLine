@@ -14,7 +14,7 @@ namespace Lifeline
     {
         public CrewRole role;
         public Vector2 move;
-        public bool jump, interact, collect, melee, fire, sprint, signal, bait, hide, pause;
+        public bool jump, interact, collect, melee, fire, sprint, signal, bait, hide, pause, backpack;
         [Tooltip("Continuous interaction state, used by five-second teammate revives. interact remains an edge.")]
         public bool interactHeld;
     }

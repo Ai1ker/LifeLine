@@ -12,7 +12,7 @@ namespace Lifeline
         public float jumpSpeed = 7f;
         public float gravity = 20f;
         [Min(1)] public int bagCapacity = 8;
-        [Min(1), Tooltip("Captain-only fixed capacity; unaffected by backpack upgrades or fish capacity buffs.")] public int captainBagCapacity = 4;
+        [Min(1), Tooltip("Captain-only fixed capacity; unaffected by backpack upgrades or fish capacity buffs.")] public int captainBagCapacity = 3;
         public float baseOxygen = 50f;
         public float sprintOxygenMultiplier = 2f;
         public float reviveDistance = 2.5f;

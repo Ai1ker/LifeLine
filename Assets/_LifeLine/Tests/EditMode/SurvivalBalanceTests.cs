@@ -48,7 +48,7 @@ namespace Lifeline.Tests
         {
             game.AddResource(ResourceKind.FiberBundle,6);int[] slots={10,14,18};float[] speed={1.25f,1.25f,1.5f};
             for(int i=0;i<3;i++){Assert.That(game.TryUpgrade(UpgradeKind.Backpack));Assert.That(game.diver.BagCapacity,Is.EqualTo(slots[i]));Assert.That(game.GetCollectSpeedMultiplier(game.diver),Is.EqualTo(speed[i]));}
-            Assert.That(game.GetResource(ResourceKind.FiberBundle),Is.Zero);Assert.That(game.captain.BagCapacity,Is.EqualTo(4));Assert.That(game.GetCollectSpeedMultiplier(game.captain),Is.EqualTo(1));
+            Assert.That(game.GetResource(ResourceKind.FiberBundle),Is.Zero);Assert.That(game.captain.BagCapacity,Is.EqualTo(3));Assert.That(game.GetCollectSpeedMultiplier(game.captain),Is.EqualTo(1));
         }
         [Test] public void HitUnitsAndSuitTiersStayIntegerAndCaptainIsAlwaysBaseCapacity()
         {

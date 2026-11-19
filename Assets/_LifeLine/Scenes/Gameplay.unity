@@ -50752,6 +50752,7 @@ MonoBehaviour:
   resetButton: {fileID: 1485990186}
   closeButton: {fileID: 745974827}
   selectedRole: 0
+  onlineInput: {fileID: 0}
 --- !u!224 &384852050
 RectTransform:
   m_ObjectHideFlags: 0
@@ -214238,7 +214239,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4474035201089487320, guid: 9e7f6a8928799f446a8f587bdf3cfb6e, type: 3}
       propertyPath: m_Name
-      value: Captain
+      value: MainMenu
       objectReference: {fileID: 0}
     - target: {fileID: 5508939538406748404, guid: 9e7f6a8928799f446a8f587bdf3cfb6e, type: 3}
       propertyPath: m_Layer

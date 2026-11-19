@@ -14,7 +14,7 @@ namespace Lifeline
             if (!engineRepaired)
             {
                 ship.SetHelm(null);
-                Tell(EngineUnavailableMessage);
+                Tell(EngineUnavailableMessage, actor);
                 return false;
             }
             if (ship.helmOperator != null && ship.helmOperator != actor)

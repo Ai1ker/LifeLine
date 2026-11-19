@@ -281,13 +281,18 @@ namespace Lifeline
 
         public bool TryReviveTeammate(CrewActor actor)
         {
-            if (actor == null || actor.downed || IsFainted(actor)) return false;
-            CrewActor other = actor == captain ? diver : captain;
-            if (other == null || !other.downed) return false;
-            if (!CanReviveFrom(actor, other)) return false;
+            CrewActor other = FindReviveTarget(actor);
+            if (other == null) return false;
             int index = (int)actor.role;
-            if (reviveTargets[index] != other) { reviveTargets[index] = other; reviveProgress[index] = 0; Tell(string.Format("按住交互{0}秒，扶起{1}；松开或离开会中断。", tuning.reviveSeconds.ToString("0.#"), GameNames.Role(other.role))); }
+            if (reviveTargets[index] != other) { reviveTargets[index] = other; reviveProgress[index] = 0; Tell(string.Format("按住交互{0}秒，扶起{1}；松开或离开会中断。", tuning.reviveSeconds.ToString("0.#"), GameNames.Role(other.role)), actor); }
             return true;
+        }
+
+        public CrewActor FindReviveTarget(CrewActor actor)
+        {
+            if (IsIncapacitated(actor)) return null;
+            CrewActor other = actor == captain ? diver : captain;
+            return other != null && other.downed && CanReviveFrom(actor, other) ? other : null;
         }
 
         bool CanReviveFrom(CrewActor actor, CrewActor other)

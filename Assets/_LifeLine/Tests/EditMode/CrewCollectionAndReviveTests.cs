@@ -54,10 +54,10 @@ namespace Lifeline.Tests
             GameSession.RestoreCurrentAfterValidation(previous); Time.timeScale = scale; UnityEngine.Random.state = random;
         }
 
-        [Test] public void CaptainHasFourSlotsDespiteBackpackUpgradeAndCapacityFishBuff()
+        [Test] public void CaptainHasThreeSlotsDespiteBackpackUpgradeAndCapacityFishBuff()
         {
             game.upgradeLevels[(int)UpgradeKind.Backpack] = 3; game.captainBuffs.capacity = 120; game.diverBuffs.capacity = 120;
-            Assert.That(game.GetBagCapacity(game.captain), Is.EqualTo(4)); Assert.That(game.GetBagCapacity(game.diver), Is.EqualTo(19));
+            Assert.That(game.GetBagCapacity(game.captain), Is.EqualTo(3)); Assert.That(game.GetBagCapacity(game.diver), Is.EqualTo(19));
             Assert.That(game.GetCollectSpeedMultiplier(game.captain), Is.EqualTo(1));
         }
 
@@ -70,7 +70,7 @@ namespace Lifeline.Tests
             Assert.That(game.captainBoardHeld, Is.False, "nearby collectable must win over the self-boarding E hold");
             typeof(LootPickup).GetField("startedAt", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(pickup, Time.time - 1);
             game.HandleCommand(game.captain, new CrewCommand { interactHeld = true });
-            Assert.That(game.captain.backpack, Has.Count.EqualTo(4)); Assert.That(pickup.amount, Is.EqualTo(2));
+            Assert.That(game.captain.backpack, Has.Count.EqualTo(3)); Assert.That(pickup.amount, Is.EqualTo(3));
             Assert.That(game.captain.onboard, Is.False); Assert.That(game.captainBoardHeld, Is.False);
         }
 

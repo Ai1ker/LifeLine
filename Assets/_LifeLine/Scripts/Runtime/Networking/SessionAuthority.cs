@@ -25,6 +25,8 @@ namespace Lifeline
         {
             onlineView = enabled; localRole = role;
             if (cameraRig != null) cameraRig.SetNetworkView(enabled, role);
+            session?.captain?.GetComponent<CrewPresentation>()?.SetFront(!enabled || role == CrewRole.Captain);
+            session?.diver?.GetComponent<CrewPresentation>()?.SetFront(enabled && role == CrewRole.Diver);
         }
 
         public void BindRemoteInput()

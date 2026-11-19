@@ -13,6 +13,7 @@ namespace Lifeline
         public MonoBehaviour[] eventSinks;
         public bool mirrorFacing = true;
         public float movementDamping = .1f;
+        [Min(0)] public float foregroundOffset = .65f;
         public bool placeholderPoses = true;
         public float swingSeconds=.25f;
         public LineRenderer meleeStroke;
@@ -34,6 +35,8 @@ namespace Lifeline
         private RuntimeAnimatorController cachedController;
         private Vector3 baseScale = Vector3.one;
         private Transform cachedVisual;
+        private Vector3 basePosition;
+        private readonly Dictionary<SpriteRenderer, int> baseSorting = new();
 
         private void OnEnable() => Resolve();
         private void OnDisable()
@@ -54,7 +57,14 @@ namespace Lifeline
             if (visualRoot == null && actor != null) visualRoot = actor.visualRoot;
             if (animator == null && actor != null) animator = actor.animator;
             if (visualRoot != cachedVisual)
-            { cachedVisual = visualRoot; baseScale = visualRoot != null ? visualRoot.localScale : Vector3.one; }
+            {
+                cachedVisual = visualRoot;
+                baseScale = visualRoot != null ? visualRoot.localScale : Vector3.one;
+                basePosition = visualRoot != null ? visualRoot.localPosition : Vector3.zero;
+                baseSorting.Clear();
+                if (visualRoot != null)
+                    foreach (var sprite in visualRoot.GetComponentsInChildren<SpriteRenderer>(true)) baseSorting.Add(sprite, sprite.sortingOrder);
+            }
             if (cachedAnimator != animator || cachedController != (animator != null ? animator.runtimeAnimatorController : null))
             {
                 cachedAnimator = animator;
@@ -63,6 +73,15 @@ namespace Lifeline
                 if (animator != null && animator.runtimeAnimatorController != null)
                     foreach (var parameter in animator.parameters) parameters[parameter.nameHash] = parameter.type;
             }
+        }
+
+        public void SetFront(bool foreground)
+        {
+            Resolve();
+            if (visualRoot == null) return;
+            visualRoot.localPosition = basePosition + (foreground ? Vector3.back * foregroundOffset : Vector3.zero);
+            foreach (var entry in baseSorting)
+                if (entry.Key != null) entry.Key.sortingOrder = entry.Value + (foreground ? 100 : 0);
         }
 
         private void Update()

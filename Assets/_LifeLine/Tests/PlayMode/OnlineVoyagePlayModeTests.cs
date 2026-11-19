@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
@@ -15,16 +17,25 @@ namespace Lifeline.Tests
         [UnityTest]
         public IEnumerator HostAndGuestUseOnePlayerViewAndRejoinThroughTheAuthoritativeState()
         {
+            if (SceneManager.GetActiveScene().name != "MainMenu")
+                yield return SceneManager.LoadSceneAsync("MainMenu");
             var roomFactory = OnlineRoomService.Factory;
             var transportFactory = OnlineGameplayTransport.Factory;
-            Assert.That(OnlineVoyage.Current, Is.Not.Null);
-            Assert.That(OnlineRoomService.Existing, Is.Null);
+            Assert.That(OnlineVoyage.Current != null, Is.True);
+            Assert.That(OnlineRoomService.Existing == null, Is.True, "A room from an earlier Unity play session must not still be live.");
             var root = new GameObject("In-process online fixture");
             Object.DontDestroyOnLoad(root);
             var room = root.AddComponent<TestRoom>();
             room.hostId = ((ulong)DateTime.UtcNow.Ticks).ToString();
             string hostSave = OnlineSaveSlot.PathFor(room.hostId);
             var hostLink = new TestLink();
+            Keyboard keyboard = InputSystem.AddDevice<Keyboard>("LifeLineOnlinePlayTestKeyboard");
+            var backgroundBehavior = InputSystem.settings.backgroundBehavior;
+#if UNITY_EDITOR
+            var editorBehavior = InputSystem.settings.editorInputBehaviorInPlayMode;
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+#endif
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
             OnlineRoomService.Factory = () => room;
             OnlineGameplayTransport.Factory = () => hostLink;
             _ = OnlineRoomService.Instance;
@@ -35,6 +46,13 @@ namespace Lifeline.Tests
                 room.AssignRoles();
                 Assert.That(room.CanStart, Is.True);
                 room.StartGame();
+                yield return Until(() => room.HostTransportReady);
+                Assert.That(hostLink.IsHost, Is.True);
+                Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("MainMenu"));
+                Assert.That(OnlineVoyage.Current.TryGetLoadingProgress(out var loading, out var stage), Is.True);
+                Assert.That(loading, Is.GreaterThan(0f));
+                Assert.That(stage, Is.EqualTo("online.loading.connect"));
+                hostLink.Admit(room.guestId);
                 yield return Until(() => SceneManager.GetActiveScene().name == "Gameplay" &&
                     GameSession.Current != null && GameSession.Current.IsInitialized);
                 var game = GameSession.Current;
@@ -44,16 +62,25 @@ namespace Lifeline.Tests
                 var move = game.diver.input.RuntimeActions.FindAction("Captain/Move", true);
                 Assert.That(move.enabled, Is.True);
                 Assert.That(move.bindings[1].path, Is.EqualTo("<Keyboard>/w"));
-                UnityEngine.InputSystem.InputActionRebindingExtensions.ApplyBindingOverride(move, 1, "<Keyboard>/i");
-                Assert.That(game.diver.input.GetBindingLabel("Move", 1), Is.EqualTo("I").IgnoreCase);
+                move.RemoveAllBindingOverrides();
                 var rig = Object.FindAnyObjectByType<GameCameraRig>();
                 Assert.That(rig.IsSplitScreen, Is.False);
                 Assert.That(rig.diverCamera.enabled && !rig.captainCamera.enabled, Is.True);
-                yield return Until(() => OnlineVoyage.WaitingForCrew && game.phase == SessionPhase.Paused);
-
-                hostLink.Admit(room.guestId);
                 yield return Until(() => hostLink.baseline != null && game.phase == SessionPhase.Playing);
+                Assert.That(Time.timeScale, Is.EqualTo(1f));
+                float hostStartX = game.diver.Position.x;
+                Press(keyboard, Key.D);
+                yield return Until(() => game.diver.Position.x > hostStartX + .05f);
+                Press(keyboard);
+
                 var hud = Object.FindAnyObjectByType<GameHUDController>();
+                Assert.That(hud.diverText.transform.parent.gameObject.activeSelf, Is.False);
+                game.diver.input.RuntimeActions.FindAction("Captain/Backpack", true).RemoveAllBindingOverrides();
+                Press(keyboard, Key.B);
+                yield return Until(() => hud.crewOverlay.BackpackOpen);
+                Press(keyboard);
+                Assert.That(game.MeleeAttack(game.captain), Is.True);
+                Assert.That(hostLink.lastAttack, Is.EqualTo((CrewRole.Captain, CrewVisualEvent.Melee)));
                 foreach (var station in game.ship.GetComponentsInChildren<StationAnchor>())
                     if (station.kind == StationKind.Workbench)
                         game.captain.RestorePose(true, station.InteractionPosition, Vector3.zero, Vector2.right);
@@ -79,16 +106,48 @@ namespace Lifeline.Tests
                 var guestLink = new TestLink();
                 OnlineGameplayTransport.Factory = () => guestLink;
                 room.Join("A1BC23");
-                yield return Until(() => SceneManager.GetActiveScene().name == "Gameplay" &&
-                    Object.FindAnyObjectByType<GameSaveManager>() != null);
+                yield return null;
+                Assert.That(guestLink.State, Is.EqualTo(NetworkConnectionState.Offline));
+                room.MarkHostTransportReady();
+                yield return Until(() => guestLink.State == NetworkConnectionState.Connecting);
+                Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("MainMenu"));
                 guestLink.Admit(room.hostId);
                 guestLink.Deliver(state);
+                yield return Until(() => SceneManager.GetActiveScene().name == "Gameplay" &&
+                    Object.FindAnyObjectByType<GameSaveManager>() != null);
                 yield return Until(() => OnlineVoyage.Current.GuestReady);
                 game = GameSession.Current;
                 Assert.That(game.enabled, Is.False, "Only the host advances the simulation.");
                 Assert.That(game.GetResource(ResourceKind.FiberBundle), Is.EqualTo(4));
                 Assert.That(game.jobs.Count, Is.EqualTo(1));
                 Assert.That(game.captain.input.UseOnlineBindings, Is.True);
+                Assert.That(OnlineVoyage.Current.TryGetLoadingProgress(out _, out _), Is.False);
+                var sample = game.CaptureOnlineMotion(2);
+                float initialX = game.captain.Position.x;
+                sample.captain.position.x += 1f;
+                guestLink.DeliverMotion(sample);
+                game.RenderOnlineMotion(.02f);
+                Assert.That(game.captain.Position.x, Is.InRange(initialX + .1f, initialX + .9f));
+                var stale = sample;
+                stale.sequence = 1;
+                stale.captain.position.x += 5f;
+                guestLink.DeliverMotion(stale);
+                game.RenderOnlineMotion(.03f);
+                Assert.That(game.captain.Position.x, Is.EqualTo(sample.captain.position.x).Within(.001f));
+                guestLink.DeliverAttack(CrewRole.Captain, CrewVisualEvent.Melee);
+                Assert.That(game.captain.GetComponent<CrewPresentation>().MeleeAnimationPlaying, Is.True);
+                var guestMove = game.captain.input.RuntimeActions.FindAction("Captain/Move", true);
+                guestMove.RemoveAllBindingOverrides();
+                Press(keyboard, Key.D);
+                yield return Until(() => guestLink.lastCommand.move == Vector2.right);
+                Assert.That(guestLink.lastCommand.role, Is.EqualTo(CrewRole.Captain));
+                Press(keyboard);
+                yield return Until(() => guestLink.lastCommand.move == Vector2.zero);
+                guestMove.ApplyBindingOverride(4, "<Keyboard>/l");
+                Assert.That(game.captain.input.GetBindingLabel("Move", 4), Is.EqualTo("L").IgnoreCase);
+                Press(keyboard, Key.L);
+                yield return Until(() => guestLink.lastCommand.move == Vector2.right);
+                Press(keyboard);
                 rig = Object.FindAnyObjectByType<GameCameraRig>();
                 Assert.That(rig.captainCamera.enabled && !rig.diverCamera.enabled, Is.True);
                 var guestSave = Object.FindAnyObjectByType<GameSaveManager>();
@@ -97,6 +156,11 @@ namespace Lifeline.Tests
             }
             finally
             {
+                InputSystem.RemoveDevice(keyboard);
+                InputSystem.settings.backgroundBehavior = backgroundBehavior;
+#if UNITY_EDITOR
+                InputSystem.settings.editorInputBehaviorInPlayMode = editorBehavior;
+#endif
                 if (OnlineVoyage.InProgress) OnlineVoyage.Current.ExitToMenu(saveHost: false);
                 Object.Destroy(root);
                 OnlineRoomService.Factory = roomFactory;
@@ -107,6 +171,9 @@ namespace Lifeline.Tests
                 if (Directory.Exists(slotDirectory)) Directory.Delete(slotDirectory);
             }
         }
+
+        static void Press(Keyboard keyboard, params Key[] keys) =>
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(keys));
 
         static IEnumerator Until(Func<bool> condition)
         {
@@ -119,12 +186,13 @@ namespace Lifeline.Tests
         {
             public string hostId;
             public string guestId = "10000001";
-            bool occupied, host, started, assigned;
+            bool occupied, host, started, assigned, hostTransportReady;
             public override bool Available => true;
             public override bool Busy => false;
             public override bool InRoom => occupied;
             public override bool IsHost => host;
             public override bool Started => started;
+            public override bool HostTransportReady => hostTransportReady;
             public override bool ResumeSavedGame => false;
             public override string RoomCode => "A1BC23";
             public override string StatusKey => "";
@@ -143,7 +211,14 @@ namespace Lifeline.Tests
             public override void SelectRole(CrewRole role) { }
             public void AssignRoles() => assigned = true;
             public override void StartGame() { if (CanStart) started = true; }
-            public override void Leave() { occupied = started = false; }
+            public override bool PublishHostTransportReady()
+            {
+                if (!host || !started) return false;
+                MarkHostTransportReady();
+                return true;
+            }
+            public void MarkHostTransportReady() => hostTransportReady = true;
+            public override void Leave() { occupied = started = hostTransportReady = false; }
             public override bool TryGetAssignedRole(string steamId, out CrewRole role)
             {
                 role = steamId == hostId ? CrewRole.Diver : CrewRole.Captain;
@@ -154,15 +229,20 @@ namespace Lifeline.Tests
         sealed class TestLink : IOnlineGameplayTransport
         {
             public ArraySegment<byte>? baseline;
+            public CrewCommand lastCommand;
+            public (CrewRole, CrewVisualEvent) lastAttack;
             public NetworkConnectionState State { get; private set; }
             public bool IsHost => State == NetworkConnectionState.Hosting;
             public bool CanQueueReliableState => true;
+            public float StateDownloadProgress => 0;
             public NetworkPeerIdentity LocalPeer { get; private set; }
             public event Action<string> PeerLeft;
             public event Action<string> AdmissionReady;
             public event Action<ArraySegment<byte>> WorldStateReceived;
             public event Action<string> LinkFailed { add { } remove { } }
             public event Action<string, string> ActionReceived;
+            public event Action<OnlineCrewMotion> MotionReceived;
+            public event Action<CrewRole, CrewVisualEvent> AttackReceived;
             public event Action<NetworkPeerIdentity> PeerJoined { add { } remove { } }
             public event Action<NetworkCrewCommand> CommandReceived;
             public event Action<SessionNetworkSnapshot> SnapshotReceived { add { } remove { } }
@@ -184,8 +264,12 @@ namespace Lifeline.Tests
             });
             public void Action(string id, string command) => ActionReceived?.Invoke(id, command);
             public void Deliver(ArraySegment<byte> data) => WorldStateReceived?.Invoke(data);
+            public void DeliverMotion(OnlineCrewMotion motion) => MotionReceived?.Invoke(motion);
+            public void DeliverAttack(CrewRole role, CrewVisualEvent kind) => AttackReceived?.Invoke(role, kind);
+            public void BroadcastMotion(OnlineCrewMotion motion) { }
+            public void BroadcastAttack(CrewRole role, CrewVisualEvent kind) => lastAttack = (role, kind);
             public void SendAction(string action) { }
-            public void SendCommand(NetworkCrewCommand command) { }
+            public void SendCommand(NetworkCrewCommand command) => lastCommand = command.command;
             public void BroadcastSnapshot(SessionNetworkSnapshot snapshot) { }
             public void BroadcastWorldState(ArraySegment<byte> data, bool replaceable = false)
             {

@@ -22,13 +22,15 @@ namespace Lifeline
         {
             get
             {
-                if (runtimeActions == null) Initialize(role, actions);
+                if (runtimeActions == null) Initialize(role, actions, UseOnlineBindings);
                 return map.actions;
             }
         }
 
         private InputActionAsset runtimeActions;
-        private InputActionMap map;
+        // Reacquire the asset's map after a Unity script reload. A cached map restored
+        // by hot reload has no valid association with the asset's input state.
+        [NonSerialized] private InputActionMap map;
         private InputAction moveAction, interactAction, collectAction, sprintAction;
         private InputActionRebindingExtensions.RebindingOperation rebind;
         private CrewCommand queued;
@@ -44,6 +46,7 @@ namespace Lifeline
             runtimeActions = sharedAsset != null ? Instantiate(sharedAsset) : CrewInputDefaults.CreateAsset();
             runtimeActions.hideFlags = HideFlags.DontSave;
             runtimeActions.Disable();
+            if (online) CrewInputDefaults.EnsureBackpackAction(runtimeActions);
             map = runtimeActions.FindActionMap((online ? CrewRole.Captain : role).ToString(), true);
             var saved = PlayerPrefs.GetString(PreferenceKey, "");
             if (!string.IsNullOrEmpty(saved))
@@ -63,7 +66,7 @@ namespace Lifeline
 
         private void OnEnable()
         {
-            if (runtimeActions == null && actions != null) Initialize(role, actions);
+            if (map == null && (actions != null || runtimeActions != null)) Initialize(role, actions, UseOnlineBindings);
             else if (map != null && inputEnabled && !IsRebinding) map.Enable();
         }
 
@@ -89,12 +92,13 @@ namespace Lifeline
                 case "Bait": queued.bait = true; break;
                 case "Hide": queued.hide = true; break;
                 case "Pause": queued.pause = true; break;
+                case "Backpack": queued.backpack = true; break;
             }
         }
 
         public CrewCommand ReadCommand()
         {
-            if (runtimeActions == null) Initialize(role, actions);
+            if (runtimeActions == null) Initialize(role, actions, UseOnlineBindings);
             if (!inputEnabled || !isActiveAndEnabled || IsRebinding || Time.unscaledTime < ignoreUntil)
             {
                 ClearQueued();
@@ -131,7 +135,7 @@ namespace Lifeline
 
         public void BeginRebind(string actionName, int bindingIndex, Action<string> completed)
         {
-            if (runtimeActions == null) Initialize(role, actions);
+            if (runtimeActions == null) Initialize(role, actions, UseOnlineBindings);
             CancelRebind();
             var action = map.FindAction(actionName, false);
             if (action == null || bindingIndex < 0 || bindingIndex >= action.bindings.Count)
@@ -178,7 +182,7 @@ namespace Lifeline
         public void ResetBindings()
         {
             CancelRebind();
-            if (runtimeActions == null) Initialize(role, actions);
+            if (runtimeActions == null) Initialize(role, actions, UseOnlineBindings);
             runtimeActions.RemoveAllBindingOverrides();
             PlayerPrefs.DeleteKey(PreferenceKey);
             PlayerPrefs.Save();

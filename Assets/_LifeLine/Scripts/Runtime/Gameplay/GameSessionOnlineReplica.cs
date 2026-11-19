@@ -9,6 +9,76 @@ namespace Lifeline
         readonly Dictionary<string, LifelineEnemy> replicaEnemies = new();
         readonly Dictionary<string, LifelineSpear> replicaSpears = new();
         bool replicaCombatInitialized;
+        OnlineCrewMotion motionStart, motionTarget;
+        float motionElapsed;
+        bool hasReplicaMotion;
+
+        public int OnlineWorldSignature()
+        {
+            if (world == null) return 0;
+            var hash = new HashCode();
+            hash.Add(world.generatedSeed);
+            hash.Add(world.activeDay);
+            hash.Add(world.forceCaveDay);
+            hash.Add(world.forceFilterDay);
+            foreach (var pickup in world.pickups)
+            {
+                if (pickup == null) continue;
+                hash.Add(pickup.GetEntityId());
+                hash.Add(pickup.transform.position);
+                hash.Add(pickup.amount);
+                hash.Add(pickup.attached);
+                hash.Add(pickup.consumed);
+                foreach (var item in pickup.contents) hash.Add(item);
+            }
+            foreach (var gate in world.trapdoors)
+            {
+                if (gate == null) continue;
+                hash.Add(gate.GetEntityId());
+                hash.Add(gate.open);
+                hash.Add(gate.destroyed);
+            }
+            return hash.ToHashCode();
+        }
+
+        public OnlineCrewMotion CaptureOnlineMotion(uint sequence) => new OnlineCrewMotion
+        {
+            sequence = sequence, ship = ship.Position,
+            captain = CaptureActorMotion(captain), diver = CaptureActorMotion(diver)
+        };
+
+        static OnlineActorMotion CaptureActorMotion(CrewActor actor) => new OnlineActorMotion
+        {
+            position = actor.Position, facing = actor.Facing, onboard = actor.onboard
+        };
+
+        public void BufferOnlineMotion(OnlineCrewMotion sample)
+        {
+            if (hasReplicaMotion && sample.sequence <= motionTarget.sequence) return;
+            motionStart = CaptureOnlineMotion(sample.sequence);
+            motionTarget = sample;
+            motionElapsed = 0f;
+            hasReplicaMotion = true;
+        }
+
+        public void RenderOnlineMotion(float seconds)
+        {
+            if (!hasReplicaMotion || motionElapsed >= .045f) return;
+            motionElapsed += seconds;
+            float blend = Mathf.Clamp01(motionElapsed / .045f);
+            Vector3 shipPose = Vector3.Lerp(motionStart.ship, motionTarget.ship, blend);
+            ship.body.position = ship.transform.position = shipPose;
+            RenderActorMotion(captain, motionStart.captain, motionTarget.captain, blend);
+            RenderActorMotion(diver, motionStart.diver, motionTarget.diver, blend);
+        }
+
+        static void RenderActorMotion(CrewActor actor, OnlineActorMotion start, OnlineActorMotion target, float blend)
+        {
+            if (actor.onboard != target.onboard) actor.SetOnboard(target.onboard, target.position);
+            Vector3 position = start.onboard != target.onboard || (start.position - target.position).sqrMagnitude > 64f
+                ? target.position : Vector3.Lerp(start.position, target.position, blend);
+            actor.ApplyReplicatedPose(position, target.facing);
+        }
 
         public OnlineWorldFrame CaptureOnlineFrame(GameHUDController hud, bool baseline, bool includeWorld)
         {
@@ -16,6 +86,7 @@ namespace Lifeline
             {
                 baseline = baseline,
                 phase = phase,
+                statusAudienceRole = StatusAudienceRole,
                 state = baseline ? CaptureSaveData(hud) : CaptureState(hud, includeWorld, true),
                 winchActive = winchActive,
                 winchFeedback = winchFeedback,
@@ -54,6 +125,7 @@ namespace Lifeline
 
         public void ResetOnlineReplicaCombat()
         {
+            hasReplicaMotion = false;
             replicaEnemies.Clear();
             replicaSpears.Clear();
             replicaCombatInitialized = false;
@@ -63,7 +135,8 @@ namespace Lifeline
         {
             var data = frame.state;
             CopySaveFields(data.state, this);
-            ship.body.position = ship.transform.position = WaterToShipPoint(data.shipPosition);
+            StatusAudienceRole = frame.statusAudienceRole;
+            if (!hasReplicaMotion) ship.body.position = ship.transform.position = WaterToShipPoint(data.shipPosition);
             if (data.world != null && data.world.present)
             {
                 if (world.generatedSeed != data.world.generatedSeed || world.activeDay != data.world.activeDay)
@@ -75,7 +148,7 @@ namespace Lifeline
                     world.forceFilterDay = data.world.forceFilterDay;
                     world.Generate(worldSeed);
                 }
-                RestoreWorld(data.world);
+                RestoreWorld(data.world, onlyChanged: true);
             }
             ApplyOnlineCrewPose(captain, data.captain);
             ApplyOnlineCrewPose(diver, data.diver);
@@ -115,9 +188,12 @@ namespace Lifeline
 
         void ApplyOnlineCrewPose(CrewActor actor, CrewSaveState saved)
         {
-            var position = saved.onboard ? ShipPoint(saved.position) : saved.position;
-            if (actor.onboard != saved.onboard) actor.SetOnboard(saved.onboard, position);
-            actor.ApplyReplicatedPose(position, saved.facing);
+            if (!hasReplicaMotion)
+            {
+                var position = saved.onboard ? ShipPoint(saved.position) : saved.position;
+                if (actor.onboard != saved.onboard) actor.SetOnboard(saved.onboard, position);
+                actor.ApplyReplicatedPose(position, saved.facing);
+            }
             actor.oxygen = saved.oxygen;
             actor.oxygenMax = saved.oxygenMax;
             actor.health = saved.health;

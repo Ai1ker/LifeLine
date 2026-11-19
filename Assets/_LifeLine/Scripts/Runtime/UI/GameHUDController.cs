@@ -14,6 +14,7 @@ namespace Lifeline
         public Text bankText, shipText, captainText, diverText, questText, messageText, clockText;
         public Text questChapterText;
         public OnboardingView onboarding;
+        public CrewScreenOverlay crewOverlay;
         public Image hullFill, powerFill, oxygenFill;
         public CrewStationPanel captainPanel, diverPanel;
         public Button pauseButton, controlsButton, resumeButton, restartButton, menuButton;
@@ -33,6 +34,8 @@ namespace Lifeline
         private float nextHudUpdate;
         private int lastPauseFrame = -1;
         private bool initialized;
+        string shownNotice;
+        float noticeExpires;
 
         private void Start() => Initialize();
         public void Initialize()
@@ -63,6 +66,11 @@ namespace Lifeline
             if (onboarding == null) onboarding = GetComponent<OnboardingView>();
             if (onboarding == null) onboarding = gameObject.AddComponent<OnboardingView>();
             onboarding.Initialize(this);
+            if (crewOverlay == null) crewOverlay = GetComponent<CrewScreenOverlay>();
+            if (crewOverlay == null) crewOverlay = gameObject.AddComponent<CrewScreenOverlay>();
+            crewOverlay.Initialize(this);
+            session.captain?.GetComponent<CrewPresentation>()?.SetFront(true);
+            session.diver?.GetComponent<CrewPresentation>()?.SetFront(false);
             initialized = true;
         }
         private void OnDestroy()
@@ -94,42 +102,37 @@ namespace Lifeline
                 bank.Append(GameNames.Resource(resource)).Append(' ').Append(session.GetResource(resource)).Append("   ");
             bankText.text = bank.ToString();
             shipText.text = "船体 " + session.hull.ToString("0") + "/" + session.hullMax.ToString("0") + "   电力 " + session.power.ToString("0") + "%   航线 " + Mathf.Clamp01(session.ship.Position.x / session.tuning.routeDistance).ToString("P0");
-            captainText.text = CrewLabel(session.captain);
-            diverText.text = CrewLabel(session.diver);
+            crewOverlay?.RefreshBackpack();
             questText.text = session.QuestText;
             if (questChapterText != null) questChapterText.text = string.Format("主线 · 第{0}章", session.QuestChapter);
-            messageText.text = OnlineVoyage.IsGuest && OnlineVoyage.WaitingForCrew
-                ? UiLocalization.Text("online.waiting.host") : session.StatusMessage;
+            RefreshNotice();
             clockText.text = "DAY " + session.day + " · " + (session.IsNight ? "夜晚" : session.IsDusk ? "黄昏" : "白昼") + "  " + (session.elapsed % session.tuning.daySeconds).ToString("0") + "s";
             hullFill.fillAmount = session.hullMax > 0 ? session.hull / session.hullMax : 0;
             powerFill.fillAmount = session.power / Mathf.Max(1, session.tuning.maxPower);
             if(oxygenFill!=null && session.diver!=null)oxygenFill.fillAmount=session.diver.oxygenMax>0?session.diver.oxygen/session.diver.oxygenMax:0;
         }
-        private string CrewLabel(CrewActor actor)
+        void RefreshNotice()
         {
-            string name = authority != null && authority.onlineView ? authority.NameFor(actor.role) : GameNames.Role(actor.role);
-            int roleIndex = (int)actor.role;
-            if (session.reviveTargets[roleIndex] != null)
-                return name + " · 扶起同伴 " + session.reviveProgress[roleIndex].ToString("0.0") + "/" + session.tuning.reviveSeconds.ToString("0") + "s · 持续按住互动";
-            if(actor==session.captain&&session.captainBoardHeld)return name+" · 回船 "+session.captainBoardProgress.ToString("0.0")+"/"+session.captainBoardSeconds.ToString("0.#")+"s";
-            if(session.IsHidden(actor))return name+" · 藏匿中，互动离开";
-            if (actor.downed||session.IsFainted(actor)) return name + " · 倒地，等待同伴扶起";
-            if (actor.onboard)
+            if (messageText == null) return;
+            bool waiting = OnlineVoyage.WaitingForCrew;
+            string text = OnlineVoyage.IsGuest && waiting ? UiLocalization.Text("online.waiting.host") : session.StatusMessage;
+            if (!waiting && authority != null && authority.onlineView && session.StatusAudienceRole >= 0 &&
+                session.StatusAudienceRole != (int)authority.localRole) text = null;
+            if (shownNotice != text)
             {
-                var station = actor.NearbyStation;
-                string hint = station != null ? GameNames.Station(station.kind) + " [" + actor.input.GetBindingLabel("Interact") + "]" : "行走 / 跳跃 / 梯子";
-                string warning = station != null ? station.GetInteractionWarning(actor) : string.Empty;
-                if (!string.IsNullOrEmpty(warning)) hint += "\n" + UiLocalization.Text(warning);
-                return name + " · 船上  " + hint;
+                shownNotice = text;
+                noticeExpires = Time.unscaledTime + 3f;
             }
-            return name + " · 水下  O₂ " + actor.oxygen.ToString("0") + "s  背包 " + actor.backpack.Count + "/" + actor.BagCapacity + "  绳长 " + session.CrewRopeLength(actor).ToString("0.0") + "/" + session.ropeLength.ToString("0") + "m";
+            bool show = !string.IsNullOrEmpty(text) && (waiting || Time.unscaledTime < noticeExpires);
+            messageText.gameObject.SetActive(show);
+            if (show) messageText.text = UiLocalization.Text(text);
         }
         private void OpenStation(StationKind kind, CrewActor actor)
         {
             CrewStationPanel own = actor.role == CrewRole.Captain ? captainPanel : diverPanel;
             CrewStationPanel other = actor.role == CrewRole.Captain ? diverPanel : captainPanel;
             if (session.phase != SessionPhase.Playing) return;
-            if (other != null && other.IsOpen && other.station == kind) { if (messageText != null) messageText.text = "同伴正在操作这个站点。"; return; }
+            if (other != null && other.IsOpen && other.station == kind) { session.Tell("同伴正在操作这个站点。", actor); return; }
             own?.Open(kind);
         }
         private void OnOperationInterrupted(CrewActor actor) => (actor.role == CrewRole.Captain ? captainPanel : diverPanel)?.Close();
@@ -144,6 +147,8 @@ namespace Lifeline
         {
             if (command.pause) { HandleEscape(); return; }
             if (session.phase != SessionPhase.Playing) return;
+            if (command.backpack && authority != null && authority.onlineView && actor.role == authority.localRole)
+                crewOverlay?.ToggleBackpack();
             (actor.role == CrewRole.Captain ? captainPanel : diverPanel)?.HandleCommand(command);
         }
         /// <summary>A shared keyboard Escape dismisses one UI layer; both role maps consume the same frame once.</summary>

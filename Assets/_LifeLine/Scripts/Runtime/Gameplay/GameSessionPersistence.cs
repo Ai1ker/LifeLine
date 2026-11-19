@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -7,13 +8,24 @@ namespace Lifeline
 {
     public partial class GameSession
     {
+        static readonly Dictionary<(Type, Type), (FieldInfo From, FieldInfo To)[]> saveFieldMappings = new();
+
         static void CopySaveFields(object source, object destination)
         {
-            foreach (FieldInfo field in source.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
+            var types = (source.GetType(), destination.GetType());
+            if (!saveFieldMappings.TryGetValue(types, out var mapping))
             {
-                FieldInfo target = destination.GetType().GetField(field.Name, BindingFlags.Public | BindingFlags.Instance);
-                if (target != null && target.FieldType == field.FieldType) target.SetValue(destination, field.GetValue(source));
+                const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
+                var fields = new List<(FieldInfo, FieldInfo)>();
+                foreach (FieldInfo field in types.Item1.GetFields(flags))
+                {
+                    FieldInfo target = types.Item2.GetField(field.Name, flags);
+                    if (target != null && target.FieldType == field.FieldType) fields.Add((field, target));
+                }
+                mapping = fields.ToArray();
+                saveFieldMappings.Add(types, mapping);
             }
+            foreach (var field in mapping) field.To.SetValue(destination, field.From.GetValue(source));
         }
         static T CloneSave<T>(T value) => JsonUtility.FromJson<T>(JsonUtility.ToJson(value));
         public GameSaveData CaptureSaveData(GameHUDController hud = null) => CaptureState(hud, true, false);
@@ -231,13 +243,22 @@ namespace Lifeline
             if(restoreHidden&&!actor.onboard&&world!=null&&world.IsAtHideSpot(actor)){actor.SetHidden(true);actor.hidingPosition=actor.Position;}
             EnsureCaptainLifelineView();
         }
-        void RestoreWorld(WorldSaveState saved)
+        void RestoreWorld(WorldSaveState saved, bool onlyChanged = false)
         {
             var current = new Dictionary<string, LootPickup>();
             foreach (LootPickup pickup in world.pickups) if (pickup != null && !string.IsNullOrEmpty(pickup.saveId)) current.Add(pickup.saveId, pickup);
             var restored = new HashSet<string>();
             foreach (PickupSaveState state in saved.pickups)
             {
+                restored.Add(state.id);
+                if (onlyChanged && current.TryGetValue(state.id, out var existing) &&
+                    existing.consumed == state.consumed && existing.attached == state.attached &&
+                    existing.amount == state.amount && existing.capacity == state.capacity &&
+                    existing.resource == state.resource && existing.contents.SequenceEqual(state.contents))
+                {
+                    if (existing.transform.position != state.position) existing.transform.position = state.position;
+                    continue;
+                }
                 if (!current.TryGetValue(state.id, out LootPickup pickup))
                 {
                     if (!state.dynamic) throw new InvalidOperationException("存档物资ID与当前地图生成器不兼容：" + state.id);
@@ -251,7 +272,7 @@ namespace Lifeline
                 pickup.world = world; pickup.saveId = state.id; pickup.resource = state.resource; pickup.amount = state.amount; pickup.capacity = state.capacity;
                 pickup.persistAcrossDays=state.persistAcrossDays;pickup.isLostCargo=state.isLostCargo; pickup.isCrate = state.isCrate; pickup.isCabinet = state.isCabinet; pickup.attached = state.attached; pickup.consumed = state.consumed;
                 pickup.mazeIndex = state.mazeIndex; pickup.mazeCell = state.mazeCell; pickup.contents = state.contents; pickup.transform.position = state.position;
-                pickup.gameObject.SetActive(!state.consumed); world.PrepareRestoredPickup(pickup); pickup.RefreshVisual(); restored.Add(state.id);
+                pickup.gameObject.SetActive(!state.consumed); world.PrepareRestoredPickup(pickup);
             }
             foreach (LootPickup pickup in current.Values) if (!restored.Contains(pickup.saveId)) { pickup.consumed = true; pickup.gameObject.SetActive(false); }
             var gates = new Dictionary<string, TrapdoorGate>();
@@ -259,6 +280,7 @@ namespace Lifeline
             foreach (GateSaveState state in saved.gates)
             {
                 if (!gates.TryGetValue(state.id, out TrapdoorGate gate)) throw new InvalidOperationException("存档门ID与当前地图生成器不兼容：" + state.id);
+                if (onlyChanged && gate.destroyed == state.destroyed && gate.open == state.open) continue;
                 gate.destroyed = state.destroyed;
                 gate.SetOpen(state.open);
             }

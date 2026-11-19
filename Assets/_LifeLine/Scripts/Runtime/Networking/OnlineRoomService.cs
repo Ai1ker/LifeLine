@@ -44,6 +44,7 @@ namespace Lifeline
         public abstract bool InRoom { get; }
         public abstract bool IsHost { get; }
         public abstract bool Started { get; }
+        public abstract bool HostTransportReady { get; }
         public bool CanStart => IsHost && !Busy && !Started && Members.Count == Capacity
             && Members[0].Role.HasValue && Members[1].Role.HasValue && Members[0].Role != Members[1].Role;
         public abstract bool ResumeSavedGame { get; }
@@ -62,6 +63,7 @@ namespace Lifeline
         public abstract void Join(string roomCode);
         public abstract void SelectRole(CrewRole role);
         public abstract void StartGame();
+        public abstract bool PublishHostTransportReady();
         public abstract void Leave();
         public abstract bool TryGetAssignedRole(string steamId, out CrewRole role);
 

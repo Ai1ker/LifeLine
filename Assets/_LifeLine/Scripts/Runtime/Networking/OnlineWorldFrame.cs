@@ -6,6 +6,20 @@ using UnityEngine;
 
 namespace Lifeline
 {
+    public struct OnlineCrewMotion
+    {
+        public uint sequence;
+        public Vector3 ship;
+        public OnlineActorMotion captain, diver;
+    }
+
+    public struct OnlineActorMotion
+    {
+        public Vector3 position;
+        public Vector2 facing;
+        public bool onboard;
+    }
+
     [Serializable]
     public sealed class OnlineWorldFrame
     {
@@ -19,6 +33,7 @@ namespace Lifeline
         public float[] reviveProgress;
         public bool[] reviving;
         public int helmsman = -1;
+        public int statusAudienceRole = -1;
     }
 
     public static class OnlineFrameCodec

@@ -147,15 +147,7 @@ namespace Lifeline
 
         public string LostCargoPrompt()
         {
-            CrewActor actor=null;float distance=float.PositiveInfinity;
-            if(world!=null && world.session!=null)foreach(var crew in world.session.Crew)
-            {
-                if(crew==null||crew.onboard||world.session.IsIncapacitated(crew))continue;
-                float next=(crew.Position-transform.position).sqrMagnitude;if(next<distance){actor=crew;distance=next;}
-            }
-            string collect=actor!=null&&actor.input!=null?actor.input.GetBindingLabel("Collect"):"1";
-            string interact=actor!=null&&actor.input!=null?actor.input.GetBindingLabel("Interact"):"Enter";
-            return string.Format(UiLocalization.Text(attached ? "遗失物资 {0}/{1} · 已挂绳，等待绞盘" : "遗失物资 {0}/{1}\n按住 [{2}] 挂绳 / [{3}] 存入"),contents.Count,capacity,collect,interact);
+            return string.Format(UiLocalization.Text(attached ? "遗失物资 {0}/{1} · 已挂绳，等待绞盘" : "遗失物资 {0}/{1}"), contents.Count, capacity);
         }
         void RefreshLabel()
         {

@@ -16,6 +16,7 @@ namespace Lifeline
             draft.name = AssetName;
             AddMap(draft, "Captain", new[] { "w", "a", "s", "d" }, "w", "e", "r", "space", "q", "leftShift", "z", "x", "c");
             AddMap(draft, "Diver", new[] { "upArrow", "leftArrow", "downArrow", "rightArrow" }, "upArrow", "enter", "1", "0", "2", "rightShift", "period", "slash", "m");
+            EnsureBackpackAction(draft);
 
             // Stable IDs keep PlayerPrefs overrides valid even when the runtime fallback is used.
             var json = draft.ToJson();
@@ -23,8 +24,8 @@ namespace Lifeline
             foreach (var map in draft.actionMaps)
             {
                 json = ReplaceId(json, map.id, id++);
-                foreach (var action in map.actions) json = ReplaceId(json, action.id, id++);
-                foreach (var binding in map.bindings) json = ReplaceId(json, binding.id, id++);
+                foreach (var action in map.actions) json = ReplaceId(json, action.id, action.name == "Backpack" ? 900 : id++);
+                foreach (var binding in map.bindings) json = ReplaceId(json, binding.id, binding.action == "Backpack" ? 901 : id++);
             }
             if (Application.isPlaying) UnityEngine.Object.Destroy(draft);
             else UnityEngine.Object.DestroyImmediate(draft);
@@ -32,6 +33,14 @@ namespace Lifeline
             asset.name = AssetName;
             MigrateInteractionBindings(asset, true);
             return asset;
+        }
+
+        public static bool EnsureBackpackAction(InputActionAsset asset)
+        {
+            var captain = asset?.FindActionMap("Captain", false);
+            if (captain == null || captain.FindAction("Backpack", false) != null) return false;
+            Button(captain, "Backpack", "b");
+            return true;
         }
 
         /// <summary>Retain IDs and custom overrides while retiring only the diver's separate hide action.</summary>

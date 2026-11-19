@@ -58,14 +58,17 @@ namespace Lifeline
             bool playing = session.phase == SessionPhase.Playing;
             bool usingDevice = hideLessonsWhileUsingDevices && (hud.captainPanel != null && hud.captainPanel.IsOpen || hud.diverPanel != null && hud.diverPanel.IsOpen);
             if(progress!=null)progress.remindersVisible=playing && !usingDevice;
-            bool lesson = playing && !usingDevice && progress != null && !progress.Complete;
+            CrewRole lessonRole = progress != null && (progress.Step <= 1 || progress.Step == 7) ? CrewRole.Captain : CrewRole.Diver;
+            bool lesson = playing && !usingDevice && progress != null && !progress.Complete &&
+                (hud.authority == null || !hud.authority.onlineView || hud.authority.localRole == lessonRole);
             if (instructionPanel != null) instructionPanel.SetActive(lesson);
             if (lesson && instructionText != null)
             {
-                var actor = progress.Step <= 1 || progress.Step == 7 ? session.captain : session.diver;
+                var actor = lessonRole == CrewRole.Captain ? session.captain : session.diver;
                 string interact = actor != null && actor.input != null ? actor.input.GetBindingLabel("Interact") : actor == session.captain ? "E" : "Enter";
                 string collect = actor != null && actor.input != null ? actor.input.GetBindingLabel("Collect") : "1";
-                instructionText.text = string.Format(UiLocalization.Text(progress.InstructionSource), interact, collect);
+                instructionText.text = string.Format(UiLocalization.Text(progress.InstructionSource), interact, collect,
+                    session.GetBagCapacity(session.captain), session.tuning != null ? session.GetOxygenMax(session.captain) : 50f);
             }
             bool notice = playing && !usingDevice && progress != null && !string.IsNullOrEmpty(progress.NoticeSource);
             if (noticePanel != null) noticePanel.SetActive(notice);

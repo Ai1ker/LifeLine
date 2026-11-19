@@ -94,6 +94,7 @@ namespace Lifeline
         }
         readonly Dictionary<GameObject, VisualLayer> isolatedVisuals = new Dictionary<GameObject, VisualLayer>();
         readonly List<GameObject> layersToRestore = new List<GameObject>();
+        readonly List<Renderer> rendererBuffer = new List<Renderer>();
 
         public void Initialize(GameSession owner)
         {
@@ -289,7 +290,8 @@ namespace Lifeline
         void IsolateVisuals(Transform root, bool isShip = false)
         {
             if (root == null) return;
-            foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
+            root.GetComponentsInChildren(true, rendererBuffer);
+            foreach (var renderer in rendererBuffer)
             {
                 GameObject go = renderer.gameObject;
                 if (isShip && (go.layer == 8 || go.layer == 13 || renderer is LineRenderer || renderer is TrailRenderer)) continue;
@@ -311,6 +313,7 @@ namespace Lifeline
 
         void RestoreVisualLayers()
         {
+            rendererBuffer.Clear();
             foreach (var record in isolatedVisuals.Values)
                 if (record.gameObject != null) record.gameObject.layer = record.original;
             isolatedVisuals.Clear();

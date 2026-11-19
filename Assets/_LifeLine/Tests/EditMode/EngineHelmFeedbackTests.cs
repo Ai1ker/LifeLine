@@ -62,16 +62,19 @@ namespace Lifeline.Tests
         {
             CrewActor actor = role == CrewRole.Captain ? game.captain : game.diver;
             StationAnchor station = Helm(actor); var hud = Child("HUD").AddComponent<GameHUDController>(); hud.session = game;
-            MethodInfo crewLabel = typeof(GameHUDController).GetMethod("CrewLabel", BindingFlags.NonPublic | BindingFlags.Instance);
+            var overlay = hud.gameObject.AddComponent<CrewScreenOverlay>();
+            overlay.Initialize(hud);
             game.HandleCommand(actor, new CrewCommand { interact = true });
             game.Tell("another crew operation completed");
             string warning = UiLocalization.Text(GameSession.EngineUnavailableMessage);
-            string label = (string)crewLabel.Invoke(hud, new object[] { actor });
+            Assert.That(overlay.TryGetPrompt(actor, out var target, out string label), Is.True);
+            Assert.That(target, Is.EqualTo(station.transform.position));
             Assert.That(label, Does.Contain("\n" + warning));
             Assert.That(label, Does.Contain(actor.input.GetBindingLabel("Interact")));
             game.MarkEngineRepaired();
             Assert.That(station.GetInteractionWarning(actor), Is.Empty);
-            Assert.That((string)crewLabel.Invoke(hud, new object[] { actor }), Does.Not.Contain(warning));
+            Assert.That(overlay.TryGetPrompt(actor, out _, out label), Is.True);
+            Assert.That(label, Does.Not.Contain(warning));
         }
 
         [Test] public void DamageFeedbackPrecedesStaleOperatorAndDirectMotorEntryAlsoRejectsDamage()

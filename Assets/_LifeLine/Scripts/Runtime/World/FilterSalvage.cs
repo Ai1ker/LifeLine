@@ -18,19 +18,7 @@ namespace Lifeline
             return true;
         }
 
-        public string Prompt()
-        {
-            CrewActor nearest = null; float best = float.PositiveInfinity;
-            var game = pickup != null && pickup.world != null ? pickup.world.session : null;
-            if (game != null) foreach (var actor in game.Crew)
-            {
-                if (actor == null || actor.onboard || game.IsIncapacitated(actor)) continue;
-                float distance = (actor.Position - transform.position).sqrMagnitude;
-                if (distance < best) { nearest = actor; best = distance; }
-            }
-            string binding = nearest != null && nearest.input != null ? nearest.input.GetBindingLabel("Collect") : "1";
-            return string.Format(UiLocalization.Text("海水过滤器\n按住 [{0}] 打捞上船 · 不占背包"), binding);
-        }
+        public string Prompt() => UiLocalization.Text("海水过滤器");
 
         public void ConfigureVisual(GameObject authoredPrefab, Material body, Material trim)
         {

@@ -2486,3 +2486,99 @@ MonoBehaviour:
     zh: "\u8054\u673A\u955C\u5934\uFF1A\u5168\u5C4F\u8DDF\u968F\u672C\u5730\u89D2\u8272"
     en: 'Online camera: Full-screen local follow'
     fragment: 1
+  - key: onboarding.02.captainDive
+    zh: "\u5408\u4F5C\u5165\u95E8 3/8 \xB7 \u6F5C\u6C34\u5458\n\u9760\u8FD1\u6F5C\u6C34\u51C6\u5907\u53F0\u6309 [{0}] \u4E0B\u6C34\uFF0C\u6CE8\u610F\u6C27\u6C14\u548C\u7EF3\u957F\u3002\u8239\u957F\u4E5F\u80FD\u77ED\u65F6\u95F4\u6F5C\u6C34\uFF0C\u56FA\u5B9A {2} \u683C\u80CC\u5305\u548C {3:0} \u79D2\u6C27\u6C14\u3002"
+    en: "Co-op basics 3/8 \xB7 Diver\nPress [{0}] at dive preparation. Watch your oxygen and rope. The captain can make short dives with {2} backpack slots and {3:0} seconds of oxygen."
+    fragment: 1
+  - key: crew.backpack.name
+    zh: "\u6F5C\u6C34\u5458\u80CC\u5305 {0}/{1}"
+    en: Diver backpack {0}/{1}
+    fragment: 1
+  - key: crew.backpack.empty
+    zh: "\u7A7A"
+    en: Empty
+    fragment: 1
+  - key: crew.backpack.full
+    zh: "\u80CC\u5305\u5DF2\u6EE1"
+    en: Backpack full
+    fragment: 1
+  - key: input.backpack
+    zh: "\u80CC\u5305"
+    en: Backpack
+    fragment: 1
+  - key: crew.prompt.leaveHide
+    zh: "[{0}] \u79BB\u5F00\u85CF\u533F\u5904"
+    en: '[{0}] Leave hiding place'
+    fragment: 1
+  - key: crew.prompt.hide
+    zh: "[{0}] \u85CF\u533F"
+    en: '[{0}] Hide'
+    fragment: 1
+  - key: crew.prompt.revive
+    zh: "\u6309\u4F4F [{0}] \u6276\u8D77\u540C\u4F34 \xB7 {1:0.0}/{2:0.#} \u79D2"
+    en: "Hold [{0}] to revive \xB7 {1:0.0}/{2:0.#} s"
+    fragment: 1
+  - key: crew.prompt.board
+    zh: "\u6309\u4F4F [{0}] \u56DE\u8239 \xB7 {1:0.0}/{2:0.#} \u79D2"
+    en: "Hold [{0}] to board \xB7 {1:0.0}/{2:0.#} s"
+    fragment: 1
+  - key: crew.prompt.load
+    zh: "[{0}] \u5B58\u5165 \xB7 {1}/{2}"
+    en: "[{0}] Load crate \xB7 {1}/{2}"
+    fragment: 1
+  - key: crew.prompt.attach
+    zh: "\u6309\u4F4F [{0}] \u6302\u7EF3"
+    en: Hold [{0}] to attach to the rope
+    fragment: 1
+  - key: crew.prompt.collect
+    zh: "\u6309\u4F4F [{0}] \u6536\u96C6 \xB7 {1}"
+    en: "Hold [{0}] to collect \xB7 {1}"
+    fragment: 1
+  - key: crew.prompt.filter
+    zh: "\u6309\u4F4F [{0}] \u6253\u635E\u6D77\u6C34\u8FC7\u6EE4\u5668"
+    en: Hold [{0}] to salvage the seawater filter
+    fragment: 1
+  - key: crew.prompt.winch
+    zh: "\u7B49\u5F85\u961F\u53CB\u7528\u7EDE\u76D8\u63A5\u56DE"
+    en: Wait for your teammate to winch you aboard
+    fragment: 1
+  - key: crew.prompt.openHatch
+    zh: "[{0}] \u6253\u5F00\u6D3B\u677F\u95E8"
+    en: '[{0}] Open hatch'
+    fragment: 1
+  - key: crew.prompt.closeHatch
+    zh: "[{0}] \u5173\u95ED\u6D3B\u677F\u95E8"
+    en: '[{0}] Close hatch'
+    fragment: 1
+  - key: crew.prompt.hatch
+    zh: "\u6D3B\u677F\u95E8"
+    en: Hatch
+    fragment: 1
+  - key: crew.prompt.hatchOpen
+    zh: "\u6D3B\u677F\u95E8 \xB7 \u5DF2\u6253\u5F00"
+    en: "Hatch \xB7 Open"
+    fragment: 1
+  - key: crew.prompt.wreckLoot
+    zh: "\u6B8B\u9AB8\u7269\u8D44"
+    en: Wreck supplies
+    fragment: 1
+  - key: crew.prompt.lost
+    zh: "\u9057\u5931\u7269\u8D44 {0}/{1}"
+    en: Lost cargo {0}/{1}
+    fragment: 1
+  - key: online.loading.prepare
+    zh: "\u6B63\u5728\u51C6\u5907 Steam \u8054\u673A"
+    en: Preparing Steam multiplayer
+    fragment: 1
+  - key: online.loading.connect
+    zh: "\u6B63\u5728\u7B49\u5F85 Steam \u961F\u53CB\u8FDE\u63A5"
+    en: Waiting for your Steam teammate
+    fragment: 1
+  - key: online.loading.scene
+    zh: "\u6B63\u5728\u52A0\u8F7D\u822A\u7A0B\u573A\u666F"
+    en: Loading the gameplay scene
+    fragment: 1
+  - key: online.loading.state
+    zh: "\u6B63\u5728\u540C\u6B65\u623F\u4E3B\u822A\u7A0B\u72B6\u6001"
+    en: Syncing the host's voyage
+    fragment: 1

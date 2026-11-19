@@ -75,7 +75,7 @@ namespace Lifeline
             if (label != null)
             {
                 label.gameObject.SetActive(!destroyed);
-                label.text = open ? "OPEN / ENTER" : "HATCH / ENTER";
+                label.text = UiLocalization.Text(open ? "活板门 · 已打开" : "活板门");
             }
         }
 

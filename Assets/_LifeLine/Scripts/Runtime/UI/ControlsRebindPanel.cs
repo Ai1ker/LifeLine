@@ -61,6 +61,7 @@ namespace Lifeline
             statusText.text = GameNames.Role(selectedRole) + " · 点击一个绑定后按新键；Esc 取消。";
             foreach (InputAction action in Selected.BindableActions)
             {
+                if (action.name == "Backpack" && (onlineInput == null || onlineInput.role != CrewRole.Diver)) continue;
                 for (int i = 0; i < action.bindings.Count; i++)
                 {
                     if (action.bindings[i].isComposite) continue;

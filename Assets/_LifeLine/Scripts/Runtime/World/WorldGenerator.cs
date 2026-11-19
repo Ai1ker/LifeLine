@@ -701,7 +701,9 @@ namespace Lifeline
             }
         }
 
-        public bool TryInteractTrapdoor(CrewActor actor)
+        public bool TryInteractTrapdoor(CrewActor actor) => FindTrapdoor(actor)?.TryInteract(actor) == true;
+
+        public TrapdoorGate FindTrapdoor(CrewActor actor)
         {
             TrapdoorGate nearest = null; float best = float.PositiveInfinity;
             foreach (var gate in trapdoors)
@@ -710,7 +712,7 @@ namespace Lifeline
                 float distance = (actor.Position - gate.transform.position).sqrMagnitude;
                 if (distance < best) { nearest = gate; best = distance; }
             }
-            return nearest != null && nearest.TryInteract(actor);
+            return nearest;
         }
 
         public void ResolveCrewRefreshOverlap(){ResolveRefreshOverlap(session!=null?session.captain:null);ResolveRefreshOverlap(session!=null?session.diver:null);}
@@ -830,7 +832,7 @@ namespace Lifeline
             var nearest = FindNearest(actor, true);
             return nearest != null && nearest.TryLoad(actor);
         }
-        LootPickup FindNearest(CrewActor actor, bool cratesOnly)
+        public LootPickup FindNearest(CrewActor actor, bool cratesOnly)
         {
             if (actor == null) return null;
             LootPickup best = null; float distance = float.PositiveInfinity;
@@ -881,8 +883,15 @@ namespace Lifeline
             view.RefreshNow();
         }
 
-        public bool IsAtHideSpot(CrewActor actor)
-        {foreach(var hide in hideSpots)if(hide!=null&&Vector2.Distance(actor.Position,hide.transform.position)<=hide.range)return true;return false;}
+        public bool IsAtHideSpot(CrewActor actor) => FindHideSpot(actor) != null;
+        public Transform FindHideSpot(CrewActor actor)
+        {
+            if (actor == null) return null;
+            foreach (var hide in hideSpots)
+                if (hide != null && Vector2.Distance(actor.Position, hide.transform.position) <= hide.range)
+                    return hide.transform;
+            return null;
+        }
         public bool TryHide(CrewActor actor)
         {
             if(actor==null||actor.onboard||session==null||session.IsIncapacitated(actor))return false;
@@ -890,12 +899,14 @@ namespace Lifeline
             if(!IsAtHideSpot(actor))return false;
             actor.SetHidden(true);
             if (actor.role == CrewRole.Diver) session.GetComponent<TutorialProgress>()?.Observe(TutorialAction.Hide);
-            session.Tell(GameNames.Role(actor.role)+"进入藏匿处，再按互动键离开。");session.Changed();return true;
+            session.Tell(GameNames.Role(actor.role)+"进入藏匿处，再按互动键离开。", actor);session.Changed();return true;
         }
         public Transform GetLabelFocus()=>GetLabelFocus(session!=null?session.diver:null);
         public bool IsLabelFocus(Transform target)
         {
             if(session==null)return false;
+            if (OnlineVoyage.InProgress)
+                return GetLabelFocus(OnlineVoyage.Current.LocalRole == CrewRole.Captain ? session.captain : session.diver) == target;
             foreach(var actor in session.Crew)if(GetLabelFocus(actor)==target)return true;
             return false;
         }

@@ -9,12 +9,17 @@ namespace Lifeline
         event Action<string> AdmissionReady;
         event Action<ArraySegment<byte>> WorldStateReceived;
         event Action<string, string> ActionReceived;
+        event Action<OnlineCrewMotion> MotionReceived;
+        event Action<CrewRole, CrewVisualEvent> AttackReceived;
 
         bool CanQueueReliableState { get; }
+        float StateDownloadProgress { get; }
         void Configure(NetworkPeerIdentity local, Func<string, NetworkPeerIdentity> admitPeer);
         /// <summary>Reliable state. Only the pending replaceable update may be superseded.</summary>
         void BroadcastWorldState(ArraySegment<byte> payload, bool replaceable = false);
         void SendAction(string action);
+        void BroadcastMotion(OnlineCrewMotion motion);
+        void BroadcastAttack(CrewRole role, CrewVisualEvent kind);
     }
 
     public static class OnlineGameplayTransport

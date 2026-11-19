@@ -165,6 +165,7 @@ namespace Lifeline
         public float[] reviveProgress = new float[2];
         public CrewActor[] reviveTargets = new CrewActor[2];
         [TextArea] public string StatusMessage;
+        public int StatusAudienceRole { get; internal set; } = -1;
         [TextArea] public string QuestText;
         public List<string> storyLog = new List<string>();
 
@@ -378,7 +379,7 @@ namespace Lifeline
                     if (world != null && world.TryLoadCrate(actor)) return;
                     if (world != null && world.TryInteractTrapdoor(actor)) return;
                     if (world != null && world.TryHide(actor)) return;
-                    if (actor == diver && Vector3.Distance(actor.Position, BoatAnchor) < 3) Tell("已经抵达船底。请船长打开绞盘接回；潜水员无法自行登船。");
+                    if (actor == diver && Vector3.Distance(actor.Position, BoatAnchor) < 3) Tell("已经抵达船底。请船长打开绞盘接回；潜水员无法自行登船。", actor);
                 }
                 return;
             }
@@ -480,7 +481,7 @@ namespace Lifeline
         }
 
         public CrewBuffs Buffs(CrewActor actor) => actor == captain ? captainBuffs : diverBuffs;
-        public int GetBagCapacity(CrewActor actor) => actor == captain ? tuning != null ? tuning.captainBagCapacity : 4 : tuning == null ? 8 : tuning.bagCapacity + (actor == diver ? tuning.backpackSlotsByLevel[Mathf.Clamp(GetUpgrade(UpgradeKind.Backpack), 0, tuning.backpackSlotsByLevel.Length-1)] : 0) + (Buffs(actor).capacity > 0 ? 1 : 0);
+        public int GetBagCapacity(CrewActor actor) => actor == captain ? tuning != null ? tuning.captainBagCapacity : 3 : tuning == null ? 8 : tuning.bagCapacity + (actor == diver ? tuning.backpackSlotsByLevel[Mathf.Clamp(GetUpgrade(UpgradeKind.Backpack), 0, tuning.backpackSlotsByLevel.Length-1)] : 0) + (Buffs(actor).capacity > 0 ? 1 : 0);
         public float GetCollectSpeedMultiplier(CrewActor actor) => actor == diver ? 1 + tuning.backpackCollectionBonus * (GetUpgrade(UpgradeKind.Backpack) >= 3 ? 2 : GetUpgrade(UpgradeKind.Backpack) >= 1 ? 1 : 0) : 1;
         public int GetMaxDiverBites() => GetUpgrade(UpgradeKind.DivingSuit) >= 2 ? tuning.suitT2HitCapacity : GetUpgrade(UpgradeKind.DivingSuit) >= 1 ? tuning.upgradedDiverHitCapacity : tuning.baseDiverHitCapacity;
         public int DiverHitCapacity => GetMaxDiverBites();
@@ -490,9 +491,10 @@ namespace Lifeline
         public bool IsActorInputBlocked(CrewActor actor) => actor == null || phase != SessionPhase.Playing || actor.downed || IsFainted(actor) || IsHidden(actor) || (actor==captain&&captainBoardHeld) || (reviveTargets[(int)actor.role] != null && reviveHeld[(int)actor.role]);
         public Vector3 ShipPoint(Vector3 local) => ship != null ? ship.LocalToWorld(local) : local;
 
-        public void Tell(string text)
+        public void Tell(string text, CrewActor audience = null)
         {
             StatusMessage = text;
+            StatusAudienceRole = audience != null ? (int)audience.role : -1;
             if (storyLog.Count == 0 || storyLog[storyLog.Count - 1] != text) { storyLog.Add(text); if (storyLog.Count > 60) storyLog.RemoveAt(0); }
             Message?.Invoke(text);
         }
