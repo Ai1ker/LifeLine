@@ -43,10 +43,10 @@ namespace Lifeline
                 ValidateCrew(data.captain, CrewRole.Captain); ValidateCrew(data.diver, CrewRole.Diver);
                 Require(data.captainRopeContacts==null||data.captainRopeContacts.Length<=256,"存档世界数据不完整。");
                 Require(EnumValue(state.winchOperatorRole),"存档角色与维修数据不完整。");
-                Require(data.jobs != null && data.jobs.Length <= (state.upgradeLevels[(int)UpgradeKind.Workbench] >= 3 ? 2 : 1) && data.nextJobId >= 1, "存档制作队列无效。");
+                Require(data.jobs != null && data.jobs.Length <= (state.upgradeLevels[(int)UpgradeKind.Workbench] >= 3 ? 3 : 2) && data.nextJobId >= 1, "存档制作队列无效。");
                 var jobIds = new HashSet<int>();
                 foreach (CraftSaveState job in data.jobs)
-                    Require(job != null && job.id > 0 && jobIds.Add(job.id) && job.id < data.nextJobId && !string.IsNullOrEmpty(job.recipeId) && EnumValue(job.owner) && job.duration > 0 && job.progress >= 0 && job.progress < job.duration && job.elapsed >= 0 && job.nextCue >= 0 && job.noteDirection >= 0 && job.noteDirection < 4 && job.hits >= 0 && job.misses >= 0, "存档作业数据无效。");
+                    Require(job != null && job.id > 0 && jobIds.Add(job.id) && job.id < data.nextJobId && !string.IsNullOrEmpty(job.recipeId) && EnumValue(job.owner) && job.duration > 0 && job.progress >= 0 && job.progress < job.duration && job.elapsed >= 0 && job.nextCue >= 0 && job.noteDirection >= 0 && job.noteDirection < 6 && job.quantity >= 0 && job.quantity <= CraftingManager.MaximumBatch && job.hits >= 0 && job.misses >= 0, "存档作业数据无效。");
                 Require(data.world != null && data.world.pickups != null && data.world.gates != null, "存档世界数据不完整。");
                 Require(data.world.forceCaveDay >= -1 && data.world.forceFilterDay >= -1, "存档世界事件日期无效。");
                 if (data.world.hasHidingSpots)

@@ -74,6 +74,13 @@ namespace Lifeline.Tests
                 Press(keyboard);
 
                 var hud = Object.FindAnyObjectByType<GameHUDController>();
+                hud.SetPause(true);
+                Assert.That(game.phase, Is.EqualTo(SessionPhase.Playing));
+                Assert.That(Time.timeScale, Is.EqualTo(1f));
+                float otherX = game.captain.Position.x;
+                hostLink.Command(room.guestId, CrewRole.Captain, move: Vector2.right);
+                yield return Until(() => game.captain.Position.x > otherX + .05f);
+                hud.SetPause(false);
                 Assert.That(hud.diverText.transform.parent.gameObject.activeSelf, Is.False);
                 game.diver.input.RuntimeActions.FindAction("Captain/Backpack", true).RemoveAllBindingOverrides();
                 Press(keyboard, Key.B);
@@ -257,10 +264,11 @@ namespace Lifeline.Tests
                 AdmissionReady?.Invoke(id);
             }
             public void Drop(string id) => PeerLeft?.Invoke(id);
-            public void Command(string id, CrewRole role) => CommandReceived?.Invoke(new NetworkCrewCommand
+            uint inputSequence;
+            public void Command(string id, CrewRole role, Vector2? move = null) => CommandReceived?.Invoke(new NetworkCrewCommand
             {
-                version = NetworkCrewCommand.ProtocolVersion, sequence = 1, senderPeerId = id,
-                command = new CrewCommand { role = role, interact = true }
+                version = NetworkCrewCommand.ProtocolVersion, sequence = ++inputSequence, senderPeerId = id,
+                command = new CrewCommand { role = role, interact = !move.HasValue, move = move ?? Vector2.zero }
             });
             public void Action(string id, string command) => ActionReceived?.Invoke(id, command);
             public void Deliver(ArraySegment<byte> data) => WorldStateReceived?.Invoke(data);

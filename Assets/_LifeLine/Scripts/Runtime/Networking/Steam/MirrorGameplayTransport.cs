@@ -26,6 +26,9 @@ namespace Lifeline.Steam
         public uint sequence, tick;
         public float horizontal, vertical;
         public ushort buttons;
+        public byte notes;
+        public int stationRevision;
+        public float stationClock;
     }
 
     public struct LifeLinePeerAction : NetworkMessage
@@ -327,19 +330,23 @@ namespace Lifeline.Steam
                 tick = command.tick,
                 horizontal = crew.move.x,
                 vertical = crew.move.y,
-                buttons = PackButtons(crew)
+                buttons = PackButtons(crew), notes = crew.noteKeys,
+                stationRevision = crew.stationRevision, stationClock = crew.stationClock
             }, Channel.Reliable);
         }
 
         void ReceiveInput(NetworkConnectionToClient connection, LifeLinePeerInput input)
         {
             if (connection != admittedConnection || input.sequence <= lastInputSequence
-                || !IsFinite(input.horizontal) || !IsFinite(input.vertical)
+                || !IsFinite(input.horizontal) || !IsFinite(input.vertical) || !IsFinite(input.stationClock)
                 || !UseBudget(ref inputBudget, ref lastInputBudgetAt, 120))
                 return;
             lastInputSequence = input.sequence;
             CrewCommand crew = UnpackButtons(input.buttons);
             crew.role = remotePeer.role;
+            crew.noteKeys = (byte)(input.notes & 63);
+            crew.stationRevision = input.stationRevision;
+            crew.stationClock = input.stationClock;
             crew.move = Vector2.ClampMagnitude(new Vector2(Mathf.Clamp(input.horizontal, -1, 1), Mathf.Clamp(input.vertical, -1, 1)), 1);
             CommandReceived?.Invoke(new NetworkCrewCommand
             {
@@ -621,14 +628,14 @@ namespace Lifeline.Steam
             (command.jump ? 1 : 0) | (command.interact ? 2 : 0) | (command.collect ? 4 : 0)
             | (command.melee ? 8 : 0) | (command.fire ? 16 : 0) | (command.sprint ? 32 : 0)
             | (command.signal ? 64 : 0) | (command.bait ? 128 : 0) | (command.hide ? 256 : 0)
-            | (command.interactHeld ? 512 : 0));
+            | (command.interactHeld ? 512 : 0) | (command.calibrate ? 1024 : 0) | (command.hideSeparate ? 2048 : 0));
 
         static CrewCommand UnpackButtons(ushort buttons) => new CrewCommand
         {
             jump = (buttons & 1) != 0, interact = (buttons & 2) != 0, collect = (buttons & 4) != 0,
             melee = (buttons & 8) != 0, fire = (buttons & 16) != 0, sprint = (buttons & 32) != 0,
             signal = (buttons & 64) != 0, bait = (buttons & 128) != 0, hide = (buttons & 256) != 0,
-            interactHeld = (buttons & 512) != 0
+            interactHeld = (buttons & 512) != 0, calibrate = (buttons & 1024) != 0, hideSeparate = (buttons & 2048) != 0
         };
     }
 }

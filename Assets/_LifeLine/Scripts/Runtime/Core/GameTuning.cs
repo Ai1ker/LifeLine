@@ -79,6 +79,7 @@ namespace Lifeline
         public float upgradedCraftSeconds = 20f;
         public float[] craftSecondsByLevel = { 40f, 30f, 20f, 15f };
         public float craftQteBonus = 3f;
+        [Min(.1f)] public float cargoRopeBreakStallDistance = .85f;
         public float craftQteHalfWindow = .16f;
         public float workbenchWindowMultiplier = 1.3f;
         public float craftCueInterval = 1f;

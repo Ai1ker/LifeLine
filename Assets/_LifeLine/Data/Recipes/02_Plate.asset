@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 02_Plate
   m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.RecipeDefinition
   id: plate
+  allowBatch: 1
   displayName: "\u94C1\u677F"
   description: "2\u4EFD\u91D1\u5C5E\u52A0\u5DE5\u4E3A1\u5757\u94C1\u677F\u3002"
   cost:

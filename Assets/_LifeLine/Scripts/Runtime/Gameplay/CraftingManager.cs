@@ -55,6 +55,18 @@ namespace Lifeline
         }
 
         public int Capacity => session != null && session.GetUpgrade(UpgradeKind.Workbench) >= 3 ? 2 : 1;
+        public const int MaximumBatch = 5;
+        public const string InsufficientMaterials = "制作材料不足。";
+        public const string CraftFailureNotice = "制作失败，请打捞需要的材料";
+        public int SlotCapacity(StationKind station) => station == StationKind.Workbench ? Capacity : 1;
+        public int SlotCount(StationKind station)
+        {
+            int count = 0;
+            foreach (var job in jobs) if (job != null && JobStation(job) == station) count++;
+            return count;
+        }
+        public bool CanBatch(RecipeDefinition recipe) => recipe != null && recipe.allowBatch && recipe.repairAmount <= 0 &&
+            session != null && session.GetUpgrade(UpgradeKind.Workbench) >= 2;
 
         public void Initialize(GameSession owner)
         {
@@ -103,7 +115,7 @@ namespace Lifeline
         {
             if (session == null || session.tuning == null) return 0;
             GameTuning tuning = session.tuning;
-            int tier = session.GetUpgrade(UpgradeKind.Workbench);
+            int tier = recipe != null && recipe.repairAmount > 0 ? 0 : session.GetUpgrade(UpgradeKind.Workbench);
             float seconds = tuning.craftSeconds;
             if (tier > 0 && tuning.craftSecondsByLevel != null && tier < tuning.craftSecondsByLevel.Length) seconds = tuning.craftSecondsByLevel[tier];
             else if (tier >= 2) seconds = tuning.upgradedCraftSeconds;
@@ -113,16 +125,20 @@ namespace Lifeline
         public float GetCraftQteWindow(CraftJob job = null)
         {
             if (session == null || session.tuning == null) return 0;
-            return session.tuning.craftQteHalfWindow * (session.GetUpgrade(UpgradeKind.Workbench) >= 1 ? session.tuning.workbenchWindowMultiplier : 1);
+            bool upgraded = (job == null || JobStation(job) == StationKind.Workbench) && session.GetUpgrade(UpgradeKind.Workbench) >= 1;
+            return session.tuning.craftQteHalfWindow * (upgraded ? session.tuning.workbenchWindowMultiplier : 1);
         }
 
-        public bool CanCraft(string recipeId, CrewActor actor, out string reason)
+        public bool CanCraft(string recipeId, CrewActor actor, out string reason, int quantity = 1)
         {
             reason = "";
             if (session == null || session.tuning == null || session.phase != SessionPhase.Playing || actor == null || actor.session != session || !actor.onboard || actor.downed) return false;
             RecipeDefinition recipe = FindRecipe(recipeId);
             if (recipe == null) { reason = "未找到对应的制作配方。"; return false; }
-            if (jobs.Count >= Capacity) { reason = "制作队列已满，T3制作台可同时运行两项工作。"; return false; }
+            if (quantity < 1 || quantity > MaximumBatch || quantity > 1 && !CanBatch(recipe)) return false;
+            StationKind station = recipe.repairAmount > 0 ? StationKind.HullRepair : StationKind.Workbench;
+            if (SlotCount(station) >= SlotCapacity(station))
+            { reason = station == StationKind.HullRepair ? "当前已有船体维修作业。" : "制作队列已满，T3制作台可同时运行两项工作。"; return false; }
             if (recipe.repairAmount > 0 && !session.repairBenchInstalled) { reason = "请先在制作台建造船体维修台。"; return false; }
             if (recipe.repairAmount > 0 && session.hull >= session.hullMax) { reason = "船体完好，无需消耗维修材料。"; return false; }
             if (!string.IsNullOrEmpty(recipe.toolId) && session.HasEquipment(recipe.toolId))
@@ -147,25 +163,27 @@ namespace Lifeline
             {
                 if (amount == null || amount.amount < 0) { reason = "配方成本配置无效。"; return false; }
                 if (!required.ContainsKey(amount.resource)) required[amount.resource] = 0;
-                required[amount.resource] += amount.amount;
+                required[amount.resource] += amount.amount * quantity;
             }
-            foreach (var cost in required) if (session.GetResource(cost.Key) < cost.Value) { reason = "制作材料不足。"; return false; }
+            foreach (var cost in required) if (session.GetResource(cost.Key) < cost.Value) { reason = InsufficientMaterials; return false; }
             return true;
         }
 
-        public bool TryCraft(string recipeId, CrewActor actor)
+        public bool TryCraft(string recipeId, CrewActor actor, int quantity = 1)
         {
             string reason;
-            if (!CanCraft(recipeId, actor, out reason)) { if (session != null && !string.IsNullOrEmpty(reason)) session.Tell(reason); return false; }
+            if (!CanCraft(recipeId, actor, out reason, quantity)) { NotifyFailure(actor, reason); return false; }
             RecipeDefinition recipe = FindRecipe(recipeId);
-            if (!session.Spend(recipe.cost)) { session.Tell("制作材料不足。"); return false; }
+            ResourceAmount[] cost = recipe.cost;
+            if (quantity > 1 && cost != null) cost = Array.ConvertAll(cost, item => new ResourceAmount(item.resource, item.amount * quantity));
+            if (!session.Spend(cost)) { NotifyFailure(actor, InsufficientMaterials); return false; }
             if (recipe.consumedToolIds != null) foreach (string tool in new HashSet<string>(recipe.consumedToolIds)) session.ConsumeEquipment(tool);
             SynchronizeNextJobId();
             jobs.Add(new CraftJob
             {
-                id = nextJobId++, recipe = recipe, owner = actor.role,
-                duration = GetCraftDuration(recipe), nextCue = session.tuning.craftCueInterval,
-                noteDirection = UnityEngine.Random.Range(0, 4)
+                id = nextJobId++, recipe = recipe, owner = actor.role, quantity = quantity,
+                duration = GetCraftDuration(recipe) * quantity, nextCue = session.tuning.craftCueInterval,
+                noteDirection = UnityEngine.Random.Range(0, 6)
             });
             if (actor.role == CrewRole.Captain && recipe.output != null && Array.Exists(recipe.output, output => output != null && output.resource == ResourceKind.Plank && output.amount > 0))
                 session.GetComponent<TutorialProgress>()?.Observe(TutorialAction.CraftPlank);
@@ -180,19 +198,30 @@ namespace Lifeline
             session.Tell("已取消" + (job.recipe != null ? job.recipe.displayName : "作业") + "，已投入材料不予返还。"); session.Changed(); return true;
         }
 
+        void NotifyFailure(CrewActor actor, string reason)
+        {
+            if (session == null || string.IsNullOrEmpty(reason)) return;
+            if (actor != null && reason == InsufficientMaterials)
+            {
+                actor.craftFailureUntil = Time.unscaledTime + 2.5f;
+                return;
+            }
+            session.Tell(reason, actor);
+        }
+
         public static StationKind JobStation(CraftJob job) => job != null && job.recipe != null && job.recipe.repairAmount > 0 ? StationKind.HullRepair : StationKind.Workbench;
-        public bool CraftQteAtStation(int jobId, int direction, StationKind station)
+        public bool CraftQteAtStation(int jobId, int direction, StationKind station, float rewind = 0f)
         {
             var job=jobs.Find(candidate=>candidate!=null&&candidate.id==jobId);
-            return job!=null && JobStation(job)==station && CraftQte(jobId,direction);
+            return job!=null && JobStation(job)==station && CraftQte(jobId,direction,rewind);
         }
-        public bool CraftQte(int jobId, int direction)
+        public bool CraftQte(int jobId, int direction, float rewind = 0f)
         {
             if (session == null || session.phase != SessionPhase.Playing || session.tuning == null) return false;
             CraftJob job = jobs.Find(candidate => candidate != null && candidate.id == jobId);
             if (job == null || job.completed || job.attempted) return false;
             job.attempted = true;
-            bool good = direction == job.noteDirection && Mathf.Abs(job.elapsed - job.nextCue) <= GetCraftQteWindow(job);
+            bool good = direction == job.noteDirection && Mathf.Abs(job.elapsed - rewind - job.nextCue) <= GetCraftQteWindow(job);
             if (good)
             {
                 CrewBuffs buffs = job.owner == CrewRole.Captain ? session.captainBuffs : session.diverBuffs;
@@ -216,10 +245,10 @@ namespace Lifeline
                 float effectiveDt = dt * GetInteractionRate(job);
                 job.elapsed += effectiveDt; job.progress = Mathf.Min(job.duration, job.progress + effectiveDt);
                 job.feedbackTime = Mathf.Max(0, job.feedbackTime - dt);
-                while (job.elapsed > job.nextCue + GetCraftQteWindow(job))
+                while (job.elapsed > job.nextCue + GetCraftQteWindow(job) + OnlineGrace(job))
                 {
                     job.nextCue += Mathf.Max(.1f, session.tuning.craftCueInterval);
-                    job.noteDirection = UnityEngine.Random.Range(0, 4); job.attempted = false;
+                    job.noteDirection = UnityEngine.Random.Range(0, 6); job.attempted = false;
                 }
                 ApplyRepairProgress(job);
                 if (job.progress >= job.duration) CompleteCraft(job);
@@ -233,6 +262,13 @@ namespace Lifeline
             session.hull=Mathf.Min(session.hullMax, session.hull+Mathf.Max(0,earned-job.repairApplied)); job.repairApplied=earned;
         }
 
+        float OnlineGrace(CraftJob job)
+        {
+            if (!OnlineVoyage.InProgress || OnlineVoyage.IsGuest) return 0f;
+            int remote = 1 - (int)OnlineVoyage.Current.LocalRole;
+            return interactionJobs[remote] == job.id && interactionActors[remote] != null && interactionActors[remote].controlsCaptured ? .18f : 0f;
+        }
+
         void CompleteCraft(CraftJob job)
         {
             if (job.completed || !jobs.Contains(job)) return;
@@ -240,7 +276,7 @@ namespace Lifeline
             RecipeDefinition recipe = job.recipe;
             // Remove before notifying inventory listeners, so they cannot see or complete a finished job twice.
             jobs.Remove(job);
-            if (recipe.output != null) foreach (ResourceAmount output in recipe.output) if (output != null) session.AddResource(output.resource, output.amount);
+            if (recipe.output != null) foreach (ResourceAmount output in recipe.output) if (output != null) session.AddResource(output.resource, output.amount * Mathf.Max(1, job.quantity));
             if (!string.IsNullOrEmpty(recipe.toolId)) session.UnlockEquipment(recipe.toolId);
             if (recipe.radioStage > 0) session.radioStage = Mathf.Max(session.radioStage, recipe.radioStage);
             ApplyRepairProgress(job);

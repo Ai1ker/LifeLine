@@ -83,7 +83,8 @@ namespace Lifeline
         private void Update()
         {
             if (session == null || session.tuning == null || OnlineVoyage.IsGuest && !OnlineVoyage.Current.GuestReady) return;
-            if (EventSystem.current != null) EventSystem.current.sendNavigationEvents = session.phase != SessionPhase.Playing;
+            if (EventSystem.current != null) EventSystem.current.sendNavigationEvents = session.phase != SessionPhase.Playing ||
+                OnlineVoyage.InProgress && OnlineVoyage.Current.LocalMenuOpen;
             if (endingShown && session.phase != SessionPhase.Won && session.phase != SessionPhase.Lost)
             {
                 endingShown = false;
@@ -195,19 +196,15 @@ namespace Lifeline
             if (session.phase == SessionPhase.Won || session.phase == SessionPhase.Lost) return;
             if (OnlineVoyage.InProgress)
             {
+                if (paused)
+                {
+                    var own = OnlineVoyage.Current.LocalRole == CrewRole.Captain ? captainPanel : diverPanel;
+                    if (own != null && own.IsOpen) own.RequestClose();
+                }
+                else { controls?.Close(); settings?.Close(); }
                 OnlineVoyage.Current.LocalMenuOpen = paused;
-                if (OnlineVoyage.IsGuest)
-                {
-                    if (!paused) CloseTransientPanels();
-                    SetPausePanelVisible(paused);
-                    return;
-                }
-                if (!paused && !OnlineVoyage.Current.CanResumePlay)
-                {
-                    CloseTransientPanels();
-                    SetPausePanelVisible(false);
-                    return;
-                }
+                SetPausePanelVisible(paused);
+                return;
             }
             if (paused) CloseStationPanels();
             else CloseTransientPanels();

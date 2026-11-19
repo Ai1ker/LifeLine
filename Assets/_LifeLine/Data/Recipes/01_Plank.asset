@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 01_Plank
   m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.RecipeDefinition
   id: plank
+  allowBatch: 1
   displayName: "\u6728\u677F"
   description: "2\u4EFD\u6728\u6750\u52A0\u5DE5\u4E3A1\u5757\u6728\u677F\u3002"
   cost:

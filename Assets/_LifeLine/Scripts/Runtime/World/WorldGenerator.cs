@@ -899,7 +899,7 @@ namespace Lifeline
             if(!IsAtHideSpot(actor))return false;
             actor.SetHidden(true);
             if (actor.role == CrewRole.Diver) session.GetComponent<TutorialProgress>()?.Observe(TutorialAction.Hide);
-            session.Tell(GameNames.Role(actor.role)+"进入藏匿处，再按互动键离开。", actor);session.Changed();return true;
+            session.Tell(GameNames.Role(actor.role)+"进入藏匿处。", actor);session.Changed();return true;
         }
         public Transform GetLabelFocus()=>GetLabelFocus(session!=null?session.diver:null);
         public bool IsLabelFocus(Transform target)

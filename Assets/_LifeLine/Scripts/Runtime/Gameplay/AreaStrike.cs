@@ -65,7 +65,7 @@ namespace Lifeline
                 : Vector2.Distance(strike.point,BoatAnchor)<=strike.radius+1.5f);
             if(touchesHull)
             {
-                DamageHull(strike.hullDamage);
+                DamageHull(strike.kind == AreaStrikeKind.Lightning ? lightningHullDamage : strike.hullDamage);
                 if(strike.kind==AreaStrikeKind.Lightning&&engineRepaired&&UnityEngine.Random.value<tuning.lightningEngineRisk)DamageEngine("雷击损坏了引擎");
             }
         }

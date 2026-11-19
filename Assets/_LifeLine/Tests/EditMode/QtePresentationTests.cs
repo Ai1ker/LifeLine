@@ -73,6 +73,19 @@ namespace Lifeline.Tests
             Assert.That(Mathf.DeltaAngle(view.ringWindow.transform.eulerAngles.z,-(.69f-.055f)*360), Is.EqualTo(0).Within(.001f));
         }
 
+        [Test] public void OnlineDiverReadsActiveMapAndBothExtraNotes()
+        {
+            input.Initialize(CrewRole.Diver, null, true);
+            view.ShowLane(input, 0, 1, 1, 1, .16f, 0, false);
+            Assert.That(view.displayedBindingPath, Is.EqualTo("<Keyboard>/w"));
+            Assert.That(view.laneGlyph.enabled, Is.False);
+            view.ShowLane(input, 4, 1, 1, 1, .16f, 0, false);
+            Assert.That(view.displayedBindingPath, Is.EqualTo("<Keyboard>/q"));
+            input.RuntimeActions.FindAction("Captain/QteE").ApplyBindingOverride(0, "<Keyboard>/j");
+            view.ShowLane(input, 5, 1, 1, 1, .16f, 0, false);
+            Assert.That(view.displayedBindingPath, Is.EqualTo("<Keyboard>/j"));
+        }
+
         [Test] public void CustomBindingArtworkCanContainItsOwnLabelAndAutomaticWinchHidesInput()
         {
             theme.bindingArtwork.Add(new QteVisualTheme.BindingArtwork {controlPath="<Keyboard>/space",sprite=sprite,showLabel=false,size=new Vector2(120,40)});

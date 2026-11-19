@@ -36,6 +36,7 @@ namespace Lifeline
         private CrewCommand queued;
         private bool inputEnabled = true;
         private float ignoreUntil;
+        private Vector2 lastNoteMove;
 
         public void Initialize(CrewRole crewRole, InputActionAsset sharedAsset, bool online = false)
         {
@@ -47,6 +48,7 @@ namespace Lifeline
             runtimeActions.hideFlags = HideFlags.DontSave;
             runtimeActions.Disable();
             if (online) CrewInputDefaults.EnsureBackpackAction(runtimeActions);
+            CrewInputDefaults.MigrateInteractionBindings(runtimeActions, true);
             map = runtimeActions.FindActionMap((online ? CrewRole.Captain : role).ToString(), true);
             var saved = PlayerPrefs.GetString(PreferenceKey, "");
             if (!string.IsNullOrEmpty(saved))
@@ -54,7 +56,6 @@ namespace Lifeline
                 try { runtimeActions.LoadBindingOverridesFromJson(saved); }
                 catch (Exception error) { Debug.LogWarning("Could not load " + role + " input overrides: " + error.Message, this); }
             }
-            CrewInputDefaults.MigrateInteractionBindings(runtimeActions, true);
             moveAction = map.FindAction("Move", true);
             interactAction = map.FindAction("Interact", true);
             collectAction = map.FindAction("Collect", true);
@@ -81,12 +82,22 @@ namespace Lifeline
 
         private void BufferButton(InputAction.CallbackContext context)
         {
+            if (context.action == moveAction && context.canceled) { lastNoteMove = Vector2.zero; return; }
             if (context.phase != InputActionPhase.Performed || !inputEnabled || Time.unscaledTime < ignoreUntil) return;
             switch (context.action.name)
             {
+                case "Move":
+                    var move = context.ReadValue<Vector2>();
+                    if (move.sqrMagnitude > .2f && (lastNoteMove.sqrMagnitude < .2f || Vector2.Dot(lastNoteMove, move) < .5f))
+                        queued.noteKeys |= (byte)(1 << CrewInputDefaults.DirectionNote(move));
+                    lastNoteMove = move;
+                    break;
                 case "Jump": queued.jump = true; break;
                 case "Interact": queued.interact = true; break;
                 case "Melee": queued.melee = true; break;
+                case "Calibrate": queued.calibrate = true; if (!HasBinding("Melee")) queued.melee = true; break;
+                case "QteQ": queued.noteKeys |= 1 << 4; break;
+                case "QteE": queued.noteKeys |= 1 << 5; break;
                 case "Fire": queued.fire = true; break;
                 case "Signal": queued.signal = true; break;
                 case "Bait": queued.bait = true; break;
@@ -110,6 +121,7 @@ namespace Lifeline
             command.collect = collectAction.IsPressed();
             command.interactHeld = interactAction.IsPressed();
             command.sprint = sprintAction.IsPressed();
+            command.hideSeparate = HasBinding("Hide");
             ClearQueued();
             return command;
         }
@@ -132,6 +144,15 @@ namespace Lifeline
             if (action == null || bindingIndex < 0 || bindingIndex >= action.bindings.Count) return "未绑定";
             return action.GetBindingDisplayString(bindingIndex, InputBinding.DisplayStringOptions.DontIncludeInteractions);
         }
+
+        public string GetBindingPath(string actionName, int bindingIndex = 0)
+        {
+            var action = map?.FindAction(actionName, false);
+            return action != null && bindingIndex >= 0 && bindingIndex < action.bindings.Count
+                ? action.bindings[bindingIndex].effectivePath : "";
+        }
+
+        public bool HasBinding(string actionName) => !string.IsNullOrEmpty(GetBindingPath(actionName));
 
         public void BeginRebind(string actionName, int bindingIndex, Action<string> completed)
         {

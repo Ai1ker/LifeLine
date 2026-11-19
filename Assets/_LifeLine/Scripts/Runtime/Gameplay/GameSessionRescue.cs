@@ -46,6 +46,7 @@ namespace Lifeline
             }
             if (diverFainted)
             {
+                if (BeingRevived(diver)) return;
                 // This slow safety tow never boards the diver. The captain must finish the recovery.
                 DiverRope route = GetOrCreateLifeline();
                 route.UpdateRoute(BoatAnchor, diver.Position);
@@ -79,7 +80,7 @@ namespace Lifeline
                 bag.persistAcrossDays = true; bag.isLostCargo = true;
                 bag.transform.SetParent(world.transform, true); world.pickups.Add(bag); world.PrepareRestoredPickup(bag);
             }
-            Tell(reason + "，潜水员昏厥。缓慢拖向船底，仍需船长用绞盘接回；一半背包物资留在原处。"); Changed();
+            Tell(reason + "，潜水员昏厥。水下队友可扶起，也可用绞盘接回。"); Changed();
         }
 
         public bool RegisterSharkBite()
@@ -222,8 +223,24 @@ namespace Lifeline
                 var route = GetCargoLifeline(cargo); route.UpdateRoute(BoatAnchor, cargo.transform.position);
                 if (share > 0) route.TryBreakBlockingGate();
                 float movement = share < 0 ? -Mathf.Min(-share, Mathf.Max(0, ropeLength - route.PathLength)) : share;
-                cargo.transform.position = route.PullPoint(cargo.transform.position, movement);
+                Vector3 before = cargo.transform.position;
+                cargo.transform.position = route.PullPoint(before, movement);
+                bool blocked = route.IsBlocked;
                 route.UpdateRoute(BoatAnchor, cargo.transform.position);
+                if ((cargo.transform.position - before).sqrMagnitude > .00000001f) cargo.blockedPull = 0;
+                else if (share > 0 && (blocked || route.IsBlocked) && !route.SearchPending)
+                {
+                    cargo.blockedPull += share;
+                    if (cargo.blockedPull >= tuning.cargoRopeBreakStallDistance)
+                    {
+                        cargo.attached = false;
+                        cargo.blockedPull = 0;
+                        route.ResetRoute();
+                        cargo.RefreshVisual();
+                        Tell("货箱卡在墙边，货箱绳已断开。");
+                        continue;
+                    }
+                }
                 if (share > 0 && !route.IsBlocked && route.PathLength <= boardDistance) cargo.Deliver(this);
             }
             foreach(var actor in Crew)
@@ -292,8 +309,12 @@ namespace Lifeline
         {
             if (IsIncapacitated(actor)) return null;
             CrewActor other = actor == captain ? diver : captain;
-            return other != null && other.downed && CanReviveFrom(actor, other) ? other : null;
+            return CanReceiveRevive(other) && CanReviveFrom(actor, other) ? other : null;
         }
+
+        bool CanReceiveRevive(CrewActor actor) => actor != null && (actor.downed || !actor.onboard && IsFainted(actor));
+        bool BeingRevived(CrewActor actor) => (reviveHeld[0] && reviveTargets[0] == actor) ||
+            (reviveHeld[1] && reviveTargets[1] == actor);
 
         bool CanReviveFrom(CrewActor actor, CrewActor other)
         {
@@ -302,7 +323,7 @@ namespace Lifeline
             // The diver can assist from the nearby outer rail without being permitted to self-board.
             if (!nearby && !actor.onboard && other.onboard && ship != null)
             {
-                Vector3 rail = new Vector3(other.Position.x, BoatAnchor.y, 0);
+                Vector3 rail = new Vector3(ShipToWaterPoint(other.Position).x, BoatAnchor.y, 0);
                 nearby = Vector3.Distance(actor.Position, rail) <= tuning.reviveDistance;
             }
             return nearby;
@@ -315,12 +336,20 @@ namespace Lifeline
                 CrewActor actor = i == (int)CrewRole.Captain ? captain : diver;
                 CrewActor target = reviveTargets[i];
                 if (target == null) continue;
-                if (!reviveHeld[i] || actor == null || actor.downed || IsFainted(actor) || !target.downed || !CanReviveFrom(actor, target))
+                if (!reviveHeld[i] || IsIncapacitated(actor) || !CanReceiveRevive(target) || !CanReviveFrom(actor, target))
                 { reviveTargets[i] = null; reviveProgress[i] = 0; continue; }
                 reviveProgress[i] += dt;
                 if (reviveProgress[i] >= tuning.reviveSeconds)
                 {
-                    target.Revive(); if(target==diver) diverBites=0; reviveTargets[i] = null; reviveProgress[i] = 0;
+                    target.Revive();
+                    target.fainted = false;
+                    if (target == diver) { diverBites = 0; diverFainted = false; }
+                    if (!target.onboard)
+                    {
+                        target.oxygenMax = GetOxygenMax(target);
+                        target.oxygen = Mathf.Max(target.oxygen, target.oxygenMax * .5f);
+                    }
+                    reviveTargets[i] = null; reviveProgress[i] = 0;
                     Tell(GameNames.Role(actor.role) + "扶起了" + GameNames.Role(target.role) + "。"); Changed();
                 }
             }

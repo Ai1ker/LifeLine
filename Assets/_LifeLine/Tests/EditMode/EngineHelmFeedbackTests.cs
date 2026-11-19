@@ -68,7 +68,7 @@ namespace Lifeline.Tests
             game.Tell("another crew operation completed");
             string warning = UiLocalization.Text(GameSession.EngineUnavailableMessage);
             Assert.That(overlay.TryGetPrompt(actor, out var target, out string label), Is.True);
-            Assert.That(target, Is.EqualTo(station.transform.position));
+            Assert.That(target, Is.EqualTo(station.InteractionPosition));
             Assert.That(label, Does.Contain("\n" + warning));
             Assert.That(label, Does.Contain(actor.input.GetBindingLabel("Interact")));
             game.MarkEngineRepaired();

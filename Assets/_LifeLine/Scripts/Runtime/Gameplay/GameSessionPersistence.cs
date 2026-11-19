@@ -124,7 +124,18 @@ namespace Lifeline
             if (tuning == null || captain == null || diver == null || ship == null) { error = "场景缺少读档所需的角色、船舶或调参资产。"; return false; }
             if (!SaveClock.TryMap(data, tuning, out float restoredElapsed)) { error = "存档日期与当前昼夜配置不兼容。"; return false; }
             CraftingManager manager = GetOrCreateCraftingManager();
-            foreach (CraftSaveState job in data.jobs) if (manager.FindRecipe(job.recipeId) == null) { error = "存档配方不存在：" + job.recipeId; return false; }
+            int repairJobs = 0, workbenchJobs = 0;
+            foreach (CraftSaveState job in data.jobs)
+            {
+                var recipe = manager.FindRecipe(job.recipeId);
+                if (recipe == null) { error = "存档配方不存在：" + job.recipeId; return false; }
+                if (recipe.repairAmount > 0) repairJobs++;
+                else workbenchJobs++;
+                if (job.quantity > 1 && (recipe.repairAmount > 0 || !recipe.allowBatch))
+                { error = "存档批量作业配方无效。"; return false; }
+            }
+            if (repairJobs > 1 || workbenchJobs > (data.state.upgradeLevels[(int)UpgradeKind.Workbench] >= 3 ? 2 : 1))
+            { error = "存档设备作业槽数量无效。"; return false; }
             if (data.world.present && (world == null || data.world.activeDay != data.state.day || WorldGenerator.ComputeDaySeed(data.state.worldSeed, data.world.activeDay, world.dailySeedStride) != data.world.generatedSeed))
             { error = "存档世界种子与当前地图配置不兼容。"; return false; }
             // All semantic checks above happen before replacing the active world or its inventory.
@@ -153,7 +164,8 @@ namespace Lifeline
                 manager.ResetQueue(); manager.nextJobId = data.nextJobId;
                 foreach (CraftSaveState saved in data.jobs)
                 {
-                    var job = new CraftJob { recipe = manager.FindRecipe(saved.recipeId) }; CopySaveFields(saved, job); manager.jobs.Add(job);
+                    var job = new CraftJob { recipe = manager.FindRecipe(saved.recipeId) };
+                    CopySaveFields(saved, job); job.quantity = Mathf.Max(1, job.quantity); manager.jobs.Add(job);
                 }
                 if (data.world.present)
                 {

@@ -38,6 +38,7 @@ namespace Lifeline
                 default:
                     string craft = F("制作时间 {0}s", N(At(t.craftSecondsByLevel, next)));
                     if (next == 1) return craft + F("；QTE判定范围 +{0}%", N((t.workbenchWindowMultiplier - 1) * 100));
+                    if (next == 2) return craft + UiLocalization.Text(" · 同种材料可批量制作 1–5 件");
                     return next >= 3 ? craft + UiLocalization.Text("；自动制作同时2个") : craft;
             }
         }

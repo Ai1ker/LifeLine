@@ -34,7 +34,7 @@ namespace Lifeline
             if (CircularQteDistance(next, winchTargetCenter) < .15f) next = Mathf.Repeat(winchTargetCenter + Random.Range(.2f, .8f), 1);
             winchTargetCenter = next; winchCenterInitialized = true;
         }
-        float WinchInteractionSpeed
+        internal float WinchInteractionSpeed
         {
             get
             {

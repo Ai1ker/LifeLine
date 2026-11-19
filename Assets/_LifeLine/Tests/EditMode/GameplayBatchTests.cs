@@ -91,7 +91,7 @@ namespace Lifeline.Tests
             var strike=game.QueueAreaStrike(AreaStrikeKind.Lightning,point,true,1.4f,2.2f,10);
             game.captain.RestorePose(true,game.captain.Position+Vector3.right*5,Vector3.zero,Vector2.right);
             Assert.That(strike.point,Is.EqualTo(point));float hull=game.hull;game.ResolveAreaStrike(strike);
-            Assert.That(game.captain.downed,Is.False);Assert.That(game.hull,Is.EqualTo(hull-10));
+            Assert.That(game.captain.downed,Is.False);Assert.That(game.hull,Is.EqualTo(hull-5));
             game.captain.RestorePose(true,game.WaterToShipPoint(point),Vector3.zero,Vector2.right);game.ResolveAreaStrike(strike);
             Assert.That(game.captain.downed,Is.True);
         }

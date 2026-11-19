@@ -70,7 +70,16 @@ namespace Lifeline
                     string part = action.bindings[i].isPartOfComposite ? "/" + (LocalizationManager.Current!=null?LocalizationManager.Current.Format("input."+partName.ToLowerInvariant()):partName) : "";
                     Button row = Instantiate(rowButtonPrefab, rowsRoot); row.gameObject.SetActive(true); rows.Add(row.gameObject);
                     Text label = row.GetComponentInChildren<Text>();
-                    label.text = UiLocalization.Text(actionName + part + "    [ " + Selected.GetBindingLabel(actionName, index) + " ]");
+                    string binding = Selected.GetBindingLabel(actionName, index);
+                    string actionLabel = actionName;
+                    if (actionName == "Hide" || actionName == "Melee" || actionName == "Calibrate" || actionName == "QteQ" || actionName == "QteE")
+                    {
+                        actionLabel = UiLocalization.Text(actionName == "Hide" ? "藏匿互动" : actionName == "Melee" ? "近战攻击" :
+                            actionName == "Calibrate" ? "节奏校准" : actionName == "QteQ" ? "节奏音符 Q" : "节奏音符 E");
+                        if (!Selected.HasBinding(actionName))
+                            binding = UiLocalization.Text(actionName == "Hide" ? "与互动共用" : "与校准共用");
+                    }
+                    label.text = UiLocalization.Text(actionLabel + part + "    [ " + binding + " ]");
                     row.onClick.RemoveAllListeners();
                     row.onClick.AddListener(() =>
                     {

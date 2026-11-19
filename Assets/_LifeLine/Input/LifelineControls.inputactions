@@ -125,6 +125,36 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "Calibrate",
+                    "type": "Button",
+                    "id": "b2c84c18-cc76-492d-a3dc-7c77fb9b2062",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "QteQ",
+                    "type": "Button",
+                    "id": "fb02b52a-b743-4ae8-9a7d-2f2e1d79ba31",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "QteE",
+                    "type": "Button",
+                    "id": "dad5699b-2cd5-4618-950c-7cb5d0472627",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -219,7 +249,7 @@
                 {
                     "name": "",
                     "id": "14693dbe-c3f1-4a80-9f00-000000000015",
-                    "path": "<Keyboard>/space",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -274,7 +304,7 @@
                 {
                     "name": "",
                     "id": "14693dbe-c3f1-4a80-9f00-00000000001a",
-                    "path": "<Keyboard>/c",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -301,6 +331,39 @@
                     "processors": "",
                     "groups": "",
                     "action": "Backpack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5f43703d-9734-4e38-88da-3d14540c6d77",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Calibrate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a6092561-6bfe-47c8-b4b5-09a0ecd0475b",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "QteQ",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e3648589-0146-4031-8825-4ff5f6e68c31",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "QteE",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -409,6 +472,46 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "Calibrate",
+                    "type": "Button",
+                    "id": "5b7397ed-aa42-406f-be41-be37231ef5a8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "QteQ",
+                    "type": "Button",
+                    "id": "64617e3c-27d9-4e29-9396-fc8d62fea1c9",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "QteE",
+                    "type": "Button",
+                    "id": "3cbb0e65-a9c0-4230-b0d3-2c4249d835e2",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "Hide",
+                    "type": "Button",
+                    "id": "48748018-5ab4-4b20-8678-c09b258a9c35",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -503,7 +606,7 @@
                 {
                     "name": "",
                     "id": "14693dbe-c3f1-4a80-9f00-000000000030",
-                    "path": "<Keyboard>/0",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -563,6 +666,50 @@
                     "processors": "",
                     "groups": "",
                     "action": "Pause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f62c0f4e-4fd1-4cac-bd46-9b84def1c250",
+                    "path": "<Keyboard>/0",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Calibrate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cbeb16ce-b8de-4b00-9c28-5e907236c6d3",
+                    "path": "<Keyboard>/numpad7",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "QteQ",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "408abca0-b37d-4656-90ec-79c4f394d8f5",
+                    "path": "<Keyboard>/numpad9",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "QteE",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "affa410b-83ce-47b6-81fb-c0d1b095cec8",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hide",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

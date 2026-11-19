@@ -62571,9 +62571,9 @@ MonoBehaviour:
   fishMoveSpeeds: {x: 1.35, y: 1.935}
   fishGainRates: {x: 0.21, y: 0.15}
   fishLossRates: {x: 0.11, y: 0.14}
-  fishRiseAcceleration: 1.6
-  fishFallAcceleration: 1.1
-  fishMaxVelocity: 0.7
+  fishRiseAcceleration: 1.44
+  fishFallAcceleration: 0.99
+  fishMaxVelocity: 0.63
   fishTimeoutSeconds: 45
   station: 0
   fishingZone: 0.5
@@ -63020,9 +63020,9 @@ MonoBehaviour:
   fishMoveSpeeds: {x: 1.35, y: 1.935}
   fishGainRates: {x: 0.21, y: 0.15}
   fishLossRates: {x: 0.11, y: 0.14}
-  fishRiseAcceleration: 1.6
-  fishFallAcceleration: 1.1
-  fishMaxVelocity: 0.7
+  fishRiseAcceleration: 1.44
+  fishFallAcceleration: 0.99
+  fishMaxVelocity: 0.63
   fishTimeoutSeconds: 45
   station: 0
   fishingZone: 0.5
@@ -68685,6 +68685,7 @@ MonoBehaviour:
   clockText: {fileID: 1866150519}
   questChapterText: {fileID: 928620575}
   onboarding: {fileID: 522858544}
+  crewOverlay: {fileID: 0}
   hullFill: {fileID: 1974461427}
   powerFill: {fileID: 1062635313}
   oxygenFill: {fileID: 2082935938}
@@ -193835,7 +193836,7 @@ MonoBehaviour:
   harpoonDamage: 2
   spearDamage: 2
   hullContactDamage: 4
-  lightningHullDamage: 10
+  lightningHullDamage: 5
   lightningRadius: 2.2
   birdCountdown: 0
   turretShotClock: 0

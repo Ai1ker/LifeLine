@@ -309,7 +309,7 @@ namespace Lifeline
             if (pausedForPeer)
             {
                 pausedForPeer = false;
-                if (!LocalMenuOpen && game.phase == SessionPhase.Paused) game.Pause(false);
+                if (game.phase == SessionPhase.Paused) game.Pause(false);
             }
             if (needBaseline)
             {
@@ -323,7 +323,9 @@ namespace Lifeline
             if (now >= nextMotion)
             {
                 nextMotion = now + 1f / 30f;
-                link.BroadcastMotion(game.CaptureOnlineMotion(++motionSequence));
+                var motion = game.CaptureOnlineMotion(++motionSequence);
+                if (Panel(remote.role) is CrewStationPanel station) motion.station = station.CaptureOnlineStationMotion();
+                link.BroadcastMotion(motion);
             }
             if (now < nextSend) return;
             nextSend = now + .08f;
@@ -343,7 +345,6 @@ namespace Lifeline
             try
             {
                 var frame = game.CaptureOnlineFrame(hud, baseline, includeWorld);
-                frame.hostPaused = LocalMenuOpen;
                 frame.waitingForCrew = waiting;
                 frame.station = Panel(remote.role)?.CaptureOnlineStation();
                 link.BroadcastWorldState(OnlineFrameCodec.Encode(frame), !baseline && !includeWorld);
@@ -366,7 +367,7 @@ namespace Lifeline
                 else if (ready && queuedBaseline == null)
                 {
                     game.ApplyOnlineFrame(frame, hud);
-                    waiting = frame.waitingForCrew || frame.hostPaused;
+                    waiting = frame.waitingForCrew;
                     Panel(local.role)?.ApplyOnlineStation(frame.station);
                 }
             }
@@ -389,7 +390,7 @@ namespace Lifeline
             game.FreezeOnlineReplica();
             game.phase = frame.phase;
             game.StatusAudienceRole = frame.statusAudienceRole;
-            waiting = frame.waitingForCrew || frame.hostPaused;
+            waiting = frame.waitingForCrew;
             ConfigureViews();
             Panel(local.role)?.ApplyOnlineStation(frame.station);
             ready = true;
@@ -408,7 +409,8 @@ namespace Lifeline
 
         void OnMotion(OnlineCrewMotion motion)
         {
-            if (!isHost && ready && queuedBaseline == null) game.BufferOnlineMotion(motion);
+            if (!isHost && ready && queuedBaseline == null && game.BufferOnlineMotion(motion))
+                Panel(local.role)?.ApplyOnlineStationMotion(motion.station);
         }
 
         void LateUpdate()
@@ -429,6 +431,7 @@ namespace Lifeline
             command.role = local.role;
             if (!LocalMenuOpen && !waiting && Panel(local.role)?.OnlinePointerHeld == true)
                 command.interactHeld = true;
+            if (!LocalMenuOpen && !waiting) Panel(local.role)?.StampOnlineInput(ref command);
             link.SendCommand(new NetworkCrewCommand
             {
                 version = NetworkCrewCommand.ProtocolVersion,

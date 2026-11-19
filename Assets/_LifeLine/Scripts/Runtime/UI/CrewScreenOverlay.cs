@@ -18,6 +18,9 @@ namespace Lifeline
         Text bagTitle;
         readonly Text[] prompts = new Text[2];
         readonly Text[] names = new Text[2];
+        readonly Text[] ropeLabels = new Text[2];
+        readonly Text[] craftNotices = new Text[2];
+        Text captainBag;
         readonly List<Text> slots = new();
         bool online, bagOpen;
         int arrangedCapacity = -1;
@@ -45,7 +48,14 @@ namespace Lifeline
                 names[i] = Label("Steam name " + (CrewRole)i, screen, 21);
                 names[i].gameObject.AddComponent<LocalizationLiteralText>();
                 names[i].gameObject.SetActive(false);
+                ropeLabels[i] = Label("Rope length " + (CrewRole)i, screen, 18);
+                ropeLabels[i].gameObject.SetActive(false);
+                craftNotices[i] = Label("Craft failure " + (CrewRole)i, screen, 22);
+                craftNotices[i].color = new Color(1f, .64f, .55f);
+                craftNotices[i].gameObject.SetActive(false);
             }
+            captainBag = Label("Captain dive backpack", screen, 16);
+            captainBag.gameObject.SetActive(false);
             onlineBag = Rect("Online backpack panel", screen, new Vector2(.55f, .04f), new Vector2(.985f, .25f));
             var panel = onlineBag.gameObject.AddComponent<Image>();
             panel.color = bagColor;
@@ -139,6 +149,20 @@ namespace Lifeline
                 if (actor == null) continue;
                 int index = (int)actor.role;
                 Camera view = online ? onlineCamera : rig.IsSplitScreen && actor.role == CrewRole.Diver ? rig.diverCamera : rig.captainCamera;
+                bool owned = active && (!online || actor == viewer);
+                bool underwater = owned && !actor.onboard && !game.IsHidden(actor);
+                var pose = actor.transform.position;
+                ropeLabels[index].gameObject.SetActive(underwater && Place(ropeLabels[index], view, pose + Vector3.down * .95f));
+                if (underwater) ropeLabels[index].text = Format("绳长 {0:0.0}/{1:0.0}", game.GetDisplayedRopeLength(actor), game.ropeLength);
+                if (actor.role == CrewRole.Captain)
+                {
+                    bool showBag = underwater && !online;
+                    captainBag.gameObject.SetActive(showBag && Place(captainBag, view, pose + Vector3.up * .72f));
+                    if (showBag) captainBag.text = Format("背包{0}/{1}", actor.backpack.Count, actor.BagCapacity);
+                }
+                bool craftFailed = owned && Time.unscaledTime < actor.craftFailureUntil;
+                craftNotices[index].gameObject.SetActive(craftFailed && Place(craftNotices[index], view, pose + Vector3.up * (online ? 1.75f : 1.25f)));
+                if (craftFailed) craftNotices[index].text = UiLocalization.Text(CraftingManager.CraftFailureNotice);
                 bool showName = active && online && viewer != null && actor.onboard == viewer.onboard && !game.IsHidden(actor);
                 float nameOffset = nameHeight;
                 if (showName && actor != viewer && (actor.transform.position - viewer.transform.position).sqrMagnitude < .6f)
@@ -146,13 +170,19 @@ namespace Lifeline
                 names[index].gameObject.SetActive(showName && Place(names[index], view, actor.transform.position + Vector3.up * nameOffset));
                 if (showName) names[index].text = hud.authority.NameFor(actor.role);
                 var panel = actor.role == CrewRole.Captain ? hud.captainPanel : hud.diverPanel;
-                bool canShowPrompt = active && (!online || actor == viewer) && (panel == null || !panel.IsOpen);
+                bool canShowPrompt = owned && (panel == null || !panel.IsOpen);
                 if (canShowPrompt && TryGetPrompt(actor, out Vector3 point, out string prompt))
                 {
                     prompts[index].text = prompt;
                     float height = promptHeight;
                     if (hasFirstPrompt && !rig.IsSplitScreen && (point - firstPrompt).sqrMagnitude < .6f) height += .8f;
-                    bool visible = Place(prompts[index], view, point + Vector3.up * height);
+                    Vector3 labelPoint = point + Vector3.up * height;
+                    if (actor.onboard && game.ship != null)
+                    {
+                        float deck = game.ShipPoint(Vector3.up * actor.deckY).y;
+                        if (point.y < deck - 1.4f) labelPoint.y = Mathf.Min(labelPoint.y, deck - .45f);
+                    }
+                    bool visible = Place(prompts[index], view, labelPoint);
                     prompts[index].gameObject.SetActive(visible);
                     if (visible) { firstPrompt = point; hasFirstPrompt = true; }
                 }
@@ -167,10 +197,11 @@ namespace Lifeline
             var game = hud.session;
             if (game.IsIncapacitated(actor) || actor.controlsCaptured || actor.input == null) return false;
             string interact = actor.input.GetBindingLabel("Interact");
+            string hideKey = actor.input.HasBinding("Hide") ? actor.input.GetBindingLabel("Hide") : interact;
             if (game.IsHidden(actor))
             {
                 target = actor.hidingPosition;
-                caption = Format("[{0}] 离开藏匿处", interact);
+                caption = Format("[{0}] 离开藏匿处", hideKey);
                 return true;
             }
 
@@ -185,7 +216,7 @@ namespace Lifeline
             {
                 var station = actor.NearbyStation;
                 if (station == null) return false;
-                target = station.transform.position;
+                target = station.InteractionPosition;
                 var warning = station.GetInteractionWarning(actor);
                 caption = "[" + interact + "] " + UiLocalization.Text(GameNames.Station(station.kind));
                 if (!string.IsNullOrEmpty(warning)) caption += "\n" + UiLocalization.Text(warning);
@@ -224,7 +255,7 @@ namespace Lifeline
             if (hide != null)
             {
                 target = hide.position;
-                caption = Format("[{0}] 藏匿", interact);
+                caption = Format("[{0}] 藏匿", actor.input.HasBinding("Hide") ? actor.input.GetBindingLabel("Hide") : interact);
                 return true;
             }
             if (pickup != null)

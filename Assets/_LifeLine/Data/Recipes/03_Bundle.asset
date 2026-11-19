@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 03_Bundle
   m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.RecipeDefinition
   id: bundle
+  allowBatch: 1
   displayName: "\u7EA4\u7EF4\u675F"
   description: "2\u4EFD\u7EA4\u7EF4\u52A0\u5DE5\u4E3A1\u675F\u3002"
   cost:

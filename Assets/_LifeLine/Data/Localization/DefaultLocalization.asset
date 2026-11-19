@@ -2582,3 +2582,99 @@ MonoBehaviour:
     zh: "\u6B63\u5728\u540C\u6B65\u623F\u4E3B\u822A\u7A0B\u72B6\u6001"
     en: Syncing the host's voyage
     fragment: 1
+  - key: crew.captain.bag.count
+    zh: "\u80CC\u5305{0}/{1}"
+    en: Bag {0}/{1}
+    fragment: 1
+  - key: crew.rope.count
+    zh: "\u7EF3\u957F {0:0.0}/{1:0.0}"
+    en: Rope {0:0.0}/{1:0.0}
+    fragment: 1
+  - key: crew.craft.failed
+    zh: "\u5236\u4F5C\u5931\u8D25\uFF0C\u8BF7\u6253\u635E\u9700\u8981\u7684\u6750\u6599"
+    en: Crafting failed. Salvage the required materials.
+    fragment: 1
+  - key: input.hide.separate
+    zh: "\u85CF\u533F\u4E92\u52A8"
+    en: Hide interaction
+    fragment: 1
+  - key: input.melee.separate
+    zh: "\u8FD1\u6218\u653B\u51FB"
+    en: Melee attack
+    fragment: 1
+  - key: input.calibrate.separate
+    zh: "\u8282\u594F\u6821\u51C6"
+    en: Rhythm calibration
+    fragment: 1
+  - key: input.hide.shared
+    zh: "\u4E0E\u4E92\u52A8\u5171\u7528"
+    en: Shares Interact
+    fragment: 1
+  - key: input.melee.shared
+    zh: "\u4E0E\u6821\u51C6\u5171\u7528"
+    en: Shares calibration
+    fragment: 1
+  - key: input.qte.q
+    zh: "\u8282\u594F\u97F3\u7B26 Q"
+    en: Rhythm note Q
+    fragment: 1
+  - key: input.qte.e
+    zh: "\u8282\u594F\u97F3\u7B26 E"
+    en: Rhythm note E
+    fragment: 1
+  - key: craft.batch.increase
+    zh: "\u589E\u52A0\u6570\u91CF"
+    en: Increase quantity
+    fragment: 1
+  - key: craft.batch.decrease
+    zh: "\u51CF\u5C11\u6570\u91CF"
+    en: Decrease quantity
+    fragment: 1
+  - key: craft.batch.confirm
+    zh: "\u786E\u8BA4\u5236\u4F5C"
+    en: Confirm crafting
+    fragment: 1
+  - key: craft.batch.back
+    zh: "\u8FD4\u56DE\u914D\u65B9"
+    en: Back to recipes
+    fragment: 1
+  - key: craft.batch.amount
+    zh: "{0} \xD7{1} \xB7 {2} \xB7 {3:0.#} \u79D2"
+    en: "{0} \xD7{1} \xB7 {2} \xB7 {3:0.#} s"
+    fragment: 1
+  - key: craft.batch.controls
+    zh: "[{0}] \u589E\u52A0 / [{1}] \u51CF\u5C11 / [{2}] \u786E\u8BA4\u5236\u4F5C"
+    en: '[{0}] Increase / [{1}] Decrease / [{2}] Craft'
+    fragment: 1
+  - key: craft.batch.unlock
+    zh: " \xB7 \u540C\u79CD\u6750\u6599\u53EF\u6279\u91CF\u5236\u4F5C 1\u20135 \u4EF6"
+    en: " \xB7 Batch craft 1\u20135 of the same material"
+    fragment: 1
+  - key: fishing.track
+    zh: "{0} \xB7 \u6355\u83B7 {1:P0}\n\u6309\u4F4F [{2}] \u4E0A\u5347\uFF0C\u677E\u5F00\u4E0B\u964D"
+    en: "{0} \xB7 Catch {1:P0}\nHold [{2}] to rise, release to fall"
+    fragment: 1
+  - key: cargo.rope.broke
+    zh: "\u8D27\u7BB1\u5361\u5728\u5899\u8FB9\uFF0C\u8D27\u7BB1\u7EF3\u5DF2\u65AD\u5F00\u3002"
+    en: A crate jammed against a wall and its rope broke.
+    fragment: 1
+  - key: crew.revive.water.captain
+    zh: "\u660F\u53A5\u3002\u6C34\u4E0B\u961F\u53CB\u53EF\u6276\u8D77\uFF0C\u4E5F\u53EF\u7528\u7EDE\u76D8\u63A5\u56DE\u3002"
+    en: ' passed out. A teammate can revive them underwater or winch them aboard.'
+    fragment: 1
+  - key: crew.revive.water.diver
+    zh: "\uFF0C\u6F5C\u6C34\u5458\u660F\u53A5\u3002\u6C34\u4E0B\u961F\u53CB\u53EF\u6276\u8D77\uFF0C\u4E5F\u53EF\u7528\u7EDE\u76D8\u63A5\u56DE\u3002"
+    en: . The diver passed out. A teammate can revive them underwater or winch them aboard.
+    fragment: 1
+  - key: crew.hide.enter.short
+    zh: "\u8FDB\u5165\u85CF\u533F\u5904\u3002"
+    en: ' entered a hiding place.'
+    fragment: 1
+  - key: save.craft.batch.invalid
+    zh: "\u5B58\u6863\u6279\u91CF\u4F5C\u4E1A\u914D\u65B9\u65E0\u6548\u3002"
+    en: The saved batch recipe is invalid.
+    fragment: 1
+  - key: save.craft.slots.invalid
+    zh: "\u5B58\u6863\u8BBE\u5907\u4F5C\u4E1A\u69FD\u6570\u91CF\u65E0\u6548\u3002"
+    en: The saved device job slot counts are invalid.
+    fragment: 1

@@ -17,7 +17,7 @@ namespace Lifeline
     [Serializable]
     public struct NetworkCrewCommand
     {
-        public const int ProtocolVersion = 3;
+        public const int ProtocolVersion = 4;
         public int version;
         public uint sequence;
         public uint tick;
@@ -85,6 +85,9 @@ namespace Lifeline
             // More than one packet may be dispatched before the next physics tick.
             next.jump |= command.jump; next.interact |= command.interact; next.melee |= command.melee;
             next.fire |= command.fire; next.signal |= command.signal; next.bait |= command.bait; next.hide |= command.hide;
+            next.calibrate |= command.calibrate; next.noteKeys |= command.noteKeys;
+            if (next.stationRevision == 0 && (command.calibrate || command.noteKeys != 0))
+            { next.stationRevision = command.stationRevision; next.stationClock = command.stationClock; }
             command = next; command.role = role; lastReceived = Time.unscaledTime;
         }
         public CrewCommand ReadCommand()
@@ -92,6 +95,8 @@ namespace Lifeline
             if (!enabled || Time.unscaledTime - lastReceived > maximumInputAge) return new CrewCommand { role = role };
             CrewCommand next = command;
             command.jump = command.interact = command.melee = command.fire = command.signal = command.bait = command.hide = command.pause = false;
+            command.calibrate = false;
+            command.noteKeys = 0;
             return next;
         }
         public void SetEnabled(bool value) { enabled = value; if (!value) command = default; }

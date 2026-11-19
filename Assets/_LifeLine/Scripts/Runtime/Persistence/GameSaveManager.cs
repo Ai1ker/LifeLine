@@ -111,7 +111,10 @@ namespace Lifeline
         }
         public bool TrySave(GameSession game, SaveReason reason, out string error)
         {
-            if (OnlineVoyage.IsGuest || game == null || !game.IsInitialized || loadFailed || (reason == SaveReason.Manual ? game.phase != SessionPhase.Paused : game.phase != SessionPhase.Playing)) return Fail("当前状态不能保存。", out error);
+            bool onlineMenu = OnlineVoyage.InProgress && !OnlineVoyage.IsGuest && OnlineVoyage.Current.LocalMenuOpen;
+            bool playing = game != null && game.phase == SessionPhase.Playing;
+            bool allowed = reason == SaveReason.Manual ? game != null && (game.phase == SessionPhase.Paused || onlineMenu && playing) : playing;
+            if (OnlineVoyage.IsGuest || game == null || !game.IsInitialized || loadFailed || !allowed) return Fail("当前状态不能保存。", out error);
             if (reason == SaveReason.Automatic && (game.day <= lastAutoSavedDay || game.IsNight || game.IsDusk)) { error = ""; return false; }
             try
             {

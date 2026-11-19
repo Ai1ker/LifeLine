@@ -14,6 +14,7 @@ namespace Lifeline
         public bool attached, consumed;
         public bool persistAcrossDays, isLostCargo;
         [System.NonSerialized] public DiverRope lifeline;
+        [System.NonSerialized] public float blockedPull;
         public WorldGenerator world;
         public Transform visualRoot;
         public TextMesh label;
@@ -63,6 +64,7 @@ namespace Lifeline
             else if (isCrate)
             {
                 attached = true;
+                blockedPull = 0;
                 if (actor.session != null) actor.session.RegisterAttachedCargo(this);
                 actor.session?.GetComponent<TutorialProgress>()?.Observe(TutorialAction.AttachCargo);
             }

@@ -6,6 +6,7 @@ namespace Lifeline
     public class RecipeDefinition : ScriptableObject
     {
         public string id;
+        [Tooltip("May be queued as a batch at a T2 or higher workbench.")] public bool allowBatch;
         public string displayName;
         [TextArea] public string description;
         public ResourceAmount[] cost = new ResourceAmount[0];

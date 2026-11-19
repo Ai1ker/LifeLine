@@ -11,6 +11,7 @@ namespace Lifeline
         public uint sequence;
         public Vector3 ship;
         public OnlineActorMotion captain, diver;
+        public OnlineStationMotion station;
     }
 
     public struct OnlineActorMotion
@@ -18,6 +19,7 @@ namespace Lifeline
         public Vector3 position;
         public Vector2 facing;
         public bool onboard;
+        public float ropeMeters, craftNoticeSeconds;
     }
 
     [Serializable]

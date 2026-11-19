@@ -74,15 +74,31 @@ namespace Lifeline.Tests
             Assert.That(game.captain.onboard, Is.False); Assert.That(game.captainBoardHeld, Is.False);
         }
 
-        [Test] public void DiverUsesInteractForHidingAndIgnoresTheRetiredHideShortcut()
+        [Test] public void HidingUsesInteractByDefaultAndCanBeSeparated()
         {
             WorldGenerator world = World(); Assert.That(game.BeginDive());
             var hide = Child("Hide spot").AddComponent<UnderwaterHideSpot>(); hide.world = world; hide.transform.position = game.diver.Position;
             world.hideSpots.Add(hide);
-            game.HandleCommand(game.diver, new CrewCommand { hide = true }); Assert.That(game.IsHidden(game.diver), Is.False);
             game.HandleCommand(game.diver, new CrewCommand { interact = true }); Assert.That(game.IsHidden(game.diver));
-            game.HandleCommand(game.diver, new CrewCommand { hide = true }); Assert.That(game.IsHidden(game.diver));
             game.HandleCommand(game.diver, new CrewCommand { interact = true }); Assert.That(game.IsHidden(game.diver), Is.False);
+            game.HandleCommand(game.diver, new CrewCommand { interact = true, hideSeparate = true }); Assert.That(game.IsHidden(game.diver), Is.False);
+            game.HandleCommand(game.diver, new CrewCommand { hide = true, hideSeparate = true }); Assert.That(game.IsHidden(game.diver));
+            game.HandleCommand(game.diver, new CrewCommand { interact = true, hideSeparate = true }); Assert.That(game.IsHidden(game.diver));
+            game.HandleCommand(game.diver, new CrewCommand { hide = true, hideSeparate = true }); Assert.That(game.IsHidden(game.diver), Is.False);
+        }
+
+        [Test] public void ATeammateCanReviveAnUnconsciousDiverUnderwater()
+        {
+            World();
+            Assert.That(game.BeginDive(game.captain));
+            Assert.That(game.BeginDive(game.diver));
+            game.diver.oxygen = 0f;
+            game.FaintDiver("fixture");
+            game.HandleCommand(game.captain, new CrewCommand { interactHeld = true });
+            game.StepSimulation(tuning.reviveSeconds);
+            Assert.That(game.IsFainted(game.diver), Is.False);
+            Assert.That(game.diver.onboard, Is.False);
+            Assert.That(game.diver.oxygen, Is.EqualTo(game.diver.oxygenMax * .5f).Within(.01f));
         }
 
         [Test] public void UnconsciousDiverStaysDownAfterWinchingAndNeedsAnUninterruptedFourSecondRevive()
@@ -185,28 +201,30 @@ namespace Lifeline.Tests
             Assert.That(game.ship.helmOperator, Is.SameAs(game.captain)); Assert.That(game.TryConsumeSailing(1));
         }
 
-        [Test] public void InputMigrationRemovesOnlyDiverHideAndPreservesOtherIdsAndOverrides()
+        [Test] public void InputMigrationKeepsHideRebindableAndPreservesOtherIdsAndOverrides()
         {
             InputActionAsset asset = Keep(CrewInputDefaults.CreateAsset());
             Assert.That(asset.FindAction("Captain/Interact").bindings[0].path, Is.EqualTo("<Keyboard>/e"));
             Assert.That(asset.FindAction("Captain/Collect").bindings[0].path, Is.EqualTo("<Keyboard>/e"));
-            Assert.That(asset.FindAction("Diver/Interact").bindings[0].path, Is.EqualTo("<Keyboard>/enter")); Assert.That(asset.FindAction("Diver/Hide", false), Is.Null);
+            Assert.That(asset.FindAction("Diver/Interact").bindings[0].path, Is.EqualTo("<Keyboard>/enter"));
+            Assert.That(asset.FindAction("Diver/Hide").bindings[0].path, Is.Null.Or.Empty);
             InputAction collect = asset.FindAction("Captain/Collect"); collect.ChangeBinding(0).WithPath("<Keyboard>/r"); collect.ApplyBindingOverride(0, "<Keyboard>/g");
-            asset.FindActionMap("Diver").AddAction("Hide", InputActionType.Button, "<Keyboard>/m");
+            asset.FindAction("Diver/Hide").ChangeBinding(0).WithPath("<Keyboard>/m");
             Guid pauseId = asset.FindAction("Diver/Pause").id, pauseBindingId = asset.FindAction("Diver/Pause").bindings[0].id;
             Assert.That(InputAssetBuilder.MigrateCrewInteractionBindings(asset, false), Has.Count.EqualTo(2)); Assert.That(asset.FindAction("Diver/Hide", false), Is.Not.Null);
             InputAssetBuilder.MigrateCrewInteractionBindings(asset, true);
             Assert.That(collect.bindings[0].path, Is.EqualTo("<Keyboard>/e")); Assert.That(collect.bindings[0].effectivePath, Is.EqualTo("<Keyboard>/g"));
-            Assert.That(asset.FindAction("Diver/Hide", false), Is.Null); Assert.That(asset.FindAction("Diver/Pause").id, Is.EqualTo(pauseId)); Assert.That(asset.FindAction("Diver/Pause").bindings[0].id, Is.EqualTo(pauseBindingId));
+            Assert.That(asset.FindAction("Diver/Hide").bindings[0].path, Is.Null.Or.Empty); Assert.That(asset.FindAction("Diver/Pause").id, Is.EqualTo(pauseId)); Assert.That(asset.FindAction("Diver/Pause").bindings[0].id, Is.EqualTo(pauseBindingId));
             Assert.That(InputAssetBuilder.MigrateCrewInteractionBindings(asset, true), Is.Empty);
         }
 
-        [Test] public void RuntimeInputCopyRemovesLegacyHideFromRebindingWithoutMutatingSharedAsset()
+        [Test] public void RuntimeInputCopyClearsLegacyHideWithoutMutatingSharedAsset()
         {
-            InputActionAsset shared = Keep(CrewInputDefaults.CreateAsset()); shared.FindActionMap("Diver").AddAction("Hide", InputActionType.Button, "<Keyboard>/m");
+            InputActionAsset shared = Keep(CrewInputDefaults.CreateAsset()); shared.FindAction("Diver/Hide").ChangeBinding(0).WithPath("<Keyboard>/m");
             var reader = Child("Diver reader").AddComponent<CrewInputReader>(); reader.preferencesPrefix = "LifeLine.CrewRegression." + Guid.NewGuid() + "."; reader.Initialize(CrewRole.Diver, shared);
-            Assert.That(reader.BindableActions.Any(action => action.name == "Hide"), Is.False); Assert.That(reader.RuntimeActions.FindAction("Diver/Hide", false), Is.Null);
-            Assert.That(shared.FindAction("Diver/Hide", false), Is.Not.Null); Assert.That(reader.RuntimeActions.FindAction("Diver/Interact").bindings[0].effectivePath, Is.EqualTo("<Keyboard>/enter"));
+            Assert.That(reader.BindableActions.Any(action => action.name == "Hide"), Is.True); Assert.That(reader.HasBinding("Hide"), Is.False);
+            Assert.That(shared.FindAction("Diver/Hide").bindings[0].path, Is.EqualTo("<Keyboard>/m"));
+            Assert.That(reader.GetBindingPath("Interact"), Is.EqualTo("<Keyboard>/enter"));
         }
     }
 }

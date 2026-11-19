@@ -163,10 +163,12 @@ namespace Lifeline
         public bool MeleeAttack(CrewActor actor)
         {
             if (actor == null || IsActorInputBlocked(actor) || meleeCooldowns[(int)actor.role] > 0 || actor.GetComponent<CrewPresentation>() != null && actor.GetComponent<CrewPresentation>().MeleeAnimationPlaying) return false;
-            if (!actor.onboard && !hasHarpoon) return false;
+            bool movedCargo = !actor.onboard && TryPushUnderwaterCargo(actor);
+            if (!actor.onboard && !hasHarpoon && !movedCargo) return false;
             var presentation = actor.GetComponent<CrewPresentation>();
             meleeCooldowns[(int)actor.role] = Mathf.Max(tuning.meleeCooldown, presentation != null ? presentation.swingSeconds : 0);
             actor.EmitPresentationEvent(CrewVisualEvent.Melee);
+            if (!actor.onboard && !hasHarpoon) return true;
             float damage = (hasHarpoon ? harpoonDamage : meleeDamage) * (Buffs(actor).attack > 0 ? 1 + tuning.fishAttackBonus : 1);
             float range = tuning.meleeRange * (hasHarpoon ? 1 : .65f);
             LifelineEnemy closest = null; float nearest = range;
@@ -185,6 +187,52 @@ namespace Lifeline
                 closest = enemy; nearest = distance;
             }
             if (closest != null) { closest.ReceiveHit(damage, actor); return true; }
+            return true;
+        }
+
+        bool TryPushUnderwaterCargo(CrewActor actor)
+        {
+            if (world == null) return false;
+            LootPickup target = null;
+            Vector2 facing = actor.Facing.sqrMagnitude > .1f ? actor.Facing.normalized : Vector2.right;
+            float nearest = tuning.meleeRange;
+            foreach (var pickup in world.pickups)
+            {
+                if (pickup == null || !pickup.isCrate || pickup.consumed || !pickup.gameObject.activeInHierarchy) continue;
+                Vector2 offset = pickup.transform.position - actor.Position;
+                float distance = offset.magnitude;
+                if (distance > nearest || Vector2.Dot(facing, offset.normalized) < .15f) continue;
+                target = pickup;
+                nearest = distance;
+            }
+            if (target == null) return false;
+            Vector3 push = (Vector2)(target.transform.position - actor.Position);
+            if (push.sqrMagnitude < .001f) push = facing;
+            push.Normalize();
+            var collider = target.GetComponent<Collider>();
+            Bounds bounds = collider != null ? collider.bounds : new Bounds(target.transform.position, new Vector3(.6f, .45f, .5f));
+            float distanceLimit = Mathf.Max(bounds.size.x, bounds.size.y);
+            Vector3 half = Vector3.Max(Vector3.one * .025f, bounds.extents - Vector3.one * .025f);
+            if (Physics.BoxCast(bounds.center, half, push, out RaycastHit hit, Quaternion.identity, distanceLimit, 1 << world.geometryLayer, QueryTriggerInteraction.Ignore))
+                distanceLimit = Mathf.Max(0, hit.distance - .025f);
+            if (distanceLimit <= .001f) return true;
+            var origin = target.transform.position;
+            var destination = origin + push * distanceLimit;
+            if (target.attached)
+            {
+                var route = GetCargoLifeline(target);
+                bool wasRoutable = route.UpdateRoute(BoatAnchor, origin);
+                float previousLength = route.PathLength;
+                bool isRoutable = route.UpdateRoute(BoatAnchor, destination);
+                if (wasRoutable && !isRoutable || isRoutable && route.PathLength > Mathf.Max(ropeLength, previousLength) + .01f)
+                {
+                    route.UpdateRoute(BoatAnchor, origin);
+                    return true;
+                }
+            }
+            target.transform.position = destination;
+            target.blockedPull = 0;
+            Changed();
             return true;
         }
 

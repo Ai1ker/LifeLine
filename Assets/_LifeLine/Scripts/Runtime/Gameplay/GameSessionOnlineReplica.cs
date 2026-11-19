@@ -47,18 +47,36 @@ namespace Lifeline
             captain = CaptureActorMotion(captain), diver = CaptureActorMotion(diver)
         };
 
-        static OnlineActorMotion CaptureActorMotion(CrewActor actor) => new OnlineActorMotion
+        OnlineActorMotion CaptureActorMotion(CrewActor actor) => new OnlineActorMotion
         {
-            position = actor.Position, facing = actor.Facing, onboard = actor.onboard
+            position = actor.Position, facing = actor.Facing, onboard = actor.onboard,
+            ropeMeters = actor.onboard ? 0 : GetCrewLifeline(actor).PathLength,
+            craftNoticeSeconds = Mathf.Max(0, actor.craftFailureUntil - Time.unscaledTime)
         };
 
-        public void BufferOnlineMotion(OnlineCrewMotion sample)
+        public bool BufferOnlineMotion(OnlineCrewMotion sample)
         {
-            if (hasReplicaMotion && sample.sequence <= motionTarget.sequence) return;
-            motionStart = CaptureOnlineMotion(sample.sequence);
+            if (hasReplicaMotion && sample.sequence <= motionTarget.sequence) return false;
+            motionStart.ship = ship.Position;
+            motionStart.captain = new OnlineActorMotion { position = captain.Position, onboard = captain.onboard,
+                ropeMeters = GetDisplayedRopeLength(captain) };
+            motionStart.diver = new OnlineActorMotion { position = diver.Position, onboard = diver.onboard,
+                ropeMeters = GetDisplayedRopeLength(diver) };
             motionTarget = sample;
             motionElapsed = 0f;
             hasReplicaMotion = true;
+            captain.craftFailureUntil = Time.unscaledTime + sample.captain.craftNoticeSeconds;
+            diver.craftFailureUntil = Time.unscaledTime + sample.diver.craftNoticeSeconds;
+            return true;
+        }
+
+        public float GetDisplayedRopeLength(CrewActor actor)
+        {
+            if (actor.onboard) return 0;
+            if (!hasReplicaMotion) return GetCrewLifeline(actor).PathLength;
+            var start = actor == captain ? motionStart.captain : motionStart.diver;
+            var end = actor == captain ? motionTarget.captain : motionTarget.diver;
+            return Mathf.Lerp(start.ropeMeters, end.ropeMeters, Mathf.Clamp01(motionElapsed / .045f));
         }
 
         public void RenderOnlineMotion(float seconds)
@@ -168,6 +186,7 @@ namespace Lifeline
                 if (recipe == null) continue;
                 var live = new CraftJob { recipe = recipe };
                 CopySaveFields(job, live);
+                live.quantity = Mathf.Max(1, live.quantity);
                 manager.jobs.Add(live);
             }
             ApplyOnlineCombat(data);

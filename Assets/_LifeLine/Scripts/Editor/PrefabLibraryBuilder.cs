@@ -496,6 +496,7 @@ namespace Lifeline.Editor
             var existing = AssetDatabase.LoadAssetAtPath<RecipeDefinition>(path); if (existing != null) return existing;
             var recipe = ScriptableObject.CreateInstance<RecipeDefinition>(); recipe.id=id; recipe.displayName=title; recipe.description=description;
             recipe.cost=cost; recipe.output=output??Array.Empty<ResourceAmount>(); recipe.toolId=tool; recipe.radioStage=radio; recipe.repairAmount=repair;
+            recipe.allowBatch = id == "plank" || id == "plate" || id == "bundle" || id == "bait";
             recipe.craftTimeMultiplier=timeMultiplier; recipe.consumedToolIds=consumedTools??Array.Empty<string>();
             AssetDatabase.CreateAsset(recipe,path); return recipe;
         }

@@ -86,5 +86,37 @@ namespace Lifeline.Tests
             game.SpawnEnemy(EnemyKind.Bird,new Vector3(50,6,0));var data=game.CaptureSaveData();data.balanceVersion=0;data.routeDistance=90;data.shipPosition.x=45;data.state.diverBites=.5f;
             Assert.That(game.TryRestoreSaveData(data,out string error),Is.True,error);Assert.That(game.ship.Position.x,Is.EqualTo(100).Within(.0001f));Assert.That(game.diverBites,Is.EqualTo(1));Assert.That(game.enemies.Single().transform.position.x,Is.EqualTo(105).Within(.0001f));Assert.That(data.shipPosition.x,Is.EqualTo(45));Assert.That(data.state.diverBites,Is.EqualTo(.5f));
         }
+
+        [Test] public void BatchChargesFullCostAndKeepsSeparateRepairSlotAcrossSave()
+        {
+            var material = ScriptableObject.CreateInstance<RecipeDefinition>();
+            var repair = ScriptableObject.CreateInstance<RecipeDefinition>();
+            try
+            {
+                material.id = "fixture-material"; material.allowBatch = true;
+                material.cost = new[] { new ResourceAmount(ResourceKind.Wood, 2) };
+                material.output = new[] { new ResourceAmount(ResourceKind.Plank, 1) };
+                repair.id = "fixture-repair"; repair.repairAmount = 10; repair.craftTimeMultiplier = .5f;
+                game.recipes = new[] { material, repair };
+                game.repairBenchInstalled = true; game.hull = 40;
+                game.AddResource(ResourceKind.Wood, 8 - game.GetResource(ResourceKind.Wood));
+                var manager = game.GetOrCreateCraftingManager();
+                Assert.That(manager.TryCraft(material.id, game.captain, 2), Is.False);
+                game.upgradeLevels[(int)UpgradeKind.Workbench] = 2;
+                Assert.That(manager.TryCraft(material.id, game.captain, 5), Is.False);
+                Assert.That(game.GetResource(ResourceKind.Wood), Is.EqualTo(8));
+                Assert.That(manager.TryCraft(material.id, game.captain, 4), Is.True);
+                Assert.That(manager.TryCraft(repair.id, game.diver), Is.True);
+                Assert.That(manager.TryCraft(repair.id, game.diver), Is.False);
+                Assert.That(manager.SlotCount(StationKind.Workbench), Is.EqualTo(1));
+                Assert.That(manager.SlotCount(StationKind.HullRepair), Is.EqualTo(1));
+                var save = game.CaptureSaveData();
+                Assert.That(game.TryRestoreSaveData(save, out string error), Is.True, error);
+                Assert.That(game.jobs.Find(job => job.recipe == material).quantity, Is.EqualTo(4));
+                manager.Tick(manager.GetCraftDuration(material) * 4);
+                Assert.That(game.GetResource(ResourceKind.Plank), Is.EqualTo(4));
+            }
+            finally { Object.DestroyImmediate(material); Object.DestroyImmediate(repair); }
+        }
     }
 }

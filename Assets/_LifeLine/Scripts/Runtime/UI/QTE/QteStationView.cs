@@ -44,7 +44,7 @@ namespace Lifeline
             laneHitLine.sprite = theme.hitLine; laneHitLine.color = theme.gold;
             SetX(laneHitLine.rectTransform, windowCenter);
             SetX(laneKeycap.rectTransform, phase);
-            BindKey(input, "Move", direction + 1, laneKeycap, laneGlyph, laneKeyLabel, feedback, good);
+            BindKey(input, CrewInputDefaults.NoteAction(direction), CrewInputDefaults.NoteBinding(direction), laneKeycap, laneGlyph, laneKeyLabel, feedback, good);
         }
 
         public void ShowCircle(CrewInputReader input, float cursor, float center, float width, float progress,
@@ -67,13 +67,12 @@ namespace Lifeline
             centerValue.text = progress.ToString("P0"); centerValue.color = accent;
             centerKeycap.gameObject.SetActive(!automatic);
             ringWindow.enabled = ringNeedle.enabled = !automatic;
-            if (!automatic) BindKey(input, "Melee", 0, centerKeycap, centerGlyph, centerKeyLabel, feedback, good);
+            if (!automatic) BindKey(input, "Calibrate", 0, centerKeycap, centerGlyph, centerKeyLabel, feedback, good);
         }
 
         void BindKey(CrewInputReader input, string actionName, int index, Image cap, Image glyph, Text label, float feedback, bool good)
         {
-            InputAction action = input?.RuntimeActions?.FindActionMap(input.role.ToString(), false)?.FindAction(actionName, false);
-            displayedBindingPath = action != null && index < action.bindings.Count ? action.bindings[index].effectivePath : "";
+            displayedBindingPath = input?.GetBindingPath(actionName, index) ?? "";
             string name = input != null ? input.GetBindingLabel(actionName, index) : "—";
             var artwork = theme.FindArtwork(displayedBindingPath);
             cap.sprite = artwork != null && artwork.sprite != null ? artwork.sprite : feedback > 0

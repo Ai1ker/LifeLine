@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 04_Bait
   m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.RecipeDefinition
   id: bait
+  allowBatch: 1
   displayName: "\u9CA8\u9C7C\u8BF1\u9975"
   description: "\u6295\u653E\u540E\u5C06\u9644\u8FD1\u9CA8\u9C7C\u5F15\u5F008\u79D2\u3002"
   cost:

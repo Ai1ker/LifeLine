@@ -54,7 +54,8 @@ namespace Lifeline.Tests
             captain.SetEnabled(false); diver.SetEnabled(false);
             var restoredCaptain = Reader(CrewRole.Captain, asset);
             var restoredDiver = Reader(CrewRole.Diver, asset);
-            Assert.That(restoredCaptain.RuntimeActions.FindAction("Captain/Melee").bindings[0].effectivePath, Is.EqualTo("<Keyboard>/space"));
+            Assert.That(restoredCaptain.HasBinding("Melee"), Is.False);
+            Assert.That(restoredCaptain.GetBindingPath("Calibrate"), Is.EqualTo("<Keyboard>/space"));
             Assert.That(restoredDiver.RuntimeActions.FindAction("Diver/Melee").bindings[0].effectivePath, Is.EqualTo("<Keyboard>/j"));
         }
 

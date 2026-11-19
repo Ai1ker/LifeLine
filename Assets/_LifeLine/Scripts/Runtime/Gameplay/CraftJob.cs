@@ -8,6 +8,7 @@ namespace Lifeline
     {
         [Header("自动制作 / shared queue")]
         public int id;
+        [Min(1)] public int quantity = 1;
         public RecipeDefinition recipe;
         public CrewRole owner;
         [Tooltip("Actual real seconds since the job started.")] public float elapsed;
@@ -15,7 +16,7 @@ namespace Lifeline
         public float duration;
         public float repairApplied;
         [Tooltip("The next cue's centre, in elapsed job seconds.")] public float nextCue = 1f;
-        [Tooltip("0=W/up, 1=A/left, 2=S/down, 3=D/right.")] public int noteDirection;
+        [Tooltip("0=W/up, 1=A/left, 2=S/down, 3=D/right, 4=Q, 5=E.")] public int noteDirection;
         public bool attempted;
         public int hits;
         public int misses;

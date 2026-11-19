@@ -99,8 +99,10 @@ namespace Lifeline
     {
         public int id; public string recipeId; public CrewRole owner;
         public float elapsed, progress, duration, nextCue, repairApplied;
-        public int noteDirection, hits, misses;
+        public int noteDirection, hits, misses, quantity;
         public bool attempted;
+        public float feedbackTime;
+        public string feedback;
     }
     [Serializable] public sealed class WorldSaveState
     {

@@ -18,6 +18,7 @@ namespace Lifeline
         public Animator animator;
         public bool onboard = true, downed, controlsCaptured;
         public bool hidden, fainted;
+        [NonSerialized] public float craftFailureUntil;
         public Vector3 hidingPosition;
         bool visibleBeforeHiding;
         public float oxygen, oxygenMax;
@@ -104,6 +105,7 @@ namespace Lifeline
         {
             SetHidden(false);
             fainted=false; session = game;
+            craftFailureUntil = 0f;
             role = crewRole;
             if (body == null) ConfigureBody();
             if (input == null) input = GetComponent<CrewInputReader>();
@@ -151,6 +153,8 @@ namespace Lifeline
         {
             var source = externalInput ?? (ICrewInputSource)input;
             var command = source != null ? source.ReadCommand() : new CrewCommand();
+            if (OnlineVoyage.InProgress && OnlineVoyage.Current.LocalRole == role && OnlineVoyage.Current.LocalMenuOpen)
+                command = new CrewCommand { pause = command.pause };
             command.role = role;
             LastCommand = command;
             return command;

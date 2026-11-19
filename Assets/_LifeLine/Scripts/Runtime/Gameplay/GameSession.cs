@@ -186,7 +186,7 @@ namespace Lifeline
         public float harpoonDamage = 2f;
         public float spearDamage = 2f;
         public float hullContactDamage = 4f;
-        public float lightningHullDamage = 10f;
+        public float lightningHullDamage = 5f;
         public float lightningRadius = 2.2f;
         public float birdCountdown;
         public float turretShotClock;
@@ -349,23 +349,27 @@ namespace Lifeline
             if (phase != SessionPhase.Playing) return;
             if(IsHidden(actor))
             {
-                if (command.interact || command.hide && (actor == captain || OnlineVoyage.InProgress))
+                if (command.hide || command.interact && !command.hideSeparate)
                     world?.TryHide(actor);
+                return;
+            }
+            reviveHeld[(int)actor.role] = command.interactHeld || command.interact;
+            if (reviveHeld[(int)actor.role] && !capturedBeforeEvent && !actor.controlsCaptured && TryReviveTeammate(actor))
+            {
+                if (actor == captain) { captainBoardHeld = false; captainBoardProgress = 0; }
                 return;
             }
             if(actor==captain)
             {
                 captainSprinting=command.sprint;
                 captainBoardHeld=!actor.onboard&&!IsIncapacitated(actor)&&!actor.controlsCaptured
-                    &&(command.interactHeld||command.interact)&&!HasNearbyCaptainWaterInteraction(actor)&&command.move.sqrMagnitude<.01f&&!command.melee&&!command.fire&&Vector3.Distance(actor.Position,BoatAnchor)<=3;
+                    &&(command.interactHeld||command.interact)&&!HasNearbyCaptainWaterInteraction(actor, !command.hideSeparate)&&command.move.sqrMagnitude<.01f&&!command.melee&&!command.fire&&Vector3.Distance(actor.Position,BoatAnchor)<=3;
                 if(captainBoardHeld)return;
                 captainBoardProgress=0;
             }
-            reviveHeld[(int)actor.role] = command.interactHeld || command.interact;
-            if (reviveHeld[(int)actor.role] && TryReviveTeammate(actor)) return;
             if (IsActorInputBlocked(actor)) return;
             if(actor==diver)diverSprinting=command.sprint;
-            if (command.hide && (actor == captain || OnlineVoyage.InProgress) && !actor.onboard && world != null && world.TryHide(actor)) return;
+            if (command.hide && !actor.onboard && world != null && world.TryHide(actor)) return;
             if (capturedBeforeEvent || actor.controlsCaptured) return;
             if (command.melee) MeleeAttack(actor);
             if (command.fire) FireSpear(actor);
@@ -378,7 +382,7 @@ namespace Lifeline
                 {
                     if (world != null && world.TryLoadCrate(actor)) return;
                     if (world != null && world.TryInteractTrapdoor(actor)) return;
-                    if (world != null && world.TryHide(actor)) return;
+                    if (!command.hideSeparate && world != null && world.TryHide(actor)) return;
                     if (actor == diver && Vector3.Distance(actor.Position, BoatAnchor) < 3) Tell("已经抵达船底。请船长打开绞盘接回；潜水员无法自行登船。", actor);
                 }
                 return;

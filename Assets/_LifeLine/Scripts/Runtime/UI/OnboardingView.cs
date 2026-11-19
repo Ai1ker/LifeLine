@@ -66,6 +66,7 @@ namespace Lifeline
             {
                 var actor = lessonRole == CrewRole.Captain ? session.captain : session.diver;
                 string interact = actor != null && actor.input != null ? actor.input.GetBindingLabel("Interact") : actor == session.captain ? "E" : "Enter";
+                if (progress.Step == 6 && actor?.input != null && actor.input.HasBinding("Hide")) interact = actor.input.GetBindingLabel("Hide");
                 string collect = actor != null && actor.input != null ? actor.input.GetBindingLabel("Collect") : "1";
                 instructionText.text = string.Format(UiLocalization.Text(progress.InstructionSource), interact, collect,
                     session.GetBagCapacity(session.captain), session.tuning != null ? session.GetOxygenMax(session.captain) : 50f);

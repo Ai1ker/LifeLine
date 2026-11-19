@@ -46,6 +46,7 @@ namespace Lifeline
             if(captain.onboard){captain.oxygen=Mathf.MoveTowards(captain.oxygen,captain.oxygenMax,faintOxygenRecovery*dt);return;}
             if(IsFainted(captain))
             {
+                if (BeingRevived(captain)) return;
                 var rope=GetCrewLifeline(captain);rope.UpdateRoute(BoatAnchor,captain.Position);rope.Pull(captain,faintDriftSpeed*dt);return;
             }
             if(captain.downed)return;
@@ -70,13 +71,13 @@ namespace Lifeline
             }
             captainBoardHeld=false;captainBoardProgress=0;
             if(actor.body!=null)actor.body.linearVelocity=Vector3.zero;
-            Tell(GameNames.Role(actor.role)+"昏厥，需要同伴用绞盘接回。");Changed();
+            Tell(GameNames.Role(actor.role)+"昏厥。水下队友可扶起，也可用绞盘接回。");Changed();
         }
         // An E hold near loose cargo must collect it rather than silently start the boarding channel.
-        bool HasNearbyCaptainWaterInteraction(CrewActor actor)
+        bool HasNearbyCaptainWaterInteraction(CrewActor actor, bool interactHides)
         {
             if (world == null || actor == null || actor.onboard) return false;
-            if (world.IsAtHideSpot(actor)) return true;
+            if (interactHides && world.IsAtHideSpot(actor)) return true;
             foreach (LootPickup pickup in world.pickups)
             {
                 if (pickup == null || pickup.attached || !pickup.InRange(actor)) continue;
