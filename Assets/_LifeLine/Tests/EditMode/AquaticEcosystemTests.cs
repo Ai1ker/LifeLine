@@ -13,7 +13,7 @@ namespace Lifeline.Tests
             root = new GameObject("Aquatic ecosystem fixture"); game = root.AddComponent<GameSession>(); game.autoStart = false;
             tuning = ScriptableObject.CreateInstance<GameTuning>(); game.tuning = tuning; tuning.maximumSharks = 0;
             var ship = new GameObject("Ship"); ship.transform.SetParent(root.transform); game.ship = ship.AddComponent<ShipMotor>();
-            game.captain = Actor(); game.diver = Actor(); game.Initialize();
+            game.captain = Actor(); game.diver = Actor(); game.Initialize(); game.DisableTutorialForTests();
         }
         CrewActor Actor()
         {

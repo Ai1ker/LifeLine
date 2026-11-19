@@ -263,6 +263,7 @@ namespace Lifeline
             diver.oxygenMax = GetOxygenMax(); diver.oxygen = diver.oxygenMax;
             signalCount = 0;
             Tell("船长接回潜水员，" + delivered + "件物资已卸入共享仓库。" + (diver.downed ? "靠近倒地潜水员按交互进行救助。" : ""));
+            if (delivered > 0) ReachMilestone(TutorialMilestone.FirstCargoBanked);
         }
 
         public void SignalCaptain()

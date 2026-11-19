@@ -13,7 +13,7 @@ namespace Lifeline.Tests
             root=new GameObject("Crew water rules fixture");game=root.AddComponent<GameSession>();game.autoStart=false;
             tuning=ScriptableObject.CreateInstance<GameTuning>();tuning.maximumSharks=0;game.tuning=tuning;
             var ship=new GameObject("Ship");ship.transform.SetParent(root.transform);ship.AddComponent<Rigidbody>();game.ship=ship.AddComponent<ShipMotor>();
-            game.captain=Actor();game.diver=Actor();game.Initialize();
+            game.captain=Actor();game.diver=Actor();game.Initialize();game.DisableTutorialForTests();
             var station=new GameObject("Winch");station.transform.SetParent(ship.transform);station.transform.position=game.captain.Position;station.AddComponent<StationAnchor>().kind=StationKind.Winch;
         }
         CrewActor Actor()

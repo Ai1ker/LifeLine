@@ -42,7 +42,24 @@ namespace Lifeline
         {
             if (string.IsNullOrEmpty(toolId) || HasEquipment(toolId)) return false;
             if (!SetEquipmentState(toolId, true)) return false;
+            // Auto-clean at the logic seam, not via the scene-anchored visibility pass, so the
+            // rule holds even without StationAnchor objects (tests, headless/authority flows).
+            StationKind? station = StationForTool(toolId);
+            if (station.HasValue) AutoRestoreStationOnUnlock(station.Value);
             RefreshEquipmentVisibility(); Changed(); return true;
+        }
+
+        /// <summary>Equipment tool id -> the station it reveals. Null for tool-only unlocks.</summary>
+        static StationKind? StationForTool(string toolId)
+        {
+            switch (toolId)
+            {
+                case "rod": return StationKind.Fishing;
+                case "generator": return StationKind.Generator;
+                case "repair-bench": return StationKind.HullRepair;
+                case "filter": return StationKind.Filter;
+                default: return null; // harpoon / speargun reveal no station
+            }
         }
 
         public bool ConsumeEquipment(string toolId)
@@ -77,7 +94,13 @@ namespace Lifeline
                 bool gated = station.kind == StationKind.Fishing || station.kind == StationKind.Searchlight ||
                     station.kind == StationKind.Turret || station.kind == StationKind.Generator ||
                     station.kind == StationKind.HullRepair || station.kind == StationKind.Filter;
-                if (gated) station.gameObject.SetActive(IsStationUnlocked(station.kind));
+                if (gated)
+                {
+                    bool unlocked = IsStationUnlocked(station.kind);
+                    station.gameObject.SetActive(unlocked);
+                    // Unlock = auto-clean: skip the 3s ruin hold for devices that just appeared.
+                    if (unlocked) AutoRestoreStationOnUnlock(station.kind);
+                }
             }
         }
 

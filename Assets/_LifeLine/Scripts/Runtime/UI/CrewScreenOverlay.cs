@@ -184,8 +184,21 @@ namespace Lifeline
             if (actor.onboard)
             {
                 var station = actor.NearbyStation;
+                // Ruin cleaning (tutorial): show hold progress / "ruin, hold to clear" instead of the normal use prompt.
+                if (game.IsRestoringBy(actor))
+                {
+                    float pct = game.RestoreProgress / GameSession.StationRestoreSeconds;
+                    caption = Format(" · 清理废墟 {0}（按住 {1}）", Mathf.Clamp01(pct).ToString("P0"), interact);
+                    target = station != null ? station.transform.position : actor.transform.position;
+                    return true;
+                }
                 if (station == null) return false;
                 target = station.transform.position;
+                if (game.IsStationRuin(station.kind))
+                {
+                    caption = Format(" · {0}（废墟）长按 [{1}] 清理", UiLocalization.Text(GameNames.Station(station.kind)), interact);
+                    return true;
+                }
                 var warning = station.GetInteractionWarning(actor);
                 caption = "[" + interact + "] " + UiLocalization.Text(GameNames.Station(station.kind));
                 if (!string.IsNullOrEmpty(warning)) caption += "\n" + UiLocalization.Text(warning);

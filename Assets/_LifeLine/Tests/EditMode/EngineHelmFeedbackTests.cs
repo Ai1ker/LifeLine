@@ -23,6 +23,7 @@ namespace Lifeline.Tests
             game.ship = Child("Ship").AddComponent<ShipMotor>(); game.ship.enabled = false;
             game.ship.transform.position = Vector3.right * 6000;
             game.captain = Actor("Captain"); game.diver = Actor("Diver"); game.Initialize();
+            game.DisableTutorialForTests(); // This fixture tests engine/helm feedback, not the ruin gate.
         }
 
         GameObject Child(string name) { var child = new GameObject(name); child.transform.SetParent(root.transform); return child; }

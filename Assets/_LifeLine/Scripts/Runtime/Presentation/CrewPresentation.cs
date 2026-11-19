@@ -73,6 +73,10 @@ namespace Lifeline
                 if (animator != null && animator.runtimeAnimatorController != null)
                     foreach (var parameter in animator.parameters) parameters[parameter.nameHash] = parameter.type;
             }
+            // Cosmetic pixel skin over the placeholder primitives (no gameplay effect).
+            if (visualRoot != null && actor != null)
+                PixelArtDecor.Apply(visualRoot, PixelArtDecor.CrewSprite(actor.role), 1.3f,
+                    hidePlaceholders: true, localOffset: new Vector3(0, 0.05f, -0.35f));
         }
 
         public void SetFront(bool foreground)

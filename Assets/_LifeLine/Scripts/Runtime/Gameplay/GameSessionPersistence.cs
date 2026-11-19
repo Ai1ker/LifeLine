@@ -148,6 +148,7 @@ namespace Lifeline
                 ship.body.position = shipPosition; ship.transform.position = shipPosition; ship.speed = 0;
                 captain.Initialize(this, CrewRole.Captain, ShipPoint(captainSpawnLocal)); diver.Initialize(this, CrewRole.Diver, ShipPoint(diverSpawnLocal));
                 CopySaveFields(data.state, this); Current = this;
+                NormalizeTutorialRuinsAfterLoad();
                 int ropeTier=Mathf.Min(GetUpgrade(UpgradeKind.Rope),tuning.ropeLengths.Length-1);
                 float[] oldRope={20,26,34,54};if(ropeTier<oldRope.Length&&Mathf.Approximately(ropeLength,oldRope[ropeTier]))ropeLength=tuning.ropeLengths[ropeTier];
                 manager.ResetQueue(); manager.nextJobId = data.nextJobId;

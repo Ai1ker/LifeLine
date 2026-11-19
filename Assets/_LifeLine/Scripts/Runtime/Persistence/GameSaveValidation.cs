@@ -39,6 +39,10 @@ namespace Lifeline
                 Require(state.captainBuffs != null && state.diverBuffs != null && state.radioStage >= 0 && state.radioStage <= 3 && state.generatorTier >= 0 && state.generatorTier <= 2, "存档设备状态无效。");
                 Require(state.engineFaultClean != null && state.engineFaultFixed != null && state.engineFaultTypes != null && state.engineFaultClean.Length == state.engineFaultFixed.Length && state.engineFaultClean.Length == state.engineFaultTypes.Length && state.engineFaultClean.Length >= 1 && state.engineFaultClean.Length <= 4, "存档引擎故障数据不完整。");
                 Require(state.repairAuthorized != null && state.repairAuthorized.Length == Enum.GetValues(typeof(StationKind)).Length && state.meleeCooldowns != null && state.meleeCooldowns.Length == 2, "存档角色与维修数据不完整。");
+                // Tutorial ruins: version 0 = legacy save predating the system (null arrays are allowed and normalized on restore).
+                int stationCount = Enum.GetValues(typeof(StationKind)).Length;
+                Require(state.tutorialVersion >= 0 && state.tutorialVersion <= 1, "存档教学版本无效。");
+                Require(state.tutorialVersion == 0 || (state.stationUnlocked != null && state.stationUnlocked.Length == stationCount && state.stationHintSeen != null && state.stationHintSeen.Length == stationCount && (state.tutorialMilestoneSeen == null || state.tutorialMilestoneSeen.Length == (int)TutorialMilestone.Count)), "存档工位废墟数据不完整。");
                 Require(state.storyLog != null && state.shadowHits >= 0 && state.rescueProgress >= 0 && state.rescueProgress <= 1, "存档任务数据无效。");
                 ValidateCrew(data.captain, CrewRole.Captain); ValidateCrew(data.diver, CrewRole.Diver);
                 Require(data.captainRopeContacts==null||data.captainRopeContacts.Length<=256,"存档世界数据不完整。");

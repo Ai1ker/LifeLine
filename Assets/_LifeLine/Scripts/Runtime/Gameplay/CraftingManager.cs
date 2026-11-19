@@ -248,6 +248,7 @@ namespace Lifeline
             else if (recipe.radioStage == 2) session.Tell("无线电2/3：「坐标确认，向东。浮筏撑不了多久。」");
             else if (recipe.radioStage == 3) session.Tell("无线电3/3：我们能呼救自己了。但他们的信号在变弱。去接他们！");
             else session.Tell(recipe.displayName + "已完成，产物进入共享仓库。");
+            session.ReachMilestone(TutorialMilestone.FirstCraft);
             session.Changed();
         }
     }

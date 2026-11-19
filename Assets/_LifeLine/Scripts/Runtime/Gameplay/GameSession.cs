@@ -108,6 +108,16 @@ namespace Lifeline
         public bool[] engineFaultFixed = new bool[4];
         public int[] engineFaultTypes = { 0, 1, 2, 3 };
         public bool[] repairAuthorized = new bool[14];
+        [Header("开局教学 / station ruins and tutorial cards")]
+        [Tooltip("Indexed by StationKind (length 13). false = ruin/locked, true = restored. All stations start as ruins in a new game.")]
+        public bool[] stationUnlocked = new bool[13];
+        [Tooltip("Indexed by StationKind (length 13). Whether this station's function hint card has been shown.")]
+        public bool[] stationHintSeen = new bool[13];
+        [Tooltip("0 = legacy save made before the tutorial system (all stations stay unlocked); 1 = tutorial state active.")]
+        public int tutorialVersion;
+        [Tooltip("Indexed by TutorialMilestone. Whether this one-shot step card has fired.")]
+        public bool[] tutorialMilestoneSeen = new bool[(int)TutorialMilestone.Count];
+
         public ResourceAmount[] filterRepairCost = { new ResourceAmount(ResourceKind.Plate, 2) };
         public ResourceAmount[] circuitRepairCost = { new ResourceAmount(ResourceKind.FiberBundle, 1) };
 
@@ -268,6 +278,11 @@ namespace Lifeline
             infinitePower = searchlightOn = turretInstalled = turretOn = false;
             lowPowerSailingSeconds = 0; lastCrankAt = -100;
             repairAuthorized = new bool[Enum.GetValues(typeof(StationKind)).Length];
+            // Tutorial: every station begins as a ruin; no hint card has been shown yet.
+            stationUnlocked = new bool[repairAuthorized.Length];
+            stationHintSeen = new bool[repairAuthorized.Length];
+            tutorialMilestoneSeen = new bool[(int)TutorialMilestone.Count];
+            tutorialVersion = 1;
             ResetEngineFaults();
             elapsed = 0; day = previousDay = 1; radioStage = 0;
             rescueVoyage = false; rescueProgress = 0;
@@ -295,11 +310,19 @@ namespace Lifeline
             ResetLifelines();
             EnsureCaptainLifelineView();
             if (world != null) { world.session = this; world.tuning = tuning; world.Generate(worldSeed); }
+            ApplyShipPixelSkin();
             SpawnInitialSharks();
+            RefreshStationVisuals(); // show every station as a ruin on a fresh game
             phase = SessionPhase.Playing; initialized = true;
             Tell("失联第1天：打捞物资，修好电路与引擎。潜水员只能由船长绞盘接回。");
             RefreshEquipmentVisibility();
             UpdateQuest(); Changed(); SessionReady?.Invoke(false);
+        }
+
+        void ApplyShipPixelSkin()
+        {
+            // Disabled: generated hull art never aligned with the real two-deck ship geometry.
+            // The ship keeps its original place-holder hull/deck/ladder visuals.
         }
 
         public void StartGame() { if (!initialized) Initialize(); else { phase = SessionPhase.Playing; Time.timeScale = 1; Changed(); } }
@@ -322,6 +345,7 @@ namespace Lifeline
             baitTime = Mathf.Max(0, baitTime - dt);
             UpdateCrafts(dt); UpdateOxygen(dt); UpdateCaptainOxygen(dt); UpdateCaptainBoard(dt); UpdateWinch(dt); UpdateElectricity(dt);
             UpdateWeather(dt); UpdateAreaStrikes(dt); UpdateEncounters(dt); UpdateRecovery(dt); UpdateRescue(dt);
+            UpdateStationRestoration(dt);
             bool dayAdvanced = day != previousDay;
             if (dayAdvanced)
             {
@@ -344,9 +368,15 @@ namespace Lifeline
         public void HandleCommand(CrewActor actor, CrewCommand command)
         {
             if (actor == null) return;
+            CacheInteractHeld(actor, command.interactHeld || command.interact);
+            if (ConsumeRestoreLatch(command.interactHeld || command.interact)) return;
             bool capturedBeforeEvent = actor.controlsCaptured;
             CommandReceived?.Invoke(actor, command);
             if (phase != SessionPhase.Playing) return;
+            if (command.interact && ConsumeTutorialInteract != null && ConsumeTutorialInteract(actor.role))
+            {
+                return;
+            }
             if(IsHidden(actor))
             {
                 if (command.interact || command.hide && (actor == captain || OnlineVoyage.InProgress))
@@ -383,9 +413,17 @@ namespace Lifeline
                 }
                 return;
             }
-            if (!command.interact || !actor.onboard) return;
+            if (!actor.onboard) return;
             StationAnchor station = actor.NearbyStation;
-            if (station == null || !IsStationUnlocked(station.kind)) return;
+            if (station == null) return;
+            // Tutorial gate: a ruin cannot be used. Hold interact to clean it (free, 3 s).
+            if (IsStationRuin(station.kind))
+            {
+                if (command.interact || command.interactHeld) { TryBeginRestoration(station.kind, actor); }
+                else if (restoring && restoreActor == actor) { CancelRestoration(); }
+                return;
+            }
+            if (!command.interact) return;
             if (station.kind == StationKind.DivePreparation) { BeginDive(actor); return; }
             if (station.kind == StationKind.Helm) { TryInteractHelm(actor); return; }
             StationRequested?.Invoke(station.kind, actor);
@@ -406,7 +444,7 @@ namespace Lifeline
             else{captainBoardHeld=false;captainBoardProgress=0;}
             actor.SetOnboard(false,BoatAnchor+Vector3.down*.5f);
             GetCrewLifeline(actor).ResetRoute();winchStartDistance=0;winchProgress=0;
-            EnsureCaptainLifelineView();Tell(GameNames.Role(actor.role)+"入水。");Changed();return true;
+            EnsureCaptainLifelineView();Tell(GameNames.Role(actor.role)+"入水。");ReachMilestone(TutorialMilestone.FirstDive);Changed();return true;
         }
 
         public int GetResource(ResourceKind kind)
@@ -476,6 +514,8 @@ namespace Lifeline
             if (kind == UpgradeKind.Rope) ropeLength = tuning.ropeLengths[Mathf.Min(GetUpgrade(kind), tuning.ropeLengths.Length - 1)];
             if (kind == UpgradeKind.Hull) { hullMax = tuning.hullLevels[Mathf.Min(GetUpgrade(kind), tuning.hullLevels.Length - 1)] * (infinitePower ? tuning.eelHullMultiplier : 1); hull += hullMax - oldMax; }
             if (kind == UpgradeKind.Oxygen && diver != null) { float delta = GetOxygenMax() - diver.oxygenMax; diver.oxygenMax = GetOxygenMax(); diver.oxygen += Mathf.Max(0, delta); }
+            // Searchlight upgrades from T0 reveal the station: auto-clean its ruin too.
+            if (kind == UpgradeKind.Searchlight && GetUpgrade(kind) > 0) AutoRestoreStationOnUnlock(StationKind.Searchlight);
             RefreshEquipmentVisibility();
             Tell("升级完成：" + kind + " T" + GetUpgrade(kind)); Changed(); return true;
         }

@@ -27,6 +27,7 @@ namespace Lifeline
         public Text endingText;
         public Button endingRestartButton, endingMenuButton;
         public ControlsRebindPanel controls;
+        public TutorialUIController tutorial;
         public PipeRepairPuzzle filterPuzzle = new PipeRepairPuzzle();
         public bool[] circuitConnected = new bool[4];
         public string menuSceneName = "MainMenu";
@@ -63,6 +64,10 @@ namespace Lifeline
             endingMenuButton?.onClick.AddListener(ReturnMenu);
             if (pausePanel != null) pausePanel.SetActive(false);
             if (endingPanel != null) endingPanel.SetActive(false);
+            // Tutorial UI is built at runtime (no scene/prefab edits). Attach to this HUD object.
+            if (tutorial == null) tutorial = gameObject.AddComponent<TutorialUIController>();
+            tutorial.Initialize(session);
+            // Teammate's onboarding (8-step lessons + captain oxygen) coexists for now.
             if (onboarding == null) onboarding = GetComponent<OnboardingView>();
             if (onboarding == null) onboarding = gameObject.AddComponent<OnboardingView>();
             onboarding.Initialize(this);
@@ -82,6 +87,10 @@ namespace Lifeline
         }
         private void Update()
         {
+            // Facility manual hotkey (H). Not bound to either crew role, so it never conflicts.
+            if (tutorial != null && UnityEngine.InputSystem.Keyboard.current != null
+                && UnityEngine.InputSystem.Keyboard.current.hKey.wasPressedThisFrame)
+                tutorial.ToggleManual();
             if (session == null || session.tuning == null || OnlineVoyage.IsGuest && !OnlineVoyage.Current.GuestReady) return;
             if (EventSystem.current != null) EventSystem.current.sendNavigationEvents = session.phase != SessionPhase.Playing;
             if (endingShown && session.phase != SessionPhase.Won && session.phase != SessionPhase.Lost)
@@ -165,6 +174,7 @@ namespace Lifeline
             lastPauseFrame = Time.frameCount;
             if (controls != null && controls.IsOpen) { controls.HandleEscape(); return true; }
             if (settings != null && settings.IsOpen) { settings.Close(); return true; }
+            if (tutorial != null && tutorial.ManualOpen) { tutorial.ToggleManual(); return true; }
             if (OnlineVoyage.InProgress)
             {
                 var localPanel = OnlineVoyage.Current.LocalRole == CrewRole.Captain ? captainPanel : diverPanel;

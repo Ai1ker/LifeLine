@@ -99,8 +99,10 @@ namespace Lifeline
         {
             if(actor==null||actor.onboard)return;
             if(actor==diver){BankDiver();return;}
+            bool hadCargo = actor.backpack.Count > 0;
             bool needsRevive=IsIncapacitated(actor);
             foreach(var item in actor.backpack)AddResource(item,1);actor.backpack.Clear();
+            if (hadCargo) ReachMilestone(TutorialMilestone.FirstCargoBanked);
             actor.SetHidden(false);actor.fainted=false;if(!needsRevive)actor.health=actor.maxHealth;
             actor.SetOnboard(true,ShipPoint(captainSpawnLocal));actor.SetDowned(needsRevive);
             if(captainRope!=null)captainRope.ResetRoute();actor.oxygenMax=GetOxygenMax(actor);actor.oxygen=actor.oxygenMax;

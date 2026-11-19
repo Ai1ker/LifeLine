@@ -68,7 +68,7 @@ namespace Lifeline
         {
             if (phase != SessionPhase.Playing || infinitePower || !Spend(new[] { new ResourceAmount(ResourceKind.Eel, 1) })) return false;
             generatorTier = 2; infinitePower = true; power = tuning.maxPower;
-            generatorInstalled = true; RefreshEquipmentVisibility();
+            generatorInstalled = true; AutoRestoreStationOnUnlock(StationKind.Generator); RefreshEquipmentVisibility();
             float previous = hullMax; hullMax *= tuning.eelHullMultiplier; hull += hullMax - previous;
             Tell("电鳗成为整船无限电源：船体上限提升30%，航速提升20%。"); Changed(); return true;
         }
@@ -110,7 +110,7 @@ namespace Lifeline
         {
             if (phase != SessionPhase.Playing || (int)kind >= repairAuthorized.Length || !repairAuthorized[(int)kind]) return;
             if (kind == StationKind.Filter) { filterRepaired = true; Tell("海水过滤器启用：船上设备交互效率提升20%，水下移动速度提升20%。"); }
-            else if (kind == StationKind.Circuit) { circuitRepaired = true; Tell("电路修复。探照灯、求救电台与炮塔现在可以工作。"); }
+            else if (kind == StationKind.Circuit) { circuitRepaired = true; Tell("电路修复。探照灯、求救电台与炮塔现在可以工作。"); ReachMilestone(TutorialMilestone.CircuitRepaired); }
             else if (kind == StationKind.Engine) { MarkEngineRepaired(); return; }
             else return;
             repairAuthorized[(int)kind] = false; Changed();

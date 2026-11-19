@@ -13,7 +13,7 @@ namespace Lifeline.Tests
             root=new GameObject("Survival balance fixture");game=root.AddComponent<GameSession>();game.autoStart=false;game.enabled=false;
             tuning=ScriptableObject.CreateInstance<GameTuning>();tuning.maximumSharks=0;game.tuning=tuning;
             var ship=Child("Ship");game.ship=ship.AddComponent<ShipMotor>();game.ship.enabled=false;
-            game.captain=Actor();game.diver=Actor();game.Initialize();
+            game.captain=Actor();game.diver=Actor();game.Initialize();game.DisableTutorialForTests();
         }
         GameObject Child(string name){var o=new GameObject(name);o.transform.SetParent(root.transform);return o;}
         CrewActor Actor(){var o=Child("Crew");o.layer=9;var a=o.AddComponent<CrewActor>();a.enabled=false;return a;}

@@ -28,6 +28,7 @@ namespace Lifeline.Tests
             game.ship = Child("Ship").AddComponent<ShipMotor>(); game.ship.enabled = false;
             game.ship.transform.position = Vector3.right * 5000; // Avoid unrelated open-scene station scans.
             game.captain = Actor("Captain"); game.diver = Actor("Diver"); game.Initialize();
+            game.DisableTutorialForTests(); // This fixture tests collection/revival, not the ruin gate.
         }
         T Keep<T>(T asset) where T : Object { assets.Add(asset); return asset; }
         GameObject Child(string name) { var obj = new GameObject(name); obj.transform.SetParent(root.transform); return obj; }

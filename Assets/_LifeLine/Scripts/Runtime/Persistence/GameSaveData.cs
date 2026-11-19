@@ -57,6 +57,11 @@ namespace Lifeline
         public bool[] engineFaultFixed;
         public int[] engineFaultTypes;
         public bool[] repairAuthorized;
+        // Tutorial: station ruins + hint readability. Legacy saves (tutorialVersion 0) treat all stations as unlocked.
+        public bool[] stationUnlocked;
+        public bool[] stationHintSeen;
+        public bool[] tutorialMilestoneSeen;
+        public int tutorialVersion;
         public float ropeLength;
         public bool diverFainted, diverHidden;
         public float diverBites;

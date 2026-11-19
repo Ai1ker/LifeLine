@@ -104,6 +104,11 @@ namespace Lifeline
                 }
                 baseColor = visualRenderer.sharedMaterial != null ? visualRenderer.sharedMaterial.color : Color.white;
             }
+            // Cosmetic pixel skin (no gameplay effect); inherits the visualRoot flip/pulse.
+            // Keep placeholder meshes enabled - damage-flash uses visualRenderer.material.color.
+            float skinWidth = kind == EnemyKind.Shadow ? 1f : 1.15f;
+            PixelArtDecor.Apply(visualRoot, PixelArtDecor.EnemySprite(kind), skinWidth,
+                hidePlaceholders: false, localOffset: new Vector3(0, 0, -0.3f));
         }
 
         Transform BuildVisual()
