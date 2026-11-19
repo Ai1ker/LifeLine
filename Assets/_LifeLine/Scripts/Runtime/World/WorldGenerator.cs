@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Lifeline
 {
     /// <summary>Seeded ruins built from connected cell graphs and matching 3D collision walls.</summary>
-    public class WorldGenerator : MonoBehaviour
+    public partial class WorldGenerator : MonoBehaviour
     {
         public GameSession session;
         public GameTuning tuning;
@@ -61,7 +61,16 @@ namespace Lifeline
         [Min(.001f)] public float interactionLabelSize = .06f;
         [Min(.1f)] public float labelVisibleDistance = 2.4f;
         [Min(.1f)] public float collectionRadius = 1.65f;
+        [Tooltip("Legacy crate ID reservations only. Actual active counts use the building feature ranges below.")]
         [Min(0)] public int cratesPerZone = 2;
+        [Header("Random building features (inclusive count ranges, caves excluded)")]
+        [Min(1)] public int largeBuildingMinimumRooms = 24;
+        public Vector2Int smallBuildingHideCount = new Vector2Int(2, 3);
+        public Vector2Int largeBuildingHideCount = new Vector2Int(3, 5);
+        public Vector2Int smallBuildingCrateCount = new Vector2Int(1, 2);
+        public Vector2Int largeBuildingCrateCount = new Vector2Int(2, 4);
+        public Vector3 buildingCrateOffset = new Vector3(.72f, -.20f, -.12f);
+        public Vector3 buildingHideOffset = new Vector3(-.65f, -.08f, 0);
         [Min(.1f)] public float maximumLootDepth = 50f;
         [Tooltip("Horizontal sea areas; all contain the complete depth sequence.")]
         public float[] areaCenters = { 0, 80, 160 };
@@ -194,12 +203,6 @@ namespace Lifeline
             for (int area = 0; area < areaCenters.Length; area++)
                 for (int band = 0; band + 1 < bandRoomCounts.Length; band++)
                     ConnectDepthBands(areaMazes[area, band], areaMazes[area, band + 1]);
-            foreach(var maze in layouts)
-            {
-                int cell=maze.entranceCell==0?Mathf.Min(maze.Count-1,maze.columns+1):0;
-                var obj=new GameObject("Ruins hiding spot");obj.transform.SetParent(generatedRoot,false);obj.transform.position=maze.Center(cell);
-                var hide=obj.AddComponent<UnderwaterHideSpot>();hide.world=this;hideSpots.Add(hide);
-            }
             // Preserve the legacy event rolls/IDs. Every placed cave now guarantees an eel; the independent no-cave eel roll remains.
             Vector2Int events = RollDeepEvents(random);
             bool caveOccurs = events.x != 0, eelOccurs = events.y != 0;
@@ -242,6 +245,9 @@ namespace Lifeline
             // Append with separate random streams and IDs, after every legacy generation step.
             // Existing saves still resolve the original rooms, gates, resources and event rolls.
             if (extendRouteCoverage) BuildRouteCoverage(lootRoot, sideRows);
+            // Features have their own per-building stream and run after every legacy generation
+            // step. Changing their ranges therefore cannot reroll resources, gates or deep events.
+            BuildRandomBuildingFeatures(lootRoot);
             foreach (var pickup in cargo)
             {
                 pickup.transform.SetParent(generatedRoot, true); pickups.Add(pickup);
@@ -308,10 +314,6 @@ namespace Lifeline
                         cellSize, area, band < sideRows.Length ? sideRows[band] : -1);
                     if (maze == null) continue;
                     BuildTrapdoors(maze, gateRandom);
-                    int cell = maze.entranceCell == 0 ? Mathf.Min(maze.Count - 1, maze.columns + 1) : 0;
-                    var hideObject = new GameObject("Ruins hiding spot"); hideObject.transform.SetParent(generatedRoot, false);
-                    hideObject.transform.position = maze.Center(cell);
-                    var hide = hideObject.AddComponent<UnderwaterHideSpot>(); hide.world = this; hideSpots.Add(hide);
                     // Fish in new buildings have their own RNG, never the legacy daily fish stream.
                     for (int fishCell = 0; fishCell < maze.Count; fishCell++)
                         if (coverageRandom.NextDouble() < (tuning != null ? tuning.underwaterFishChance : .12f))

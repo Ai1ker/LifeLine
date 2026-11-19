@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace Lifeline
 {
     /// <summary>Replaceable UGUI view; all world mutations are delegated to the session.</summary>
-    public class CrewStationPanel : MonoBehaviour
+    public partial class CrewStationPanel : MonoBehaviour
     {
         public GameObject panel;
         public Text titleText, detailText, liveText;
@@ -53,7 +53,7 @@ namespace Lifeline
         public void Initialize(GameHUDController owner, GameSession game, CrewActor crew)
         {
             hud = owner; session = game; actor = crew;
-            if (closeButton != null) { closeButton.onClick.RemoveListener(Close); closeButton.onClick.AddListener(Close); }
+            if (closeButton != null) { closeButton.onClick.RemoveListener(RequestClose); closeButton.onClick.AddListener(RequestClose); }
             panel.SetActive(false);
         }
         public void Open(StationKind kind)
@@ -63,14 +63,14 @@ namespace Lifeline
             Close(); station = kind; actor.controlsCaptured = true; previousMove = Vector2.zero;
             panel.SetActive(true); titleText.text = GameNames.Role(actor.role) + " / " + GameNames.Station(kind);
             repairStarted = session.repairAuthorized[(int)kind];
-            if (kind == StationKind.Winch) session.SetWinchActive(true,actor);
+            if (kind == StationKind.Winch && !ReplicaPanel) session.SetWinchActive(true,actor);
             if (kind == StationKind.Engine) engineVersion = session.engineRepairVersion;
             BuildActions();
         }
         public void Close()
         {
             if (actor != null) { actor.controlsCaptured = false; session?.craftingManager?.ClearInteractionContext(actor); }
-            if (session != null && IsOpen && station == StationKind.Winch) session.SetWinchActive(false);
+            if (session != null && IsOpen && station == StationKind.Winch && !ReplicaPanel) session.SetWinchActive(false);
             if (panel != null) panel.SetActive(false);
             fishingActive = false; heldButton = null; previousMove = Vector2.zero;
             selectedJobId=0;lastJobCount=-1;generatorFeedback=0;repairStarted=false;
@@ -81,6 +81,7 @@ namespace Lifeline
         private void Update()
         {
             if (!IsOpen || session == null || actor == null) return;
+            if (ReplicaPanel) return;
             if (actor.downed || !actor.onboard || session.phase == SessionPhase.Won || session.phase == SessionPhase.Lost)
             { Close(); return; }
             if (station == StationKind.Engine && engineVersion != session.engineRepairVersion)
@@ -94,12 +95,13 @@ namespace Lifeline
         private bool IsHeld(string action)
         {
             if (heldButton != null && heldButton.held) return true;
-            InputActionAsset asset = actor.input != null ? actor.input.RuntimeActions : null;
-            return asset != null && (asset.FindActionMap(actor.role.ToString(), false)?.FindAction(action, false)?.IsPressed() ?? false);
+            if (OnlineVoyage.InProgress && OnlineVoyage.Current.LocalRole != actor.role) return remoteHeld;
+            return actor.input != null && actor.input.IsActionHeld(action);
         }
         public void HandleCommand(CrewCommand command)
         {
             if (!IsOpen || session.phase != SessionPhase.Playing || actor == null || session.IsIncapacitated(actor)) return;
+            remoteHeld = command.interactHeld;
             if (station == StationKind.Workbench || station == StationKind.HullRepair)
             {
                 if (command.move.sqrMagnitude > .2f && (previousMove.sqrMagnitude < .2f || Vector2.Dot(previousMove, command.move) < .5f))
@@ -120,17 +122,21 @@ namespace Lifeline
         {
             foreach (GameObject button in buttons) if (button != null) { button.SetActive(false); Destroy(button); }
             buttons.Clear(); heldButton = null;
+            onlineActions.Clear();
+            actionIndex = 0;
         }
         private Button Add(string label, Action action, bool enabled = true)
         {
             Button button = Instantiate(actionButtonPrefab, actionsRoot); button.gameObject.SetActive(true);
             button.GetComponentInChildren<Text>().text = label; button.interactable = enabled;
-            button.onClick.RemoveAllListeners(); button.onClick.AddListener(() => { action(); });
+            button.onClick.RemoveAllListeners();
+            BindOnlineAction(button, "a" + actionIndex++, action);
             buttons.Add(button.gameObject); return button;
         }
         private void ActionAndRefresh(Action action) { action(); BuildActions(); }
         private void BuildActions()
         {
+            if (!ReplicaPanel) actionRevision++;
             ClearActions(); lastJobCount = session.jobs.Count;
             ConfigureQtePresentation();
             if(station==StationKind.Filter||station==StationKind.Circuit||station==StationKind.Engine){if(rhythmFill!=null)rhythmFill.transform.parent.gameObject.SetActive(false);}
@@ -153,7 +159,7 @@ namespace Lifeline
                         RecipeDefinition chosen = recipe;
                         Add(recipe.displayName + "  " + RecipeCosts(recipe) + " / " + session.GetCraftDuration(recipe).ToString("0.#") + "s", () => ActionAndRefresh(() => session.TryCraft(chosen.id, actor)), session.jobs.Count < session.CraftCapacity);
                     }
-                    session.craftingManager?.SetInteractionContext(actor, selectedJobId, station);
+                    if (!ReplicaPanel) session.craftingManager?.SetInteractionContext(actor, selectedJobId, station);
                     break;
                 case StationKind.TotalControl:
                     detailText.text = "设施升级和救援航程。航行请前往旁边独立船舵。";
@@ -233,6 +239,7 @@ namespace Lifeline
         public void RebuildRepair()=>BuildActions();
         public void ScrubEngineAt(int index,float seconds)
         {
+            if (ReplicaPanel) { HoldOnlineEngineScrub(index); return; }
             if(session==null||session.phase!=SessionPhase.Playing||!IsOpen||station!=StationKind.Engine||!repairStarted||index<0||index>=session.engineFaultClean.Length)return;
             selectedFault=index;session.engineFaultClean[index]=Mathf.Clamp01(session.engineFaultClean[index]+seconds*session.GetDeviceInteractionEfficiency(actor)/Mathf.Max(.1f,scrubSecondsPerFault));
         }
@@ -293,7 +300,7 @@ namespace Lifeline
             {
                 if (lastJobCount != session.jobs.Count) { selectedJobId = 0; BuildActions(); }
                 CraftJob job = session.jobs.Find(candidate => candidate.id == selectedJobId && JobBelongsHere(candidate));
-                session.craftingManager?.SetInteractionContext(actor, job != null ? job.id : 0, station);
+                if (!ReplicaPanel) session.craftingManager?.SetInteractionContext(actor, job != null ? job.id : 0, station);
                 if (job == null) { liveText.text = "作业槽 " + session.jobs.Count + "/" + session.CraftCapacity; rhythmFill.fillAmount = 0; if (qteView != null) qteView.gameObject.SetActive(false); return; }
                 float offset = job.nextCue - job.elapsed;
                 rhythmFill.fillAmount = Mathf.Clamp01(1 - offset);

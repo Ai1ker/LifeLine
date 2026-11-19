@@ -15,7 +15,7 @@ using UnityEngine.UI;
 namespace Lifeline.Editor
 {
     /// <summary>Explicit one-time authoring tool. Normal play never regenerates authored scenes/prefabs.</summary>
-    public static class GameProjectBuilder
+    public static partial class GameProjectBuilder
     {
         public const string Root = "Assets/_LifeLine";
         public const string MenuScene = Root + "/Scenes/MainMenu.unity";
@@ -93,6 +93,7 @@ namespace Lifeline.Editor
             Text("ControlsHint", card, "P1：WASD / E互动 / 空格近战 / Q鱼枪   P2：方向键 / Enter互动 / 1采集 / 2鱼枪\n所有角色键位可在换绑界面调整；Esc 暂停。", new Vector2(.06f, .015f), new Vector2(.49f, .21f), 17, TextAnchor.MiddleLeft);
             controller.controls = CreateControls(canvas, library.actionButton);
             controller.settings = CreateSettings(canvas, controller.controls);
+            InstallOnlineMenu(controller, card);
             new GameObject("Save flow").AddComponent<GameSaveManager>().mainMenu = controller;
             CreateLocalization();
             EditorSceneManager.SaveScene(scene, MenuScene);

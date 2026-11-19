@@ -79,7 +79,7 @@ namespace Lifeline.Editor
         // Fixed keys are independent of currently selected language. Do not renumber legacy IDs when editing copy.
         public static List<LocalizationTable.Entry> CreateDefaultEntries()
         {
-            return new List<LocalizationTable.Entry>
+            var entries = new List<LocalizationTable.Entry>
             {
                 new LocalizationTable.Entry("route.shallows", "浅滩", "Shallows"),
                 new LocalizationTable.Entry("route.city", "城区", "Flooded City"),
@@ -632,6 +632,10 @@ namespace Lifeline.Editor
                 new LocalizationTable.Entry("world.hatch.enter.open", "已打开 / 互动关门", "OPEN / ENTER"),
                 new LocalizationTable.Entry("world.hatch.enter.closed", "陷阱门 / 互动开门", "HATCH / ENTER"),
             };
+            entries.AddRange(OnlineRoomCopy.Entries());
+            entries.AddRange(SteamRoomCopy.Entries());
+            entries.AddRange(OnlineGameplayCopy.Entries());
+            return entries;
         }
     }
 }

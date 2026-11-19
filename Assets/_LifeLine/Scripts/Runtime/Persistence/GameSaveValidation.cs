@@ -49,6 +49,12 @@ namespace Lifeline
                     Require(job != null && job.id > 0 && jobIds.Add(job.id) && job.id < data.nextJobId && !string.IsNullOrEmpty(job.recipeId) && EnumValue(job.owner) && job.duration > 0 && job.progress >= 0 && job.progress < job.duration && job.elapsed >= 0 && job.nextCue >= 0 && job.noteDirection >= 0 && job.noteDirection < 4 && job.hits >= 0 && job.misses >= 0, "存档作业数据无效。");
                 Require(data.world != null && data.world.pickups != null && data.world.gates != null, "存档世界数据不完整。");
                 Require(data.world.forceCaveDay >= -1 && data.world.forceFilterDay >= -1, "存档世界事件日期无效。");
+                if (data.world.hasHidingSpots)
+                {
+                    Require(data.world.hidingSpots != null && data.world.hidingSpots.Length <= 4096, "存档世界数据不完整。");
+                    foreach (var hide in data.world.hidingSpots)
+                        Require(hide != null && hide.mazeIndex >= -1 && hide.mazeCell >= -1 && hide.range > 0, "存档世界数据不完整。");
+                }
                 var pickupIds = new HashSet<string>();
                 foreach (PickupSaveState pickup in data.world.pickups)
                 {

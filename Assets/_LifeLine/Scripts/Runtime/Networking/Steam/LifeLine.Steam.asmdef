@@ -1,0 +1,11 @@
+{
+  "name": "LifeLine.Steam",
+  "rootNamespace": "Lifeline",
+  "references": ["LifeLine.Runtime", "Mirror", "FizzySteamworks", "com.rlabrecque.steamworks.net"],
+  "includePlatforms": ["Editor", "WindowsStandalone32", "WindowsStandalone64"],
+  "defineConstraints": ["LIFELINE_STEAM", "UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN"],
+  "versionDefines": [
+    {"name": "com.mirror.steamworks.net", "expression": "[6.0.1,7.0)", "define": "LIFELINE_STEAM"}
+  ],
+  "autoReferenced": true
+}

@@ -8,7 +8,8 @@ namespace Lifeline
         public static void Refresh(GameObject root)
         {
             if(root==null)return;
-            foreach(var text in root.GetComponentsInChildren<Text>(true))text.text=Text(text.text);
+            foreach (var text in root.GetComponentsInChildren<Text>(true))
+                if (!text.TryGetComponent<LocalizationLiteralText>(out _)) text.text = Text(text.text);
             foreach(var binder in Object.FindObjectsByType<LocalizationTextBinder>()) { binder.RebuildTargets(); binder.Refresh(); }
         }
     }

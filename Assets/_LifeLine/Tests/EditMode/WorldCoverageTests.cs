@@ -64,9 +64,12 @@ namespace Lifeline.Tests
             bool cave = world.generatedCave, eel = world.generatedEel;
             world.extendRouteCoverage = true; world.Generate(8417);
             Assert.That(world.layouts.Take(graphs.Length).Select(m => string.Join(";", m.passages.Select(p => p.ToString()))), Is.EqualTo(graphs));
-            Assert.That(world.pickups.Take(ids.Length).Select(p => p.saveId), Is.EqualTo(ids));
-            Assert.That(world.pickups.Take(ids.Length).Select(p => p.transform.position), Is.EqualTo(positions));
-            Assert.That(world.pickups.Take(ids.Length).Select(p => p.resource), Is.EqualTo(resources));
+            // Building feature crates append after all buildings. Compare by stable identity,
+            // rather than assuming their list indices precede the newly added building loot.
+            var current = world.pickups.ToDictionary(p => p.saveId);
+            foreach (var id in ids) Assert.That(current.ContainsKey(id), Is.True, id);
+            Assert.That(ids.Select(id => current[id].transform.position), Is.EqualTo(positions));
+            Assert.That(ids.Select(id => current[id].resource), Is.EqualTo(resources));
             Assert.That(world.trapdoors.Take(gates.Length).Select(g => g.saveId), Is.EqualTo(gates));
             Assert.That(world.generatedCave, Is.EqualTo(cave)); Assert.That(world.generatedEel, Is.EqualTo(eel));
             Assert.That(world.pickups.Select(p => p.saveId).Distinct().Count(), Is.EqualTo(world.pickups.Count));

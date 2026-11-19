@@ -2242,3 +2242,247 @@ MonoBehaviour:
     zh: "\u5B58\u6863\u4E16\u754C\u4E8B\u4EF6\u65E5\u671F\u65E0\u6548\u3002"
     en: The saved world event dates are invalid.
     fragment: 1
+  - key: online.menu.entry
+    zh: "\u8054\u673A\u6A21\u5F0F"
+    en: Online Co-op
+    fragment: 0
+  - key: online.menu.title
+    zh: "Steam \u53CC\u4EBA\u8054\u673A"
+    en: Steam Co-op
+    fragment: 0
+  - key: online.menu.create
+    zh: "\u521B\u5EFA\u623F\u95F4"
+    en: Create Room
+    fragment: 0
+  - key: online.menu.join
+    zh: "\u52A0\u5165\u623F\u95F4"
+    en: Join Room
+    fragment: 0
+  - key: online.menu.codePrompt
+    zh: "\u8F93\u5165 6 \u4F4D\u623F\u95F4\u7801"
+    en: Enter a 6-character room code
+    fragment: 0
+  - key: online.menu.codePlaceholder
+    zh: "6 \u4F4D\u5B57\u6BCD\u548C\u6570\u5B57"
+    en: 6 letters and digits
+    fragment: 0
+  - key: online.menu.codeLabel
+    zh: "\u623F\u95F4\u7801"
+    en: Room Code
+    fragment: 0
+  - key: online.menu.copyCode
+    zh: "\u590D\u5236\u623F\u95F4\u7801"
+    en: Copy Code
+    fragment: 0
+  - key: online.menu.copied
+    zh: "\u623F\u95F4\u7801\u5DF2\u590D\u5236\u3002"
+    en: Room code copied.
+    fragment: 0
+  - key: online.menu.newGame
+    zh: "\u521B\u5EFA\u65B0\u822A\u7A0B"
+    en: Start a New Voyage
+    fragment: 0
+  - key: online.menu.resumeGame
+    zh: "\u8BFB\u53D6\u8054\u673A\u5B58\u6863\u5E76\u521B\u5EFA\u623F\u95F4"
+    en: Host From Online Save
+    fragment: 0
+  - key: online.menu.savedDay
+    zh: "\u8054\u673A\u5B58\u6863 \xB7 \u7B2C {0} \u5929"
+    en: "Online Save \xB7 Day {0}"
+    fragment: 0
+  - key: online.menu.noProvider
+    zh: "\u6B64\u7248\u672C\u7684 Steam \u8054\u673A\u7EC4\u4EF6\u4E0D\u53EF\u7528\u3002"
+    en: Steam co-op is unavailable in this build.
+    fragment: 0
+  - key: online.menu.retry
+    zh: "\u91CD\u8BD5 Steam \u8FDE\u63A5"
+    en: Retry Steam Connection
+    fragment: 0
+  - key: online.menu.count
+    zh: "\u73A9\u5BB6 {0} / 2"
+    en: Players {0} / 2
+    fragment: 0
+  - key: online.menu.roles
+    zh: "\u9009\u62E9\u804C\u8D23"
+    en: Choose Your Role
+    fragment: 0
+  - key: online.menu.unassigned
+    zh: "\u672A\u9009\u804C\u8D23"
+    en: Role Not Chosen
+    fragment: 0
+  - key: online.menu.waitingForPlayer
+    zh: "\u7B49\u5F85\u73A9\u5BB6\u52A0\u5165"
+    en: Waiting for a Player
+    fragment: 0
+  - key: online.menu.host
+    zh: "\u623F\u4E3B"
+    en: Host
+    fragment: 0
+  - key: online.menu.guest
+    zh: "\u6765\u5BBE"
+    en: Guest
+    fragment: 0
+  - key: online.menu.you
+    zh: "\u4F60"
+    en: You
+    fragment: 0
+  - key: online.menu.captainChosen
+    zh: "\u8239\u957F\uFF08\u5DF2\u9009\uFF09"
+    en: Captain (Selected)
+    fragment: 0
+  - key: online.menu.diverChosen
+    zh: "\u6F5C\u6C34\u5458\uFF08\u5DF2\u9009\uFF09"
+    en: Diver (Selected)
+    fragment: 0
+  - key: online.menu.start
+    zh: "\u5F00\u59CB\u6E38\u620F"
+    en: Start Game
+    fragment: 0
+  - key: online.menu.waitRoles
+    zh: "\u4E24\u540D\u73A9\u5BB6\u5404\u9009\u4E00\u4E2A\u804C\u8D23\u540E\u5373\u53EF\u5F00\u59CB\u3002"
+    en: Assign different roles to both players to begin.
+    fragment: 0
+  - key: online.menu.waitHost
+    zh: "\u7B49\u5F85\u623F\u4E3B\u5F00\u59CB\u6E38\u620F\u3002"
+    en: Waiting for the host to start.
+    fragment: 0
+  - key: online.menu.starting
+    zh: "\u6B63\u5728\u8FDB\u5165\u822A\u7A0B\u2026"
+    en: "Entering the voyage\u2026"
+    fragment: 0
+  - key: online.menu.leave
+    zh: "\u79BB\u5F00\u623F\u95F4"
+    en: Leave Room
+    fragment: 0
+  - key: online.menu.closeRoom
+    zh: "\u89E3\u6563\u623F\u95F4"
+    en: Disband Room
+    fragment: 0
+  - key: online.menu.back
+    zh: "\u8FD4\u56DE"
+    en: Back
+    fragment: 0
+  - key: online.menu.saveCannotRead
+    zh: "\u8054\u673A\u5B58\u6863\u65E0\u6CD5\u8BFB\u53D6\u3002"
+    en: The online save could not be read.
+    fragment: 0
+  - key: online.steam.unavailable
+    zh: "\u8BF7\u5148\u542F\u52A8 Steam \u5E76\u767B\u5F55\uFF0C\u518D\u91CD\u8BD5\u3002"
+    en: Open Steam and sign in, then retry.
+    fragment: 0
+  - key: online.steam.wrongApp
+    zh: "\u6B64\u6D4B\u8BD5\u7248\u9700\u8981 Steam \u6D4B\u8BD5 App ID 480\u3002"
+    en: This test build requires Steam test App ID 480.
+    fragment: 0
+  - key: online.room.creating
+    zh: "\u6B63\u5728\u521B\u5EFA\u623F\u95F4\u2026"
+    en: "Creating room\u2026"
+    fragment: 0
+  - key: online.room.searching
+    zh: "\u6B63\u5728\u67E5\u627E\u623F\u95F4\u2026"
+    en: "Looking for room\u2026"
+    fragment: 0
+  - key: online.room.joining
+    zh: "\u6B63\u5728\u52A0\u5165\u623F\u95F4\u2026"
+    en: "Joining room\u2026"
+    fragment: 0
+  - key: online.room.createFailed
+    zh: "\u521B\u5EFA\u623F\u95F4\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5\u3002"
+    en: Could not create room. Try again.
+    fragment: 0
+  - key: online.room.joinFailed
+    zh: "\u52A0\u5165\u623F\u95F4\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5\u3002"
+    en: Could not join room. Try again.
+    fragment: 0
+  - key: online.room.noMatch
+    zh: "\u6CA1\u6709\u627E\u5230\u53EF\u52A0\u5165\u7684\u623F\u95F4\uFF0C\u8BF7\u68C0\u67E5\u623F\u95F4\u7801\u3002"
+    en: No joinable room found. Check the room code.
+    fragment: 0
+  - key: online.room.ambiguous
+    zh: "\u8BE5\u623F\u95F4\u7801\u6682\u65F6\u51B2\u7A81\uFF0C\u8BF7\u8BA9\u623F\u4E3B\u91CD\u65B0\u521B\u5EFA\u623F\u95F4\u3002"
+    en: This room code is in use by multiple rooms. Ask the host to create a new room.
+    fragment: 0
+  - key: online.room.codeInvalid
+    zh: "\u8BF7\u8F93\u5165\u7531\u5B57\u6BCD\u548C\u6570\u5B57\u7EC4\u6210\u76846\u4F4D\u623F\u95F4\u7801\u3002"
+    en: Enter a six-character room code containing letters and digits.
+    fragment: 0
+  - key: online.room.closed
+    zh: "\u623F\u4E3B\u5DF2\u79BB\u5F00\uFF0C\u623F\u95F4\u5DF2\u89E3\u6563\u3002"
+    en: The host left and the room closed.
+    fragment: 0
+  - key: online.room.full
+    zh: "\u623F\u95F4\u5DF2\u6EE1\u6216\u5E2D\u4F4D\u4FDD\u7559\u7ED9\u539F\u6765\u7684\u961F\u53CB\u3002"
+    en: The room is full or the seat is reserved for the original crewmate.
+    fragment: 0
+  - key: online.room.roleTaken
+    zh: "\u8FD9\u4E2A\u804C\u8D23\u5DF2\u88AB\u9009\uFF0C\u8BF7\u9009\u62E9\u53E6\u4E00\u4E2A\u3002"
+    en: This role is taken. Choose the other role.
+    fragment: 0
+  - key: online.room.roleRequested
+    zh: "\u6B63\u5728\u786E\u8BA4\u804C\u8D23\u2026"
+    en: "Confirming role\u2026"
+    fragment: 0
+  - key: online.room.updateFailed
+    zh: "\u623F\u95F4\u66F4\u65B0\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5\u3002"
+    en: Could not update the room. Try again.
+    fragment: 0
+  - key: online.room.waitRoles
+    zh: "\u9700\u8981\u4E24\u4F4D\u73A9\u5BB6\u5404\u9009\u4E00\u4E2A\u804C\u8D23\u624D\u53EF\u5F00\u5C40\u3002"
+    en: Both players must choose different roles before starting.
+    fragment: 0
+  - key: online.room.requestTimedOut
+    zh: "Steam \u623F\u95F4\u8BF7\u6C42\u8D85\u65F6\uFF0C\u8BF7\u91CD\u8BD5\u3002"
+    en: Steam room request timed out. Try again.
+    fragment: 0
+  - key: online.room.connectionFailed
+    zh: "Steam \u8FDE\u63A5\u5DF2\u4E2D\u65AD\uFF0C\u8BF7\u68C0\u67E5\u8FDE\u63A5\u540E\u91CD\u8BD5\u3002"
+    en: Steam disconnected. Check your connection and retry.
+    fragment: 0
+  - key: online.connection.unavailable
+    zh: "\u6B64\u7248\u672C\u7F3A\u5C11 Steam \u8054\u673A\u4F20\u8F93\u7EC4\u4EF6\u3002"
+    en: The Steam transport is unavailable in this build.
+    fragment: 1
+  - key: online.connection.failed
+    zh: "\u65E0\u6CD5\u5EFA\u7ACB\u8054\u673A\u8FDE\u63A5\uFF0C\u8BF7\u91CD\u8BD5\u3002"
+    en: Could not establish the online connection. Try again.
+    fragment: 1
+  - key: online.connection.lost
+    zh: "\u8FDE\u63A5\u5DF2\u65AD\u5F00\u3002\u53EF\u7528\u539F\u623F\u95F4\u7801\u91CD\u65B0\u52A0\u5165\u3002"
+    en: Connection lost. Join again with the same room code.
+    fragment: 1
+  - key: online.connection.timeout
+    zh: "\u7B49\u5F85\u8054\u673A\u8FDE\u63A5\u8D85\u65F6\uFF0C\u8BF7\u91CD\u65B0\u52A0\u5165\u3002"
+    en: The online connection timed out. Join again.
+    fragment: 1
+  - key: online.connection.incompatible
+    zh: "\u8054\u673A\u72B6\u6001\u65E0\u6CD5\u8F7D\u5165\uFF0C\u8BF7\u786E\u8BA4\u53CC\u65B9\u4F7F\u7528\u76F8\u540C\u7248\u672C\u3002"
+    en: Could not load the online state. Check that both players use the same build.
+    fragment: 1
+  - key: online.host.closed
+    zh: "\u623F\u4E3B\u5DF2\u9000\u51FA\uFF0C\u623F\u95F4\u5DF2\u89E3\u6563\u3002"
+    en: The host left and the room closed.
+    fragment: 1
+  - key: online.room.left
+    zh: "\u5DF2\u79BB\u5F00\u822A\u7A0B\uFF0C\u53EF\u7528\u539F\u623F\u95F4\u7801\u91CD\u65B0\u52A0\u5165\u3002"
+    en: You left the voyage. Use the same room code to rejoin.
+    fragment: 1
+  - key: online.save.missing
+    zh: "\u6CA1\u6709\u8054\u673A\u5B58\u6863\u3002"
+    en: There is no online save.
+    fragment: 1
+  - key: online.save.failed
+    zh: "\u8054\u673A\u5B58\u6863\u65E0\u6CD5\u8F7D\u5165\u3002"
+    en: Could not load the online save.
+    fragment: 1
+  - key: online.waiting.peer
+    zh: "\u7B49\u5F85\u961F\u53CB\u91CD\u65B0\u8FDE\u63A5 \xB7 \u623F\u95F4\u7801 {0}"
+    en: "Waiting for your teammate \xB7 Room code {0}"
+    fragment: 1
+  - key: online.waiting.host
+    zh: "\u623F\u4E3B\u5DF2\u6682\u505C\u822A\u7A0B\u3002"
+    en: The host paused the voyage.
+    fragment: 1
+  - key: online.camera
+    zh: "\u8054\u673A\u955C\u5934\uFF1A\u5168\u5C4F\u8DDF\u968F\u672C\u5730\u89D2\u8272"
+    en: 'Online camera: Full-screen local follow'
+    fragment: 1

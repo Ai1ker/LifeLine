@@ -37,6 +37,7 @@ namespace Lifeline
         }
         public void ToggleShipSplit()
         {
+            if (cameraRig != null && cameraRig.onlineView) return;
             bool next = !GameCameraRig.LoadShipSplitPreference();
             if (cameraRig != null) cameraRig.SetShipSplitPreference(next);
             else GameCameraRig.SaveShipSplitPreference(next);
@@ -46,7 +47,10 @@ namespace Lifeline
         {
             if (languageLabel != null)
                 languageLabel.text = LocalizationManager.LanguagePreference == GameLanguage.System ? "语言：跟随系统" : LocalizationManager.LanguagePreference == GameLanguage.Chinese ? "语言：简体中文" : "语言：英语";
-            if (cameraLabel != null) cameraLabel.text = GameCameraRig.LoadShipSplitPreference() ? "船上镜头：双人分屏" : "船上镜头：双人同屏";
+            if (cameraButton != null) cameraButton.interactable = cameraRig == null || !cameraRig.onlineView;
+            if (cameraLabel != null) cameraLabel.text = cameraRig != null && cameraRig.onlineView
+                ? UiLocalization.Text("online.camera")
+                : GameCameraRig.LoadShipSplitPreference() ? "船上镜头：双人分屏" : "船上镜头：双人同屏";
             if(panel!=null)UiLocalization.Refresh(panel);
         }
     }

@@ -14,12 +14,13 @@ namespace Lifeline
         public GameObject panel;
         public Button captainTab, diverTab, resetButton, closeButton;
         public CrewRole selectedRole;
+        public CrewInputReader onlineInput;
         public bool IsOpen => panel != null && panel.activeSelf;
         public bool IsRebinding => rebinding || (Selected != null && Selected.IsRebinding);
         private bool rebinding;
         private int lastEscapeFrame = -1, lastRebindEndedFrame = -1;
         private readonly List<GameObject> rows = new List<GameObject>();
-        private CrewInputReader Selected => selectedRole == CrewRole.Captain ? captainInput : diverInput;
+        private CrewInputReader Selected => onlineInput != null ? onlineInput : selectedRole == CrewRole.Captain ? captainInput : diverInput;
         private void Awake()
         {
             if (captainTab != null) captainTab.onClick.AddListener(() => Select(CrewRole.Captain));
@@ -30,7 +31,11 @@ namespace Lifeline
         public void Open()
         {
             if (panel == null) return;
-            panel.SetActive(true); panel.transform.SetAsLastSibling(); GameHUDController.ConfigureModalLayer(panel,130); selectedRole = CrewRole.Captain; BuildRows(); UiLocalization.Refresh(panel);
+            panel.SetActive(true); panel.transform.SetAsLastSibling(); GameHUDController.ConfigureModalLayer(panel,130);
+            selectedRole = onlineInput != null ? onlineInput.role : CrewRole.Captain;
+            if (captainTab != null) captainTab.gameObject.SetActive(onlineInput == null);
+            if (diverTab != null) diverTab.gameObject.SetActive(onlineInput == null);
+            BuildRows(); UiLocalization.Refresh(panel);
         }
         public void Close()
         {

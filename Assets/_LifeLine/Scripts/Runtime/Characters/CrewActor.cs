@@ -126,7 +126,7 @@ namespace Lifeline
         {
             SetOnboard(isOnboard, position);
             Facing = facing.sqrMagnitude > .001f ? facing.normalized : Vector2.right;
-            if (body != null) body.linearVelocity = velocity;
+            if (body != null && !body.isKinematic) body.linearVelocity = velocity;
             controlsCaptured = false; LastCommand = default;
             Grounded = false; IsAtLadder = IsClimbing = false; nextJumpAt = 0; nextStationScan = 0;
             if (input != null) { input.SetEnabled(false); input.SetEnabled(true); }
@@ -138,6 +138,13 @@ namespace Lifeline
             externalInput = source;
             if (input != null) input.SetEnabled(source == null);
             source?.SetEnabled(true);
+        }
+
+        public void ApplyReplicatedPose(Vector3 position, Vector2 facing)
+        {
+            if (body != null) body.position = position;
+            transform.position = position;
+            Facing = facing;
         }
 
         private CrewCommand ReadCommand()
@@ -275,7 +282,11 @@ namespace Lifeline
             // Parent transforms never transport this dynamic body; ship velocity is added once in MoveOnShip.
             if (transform.parent != null && transform.parent.GetComponentInParent<ShipMotor>() != null) transform.SetParent(null, true);
             worldPosition.z = frozenZ;
-            if (body != null) { body.position = worldPosition; body.linearVelocity = Vector3.zero; body.WakeUp(); }
+            if (body != null)
+            {
+                body.position = worldPosition;
+                if (!body.isKinematic) { body.linearVelocity = Vector3.zero; body.WakeUp(); }
+            }
             transform.position = worldPosition;
             SetShipCollision(!value);
             if (session != null && session.maps != null) session.maps.MoveCrewToMap(this);
@@ -327,7 +338,7 @@ namespace Lifeline
             if(value){hidingPosition=Position;visibleBeforeHiding=visualRoot!=null&&visualRoot.gameObject.activeSelf;}
             hidden=value;
             if(visualRoot!=null)visualRoot.gameObject.SetActive(value?false:visibleBeforeHiding);
-            if(body!=null)body.linearVelocity=Vector3.zero;
+            if (body != null && !body.isKinematic) body.linearVelocity = Vector3.zero;
             if(session!=null&&this==session.diver){session.diverHidden=value;if(value)session.diverSprinting=false;}
             if(session!=null&&this==session.captain&&value)session.captainSprinting=false;
         }
@@ -337,7 +348,7 @@ namespace Lifeline
             if (downed == value) return;
             downed = value;
             IsClimbing = false;
-            if (value && body != null) body.linearVelocity = Vector3.zero;
+            if (value && body != null && !body.isKinematic) body.linearVelocity = Vector3.zero;
             EmitPresentationEvent(value ? CrewVisualEvent.Downed : CrewVisualEvent.Revived);
         }
 

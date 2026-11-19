@@ -82,6 +82,9 @@ namespace Lifeline
         private bool enabled = true;
         public void Push(CrewCommand next)
         {
+            // More than one packet may be dispatched before the next physics tick.
+            next.jump |= command.jump; next.interact |= command.interact; next.melee |= command.melee;
+            next.fire |= command.fire; next.signal |= command.signal; next.bait |= command.bait; next.hide |= command.hide;
             command = next; command.role = role; lastReceived = Time.unscaledTime;
         }
         public CrewCommand ReadCommand()
@@ -91,6 +94,6 @@ namespace Lifeline
             command.jump = command.interact = command.melee = command.fire = command.signal = command.bait = command.hide = command.pause = false;
             return next;
         }
-        public void SetEnabled(bool value) { enabled = value; }
+        public void SetEnabled(bool value) { enabled = value; if (!value) command = default; }
     }
 }

@@ -11,6 +11,9 @@ namespace Lifeline
     {
         public InputActionAsset actions;
         public CrewRole role;
+        public bool UseOnlineBindings { get; private set; }
+        public bool IsActionHeld(string action) => map?.FindAction(action, false)?.IsPressed() ?? false;
+        string PreferenceKey => preferencesPrefix + (UseOnlineBindings ? "Online" : role.ToString());
         public string preferencesPrefix = "Lifeline.Bindings.v1.";
         public event Action BindingsChanged;
         public bool IsRebinding => rebind != null;
@@ -32,16 +35,17 @@ namespace Lifeline
         private bool inputEnabled = true;
         private float ignoreUntil;
 
-        public void Initialize(CrewRole crewRole, InputActionAsset sharedAsset)
+        public void Initialize(CrewRole crewRole, InputActionAsset sharedAsset, bool online = false)
         {
             DisposeActions();
             role = crewRole;
+            UseOnlineBindings = online;
             actions = sharedAsset;
             runtimeActions = sharedAsset != null ? Instantiate(sharedAsset) : CrewInputDefaults.CreateAsset();
             runtimeActions.hideFlags = HideFlags.DontSave;
             runtimeActions.Disable();
-            map = runtimeActions.FindActionMap(role.ToString(), true);
-            var saved = PlayerPrefs.GetString(preferencesPrefix + role, "");
+            map = runtimeActions.FindActionMap((online ? CrewRole.Captain : role).ToString(), true);
+            var saved = PlayerPrefs.GetString(PreferenceKey, "");
             if (!string.IsNullOrEmpty(saved))
             {
                 try { runtimeActions.LoadBindingOverridesFromJson(saved); }
@@ -167,7 +171,7 @@ namespace Lifeline
         public void SaveBindings()
         {
             if (runtimeActions == null) return;
-            PlayerPrefs.SetString(preferencesPrefix + role, runtimeActions.SaveBindingOverridesAsJson());
+            PlayerPrefs.SetString(PreferenceKey, runtimeActions.SaveBindingOverridesAsJson());
             PlayerPrefs.Save();
         }
 
@@ -176,7 +180,7 @@ namespace Lifeline
             CancelRebind();
             if (runtimeActions == null) Initialize(role, actions);
             runtimeActions.RemoveAllBindingOverrides();
-            PlayerPrefs.DeleteKey(preferencesPrefix + role);
+            PlayerPrefs.DeleteKey(PreferenceKey);
             PlayerPrefs.Save();
             ClearQueued();
             BindingsChanged?.Invoke();

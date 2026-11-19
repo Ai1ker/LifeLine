@@ -138,6 +138,6 @@ namespace Lifeline
         Text Label(string name,Transform parent,string text,Vector2 min,Vector2 max,int size)
         {var t=Rect(name,parent,min,max).gameObject.AddComponent<Text>();t.font=RuntimeUIFont.GetOrCreateFont();t.fontSize=size;t.alignment=TextAnchor.MiddleCenter;t.text=UiLocalization.Text(text);t.color=theme!=null?theme.ink:Color.white;t.raycastTarget=false;return t;}
         Button Button(string name,Transform parent,string text,Vector2 min,Vector2 max,Action action)
-        {var rect=Rect(name,parent,min,max);var image=rect.gameObject.AddComponent<Image>();image.color=new Color(.19f,.37f,.39f);if(theme!=null)image.sprite=theme.terminal;var button=rect.gameObject.AddComponent<Button>();button.targetGraphic=image;button.onClick.AddListener(()=>action());Label("Label",rect,text,Vector2.zero,Vector2.one,15);return button;}
+        {var rect=Rect(name,parent,min,max);var image=rect.gameObject.AddComponent<Image>();image.color=new Color(.19f,.37f,.39f);if(theme!=null)image.sprite=theme.terminal;var button=rect.gameObject.AddComponent<Button>();button.targetGraphic=image;panel.BindOnlineAction(button,"r:"+name,action);Label("Label",rect,text,Vector2.zero,Vector2.one,15);return button;}
     }
 }

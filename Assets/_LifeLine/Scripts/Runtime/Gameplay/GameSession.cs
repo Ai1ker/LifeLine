@@ -348,7 +348,8 @@ namespace Lifeline
             if (phase != SessionPhase.Playing) return;
             if(IsHidden(actor))
             {
-                if(command.interact||actor==captain&&command.hide)world?.TryHide(actor);
+                if (command.interact || command.hide && (actor == captain || OnlineVoyage.InProgress))
+                    world?.TryHide(actor);
                 return;
             }
             if(actor==captain)
@@ -363,7 +364,7 @@ namespace Lifeline
             if (reviveHeld[(int)actor.role] && TryReviveTeammate(actor)) return;
             if (IsActorInputBlocked(actor)) return;
             if(actor==diver)diverSprinting=command.sprint;
-            if(command.hide&&actor==captain&&!actor.onboard&&world!=null&&world.TryHide(actor))return;
+            if (command.hide && (actor == captain || OnlineVoyage.InProgress) && !actor.onboard && world != null && world.TryHide(actor)) return;
             if (capturedBeforeEvent || actor.controlsCaptured) return;
             if (command.melee) MeleeAttack(actor);
             if (command.fire) FireSpear(actor);
@@ -385,16 +386,7 @@ namespace Lifeline
             StationAnchor station = actor.NearbyStation;
             if (station == null || !IsStationUnlocked(station.kind)) return;
             if (station.kind == StationKind.DivePreparation) { BeginDive(actor); return; }
-            if (station.kind == StationKind.Helm && ship != null)
-            {
-                if (ship.helmOperator != null && ship.helmOperator != actor) { Tell("同伴正在掌舵，先请对方离开船舵。"); return; }
-                if (!engineRepaired)
-                {
-                    if (ship.helmOperator == actor) ship.SetHelm(actor);
-                    Tell("引擎损坏，修复后才能航行。"); return;
-                }
-                ship.SetHelm(actor); return;
-            }
+            if (station.kind == StationKind.Helm) { TryInteractHelm(actor); return; }
             StationRequested?.Invoke(station.kind, actor);
         }
 

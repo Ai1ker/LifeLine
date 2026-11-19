@@ -66,6 +66,7 @@ namespace Lifeline
             if (scanWholeScene && component.gameObject.scene != gameObject.scene) return;
             if (!translateInputFields && component.GetComponentInParent<InputField>(true) != null) return;
             if (sources.ContainsKey(component)) return;
+            if (component.TryGetComponent<LocalizationLiteralText>(out _)) return;
             if (useRuntimeFontForWorldLabels && component is TextMesh worldLabel)
             {
                 var font = RuntimeUIFont.GetOrCreateFont();

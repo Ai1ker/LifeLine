@@ -16,9 +16,11 @@ namespace Lifeline
             }
         }
         static T CloneSave<T>(T value) => JsonUtility.FromJson<T>(JsonUtility.ToJson(value));
-        public GameSaveData CaptureSaveData(GameHUDController hud = null)
+        public GameSaveData CaptureSaveData(GameHUDController hud = null) => CaptureState(hud, true, false);
+
+        GameSaveData CaptureState(GameHUDController hud, bool includeWorld, bool networkFrame)
         {
-            RefreshLifelines();
+            if (!networkFrame) RefreshLifelines();
             var data = new GameSaveData
             {
                 areaStrikes=areaStrikes.ToArray(), coordinateVersion = 1, balanceVersion=BalanceSaveMigration.CurrentVersion, equipmentProgressionVersion=1, routeDistance=tuning.routeDistance, savedUtc = DateTime.UtcNow.ToString("O"), state = new SessionSaveState(),
@@ -41,10 +43,13 @@ namespace Lifeline
                 var saved = new CraftSaveState { recipeId = job.recipe.id }; CopySaveFields(job, saved); work.Add(saved);
             }
             data.jobs = work.ToArray();
-            if (world != null)
+            if (world != null && includeWorld)
             {
                 data.world.forceCaveDay=world.forceCaveDay;
                 data.world.forceFilterDay=world.forceFilterDay;
+                data.world.hasHidingSpots = true;
+                if (!networkFrame) data.world.hidingSpots = world.CaptureHideSpots();
+                else data.world.hasHidingSpots = false;
                 data.world.present = true; data.world.activeDay = world.activeDay; data.world.generatedSeed = world.generatedSeed;
                 var pickups = new List<PickupSaveState>();
                 string prefix = world.generatedSeed + ":" + world.activeDay + ":";
@@ -52,7 +57,7 @@ namespace Lifeline
                 {
                     if (pickup == null) continue;
                     if (string.IsNullOrEmpty(pickup.saveId)) pickup.saveId = "dynamic:" + Guid.NewGuid().ToString("N");
-                    pickups.Add(new PickupSaveState { id = pickup.saveId, dynamic = pickup.mazeIndex < 0 || !pickup.saveId.StartsWith(prefix, StringComparison.Ordinal), resource = pickup.resource, amount = pickup.amount, capacity = pickup.capacity, persistAcrossDays=pickup.persistAcrossDays, isLostCargo=pickup.isLostCargo, isCrate = pickup.isCrate, isCabinet = pickup.isCabinet, contents = pickup.contents, attached = pickup.attached, consumed = pickup.consumed, position = pickup.transform.position, mazeIndex = pickup.mazeIndex, mazeCell = pickup.mazeCell, ropeContacts = pickup.attached && !pickup.consumed ? GetCargoLifeline(pickup).CaptureContacts() : Array.Empty<Vector3>() });
+                    pickups.Add(new PickupSaveState { id = pickup.saveId, dynamic = pickup.mazeIndex < 0 || !pickup.saveId.StartsWith(prefix, StringComparison.Ordinal), resource = pickup.resource, amount = pickup.amount, capacity = pickup.capacity, persistAcrossDays=pickup.persistAcrossDays, isLostCargo=pickup.isLostCargo, isCrate = pickup.isCrate, isCabinet = pickup.isCabinet, contents = pickup.contents, attached = pickup.attached, consumed = pickup.consumed, position = pickup.transform.position, mazeIndex = pickup.mazeIndex, mazeCell = pickup.mazeCell, ropeContacts = !networkFrame && pickup.attached && !pickup.consumed ? GetCargoLifeline(pickup).CaptureContacts() : Array.Empty<Vector3>() });
                 }
                 data.world.pickups = pickups.ToArray();
                 var gates = new List<GateSaveState>();
@@ -64,7 +69,8 @@ namespace Lifeline
             foreach (LifelineEnemy enemy in enemies)
             {
                 if (enemy == null || !enemy.IsAlive) continue;
-                string id = "enemy:" + savedEnemies.Count; enemyIds.Add(enemy, id);
+                string id = "enemy:" + (networkFrame ? enemy.GetEntityId().ToString() : savedEnemies.Count.ToString());
+                enemyIds.Add(enemy, id);
                 var saved = new EnemySaveState { id = id, position = enemy.transform.position };
                 CopySaveFields(enemy, saved);
                 if (enemy.IsAirborne)
@@ -79,7 +85,7 @@ namespace Lifeline
             foreach (LifelineSpear spear in FindObjectsByType<LifelineSpear>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             {
                 if (spear.session != this || spear.owner == null) continue;
-                var saved = new SpearSaveState { owner = spear.owner.role, position = spear.transform.position };
+                var saved = new SpearSaveState { id = networkFrame ? spear.GetEntityId().ToString() : null, owner = spear.owner.role, position = spear.transform.position };
                 CopySaveFields(spear, saved);
                 if (spear.onShipMap) saved.position = ShipToWaterPoint(saved.position);
                 if (spear.target != null && enemyIds.TryGetValue(spear.target, out string targetId)) saved.targetId = targetId;
@@ -89,6 +95,7 @@ namespace Lifeline
             }
             data.spears = projectiles.ToArray();
             if (hud != null) data.repairUI = new RepairUISaveState { present = true, filterPuzzle = hud.filterPuzzle, circuitConnected = hud.circuitConnected };
+            if (networkFrame) return data; // Encoded immediately on the Unity thread.
             data = CloneSave(data); // snapshots never retain mutable references into the live session.
             GameSaveValidation.NormalizeUninitializedPuzzle(data.repairUI);
             return data;
@@ -142,6 +149,10 @@ namespace Lifeline
                         if (old != null && (world.generatedRoot == null || !old.transform.IsChildOf(world.generatedRoot))) RemoveSavedObject(old.gameObject);
                     world.session = this; world.tuning = tuning;world.forceCaveDay=data.world.forceCaveDay;world.forceFilterDay=data.world.forceFilterDay; world.Generate(worldSeed);
                     RestoreWorld(data.world);
+                    if (data.world.hasHidingSpots) world.RestoreHideSpots(data.world.hidingSpots);
+                    else
+                        foreach (var savedCrew in new[] { data.captain, data.diver })
+                            if (savedCrew.hidden && !savedCrew.onboard) world.PreserveLegacyHideLocation(savedCrew.position);
                 }
                 RestoreCrew(captain, data.captain); RestoreCrew(diver, data.diver); IgnoreCrewCollision();
                 if(migratedBalance&&world!=null)world.ResolveCrewRefreshOverlap();
@@ -252,7 +263,7 @@ namespace Lifeline
                 gate.SetOpen(state.open);
             }
         }
-        void RestoreSpear(SpearSaveState saved, Dictionary<string, LifelineEnemy> enemyMap)
+        LifelineSpear RestoreSpear(SpearSaveState saved, Dictionary<string, LifelineEnemy> enemyMap)
         {
             GameObject root = spearPrefab != null ? Instantiate(spearPrefab) : GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             root.name = "Restored projectile"; root.transform.position = saved.onShipMap ? WaterToShipPoint(saved.position) : saved.position;
@@ -266,6 +277,7 @@ namespace Lifeline
             if (!string.IsNullOrEmpty(saved.parentEnemyId)) root.transform.SetParent(enemyMap[saved.parentEnemyId].transform, true);
             if (spear.direction.sqrMagnitude > .001f) root.transform.rotation = Quaternion.FromToRotation(Vector3.up, spear.direction.normalized);
             if (!spear.turretShot) activeSpears[(int)spear.owner.role] = spear;
+            return spear;
         }
         void ClearSavedCombat()
         {

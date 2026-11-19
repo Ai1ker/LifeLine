@@ -36,6 +36,12 @@ namespace Lifeline
         {
             if (actor == helmOperator) actor = null;
             if (actor != null && (!actor.onboard || actor.downed)) return;
+            if (actor != null && session != null && !session.engineRepaired)
+            {
+                helmOperator = null; steering = 0;
+                session.Tell(GameSession.EngineUnavailableMessage);
+                return;
+            }
             helmOperator = actor;
             steering = 0f;
         }

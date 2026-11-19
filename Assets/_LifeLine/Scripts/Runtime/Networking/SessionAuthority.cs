@@ -27,11 +27,28 @@ namespace Lifeline
             if (cameraRig != null) cameraRig.SetNetworkView(enabled, role);
         }
 
+        public void BindRemoteInput()
+        {
+            acceptedSequences.Clear();
+            var source = new RemoteCrewInputSource { role = remotePeer.role };
+            remoteSources[remotePeer.role] = source;
+            ActorFor(remotePeer.role)?.SetExternalInput(source);
+        }
+
+        public void ReleaseRemoteInput()
+        {
+            if (remoteSources.TryGetValue(remotePeer.role, out var source)) source.SetEnabled(false);
+            acceptedSequences.Clear();
+        }
+
+        CrewActor ActorFor(CrewRole role) => role == CrewRole.Captain ? session.captain : session.diver;
+
         public bool ApplyAuthenticatedRemoteCommand(string authenticatedPeerId, NetworkCrewCommand packet)
         {
             if (session == null || !onlineView || packet.version != NetworkCrewCommand.ProtocolVersion ||
                 string.IsNullOrEmpty(authenticatedPeerId) || authenticatedPeerId != remotePeer.peerId ||
                 packet.senderPeerId != authenticatedPeerId || packet.command.role != remotePeer.role) return false;
+            if (!float.IsFinite(packet.command.move.x) || !float.IsFinite(packet.command.move.y)) return false;
             if (acceptedSequences.TryGetValue(authenticatedPeerId, out uint previous) && packet.sequence <= previous) return false;
             acceptedSequences[authenticatedPeerId] = packet.sequence;
             if (!remoteSources.TryGetValue(packet.command.role, out RemoteCrewInputSource source))
@@ -42,6 +59,7 @@ namespace Lifeline
                 if (actor != null) actor.SetExternalInput(source);
             }
             CrewCommand command = packet.command;
+            command.pause = false;
             command.move = Vector2.ClampMagnitude(command.move, 1f);
             source.Push(command);
             return true;

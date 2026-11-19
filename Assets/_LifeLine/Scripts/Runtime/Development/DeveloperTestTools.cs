@@ -29,6 +29,7 @@ namespace Lifeline.Development
 
         void Update()
         {
+            if (OnlineVoyage.InProgress) { visible = false; return; }
             if (Keyboard.current != null && Keyboard.current.f8Key.wasPressedThisFrame) visible = !visible;
             // Test commands must not overwrite the player's automatic/manual slot.
             if (save != null && save.gameObject.scene != UnityEngine.SceneManagement.SceneManager.GetActiveScene()) ReleaseSave();
@@ -49,6 +50,7 @@ namespace Lifeline.Development
         string T(string english) => DeveloperToolsText.Get(english);
         void OnGUI()
         {
+            if (OnlineVoyage.InProgress) return;
             if (visible) window = GUI.Window(1751801, window, Draw, T("Developer test tools / F8"));
         }
         void Draw(int id)

@@ -108,8 +108,16 @@ namespace Lifeline
         public int activeDay, generatedSeed;
         public int forceCaveDay=-1;
         public int forceFilterDay=-1;
+        public bool hasHidingSpots;
+        public HideSpotSaveState[] hidingSpots;
         public PickupSaveState[] pickups = Array.Empty<PickupSaveState>();
         public GateSaveState[] gates = Array.Empty<GateSaveState>();
+    }
+    [Serializable] public sealed class HideSpotSaveState
+    {
+        public Vector3 position;
+        public int mazeIndex = -1, mazeCell = -1;
+        public float range = 1.8f;
     }
     [Serializable] public sealed class PickupSaveState
     {
@@ -135,6 +143,7 @@ namespace Lifeline
     }
     [Serializable] public sealed class SpearSaveState
     {
+        public string id;
         public CrewRole owner;
         public Vector3 position, direction;
         public bool turretShot, ignoreShipColliders, returning, lodged, hasHit;

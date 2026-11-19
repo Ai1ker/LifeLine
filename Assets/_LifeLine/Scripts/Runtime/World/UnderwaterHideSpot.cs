@@ -4,6 +4,8 @@ namespace Lifeline
     public sealed class UnderwaterHideSpot : MonoBehaviour
     {
         public WorldGenerator world;
+        [Tooltip("Generated building/room metadata. Authored or restored legacy hiding spots use -1.")]
+        public int mazeIndex = -1, mazeCell = -1;
         public Transform visualRoot;
         public Material material;
         public float range=1.8f;

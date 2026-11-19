@@ -3802,6 +3802,13 @@ MonoBehaviour:
   labelVisibleDistance: 2.4
   collectionRadius: 1.65
   cratesPerZone: 2
+  largeBuildingMinimumRooms: 24
+  smallBuildingHideCount: {x: 2, y: 3}
+  largeBuildingHideCount: {x: 3, y: 5}
+  smallBuildingCrateCount: {x: 1, y: 2}
+  largeBuildingCrateCount: {x: 2, y: 4}
+  buildingCrateOffset: {x: 0.72, y: -0.2, z: -0.12}
+  buildingHideOffset: {x: -0.65, y: -0.08, z: 0}
   maximumLootDepth: 50
   areaCenters:
   - 0

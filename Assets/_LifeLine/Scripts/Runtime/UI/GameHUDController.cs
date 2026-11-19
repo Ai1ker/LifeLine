@@ -74,8 +74,13 @@ namespace Lifeline
         }
         private void Update()
         {
-            if (session == null || session.tuning == null) return;
+            if (session == null || session.tuning == null || OnlineVoyage.IsGuest && !OnlineVoyage.Current.GuestReady) return;
             if (EventSystem.current != null) EventSystem.current.sendNavigationEvents = session.phase != SessionPhase.Playing;
+            if (endingShown && session.phase != SessionPhase.Won && session.phase != SessionPhase.Lost)
+            {
+                endingShown = false;
+                endingPanel?.SetActive(false);
+            }
             if ((session.phase == SessionPhase.Won || session.phase == SessionPhase.Lost) && !endingShown)
             {
                 endingShown = true; captainPanel.Close(); diverPanel.Close(); endingPanel.SetActive(true);endingPanel.transform.SetAsLastSibling();ConfigureModalLayer(endingPanel,110);
@@ -93,7 +98,8 @@ namespace Lifeline
             diverText.text = CrewLabel(session.diver);
             questText.text = session.QuestText;
             if (questChapterText != null) questChapterText.text = string.Format("主线 · 第{0}章", session.QuestChapter);
-            messageText.text = session.StatusMessage;
+            messageText.text = OnlineVoyage.IsGuest && OnlineVoyage.WaitingForCrew
+                ? UiLocalization.Text("online.waiting.host") : session.StatusMessage;
             clockText.text = "DAY " + session.day + " · " + (session.IsNight ? "夜晚" : session.IsDusk ? "黄昏" : "白昼") + "  " + (session.elapsed % session.tuning.daySeconds).ToString("0") + "s";
             hullFill.fillAmount = session.hullMax > 0 ? session.hull / session.hullMax : 0;
             powerFill.fillAmount = session.power / Mathf.Max(1, session.tuning.maxPower);
@@ -111,7 +117,10 @@ namespace Lifeline
             if (actor.onboard)
             {
                 var station = actor.NearbyStation;
-                return name + " · 船上  " + (station != null ? GameNames.Station(station.kind) + " [" + actor.input.GetBindingLabel("Interact") + "]" : "行走 / 跳跃 / 梯子");
+                string hint = station != null ? GameNames.Station(station.kind) + " [" + actor.input.GetBindingLabel("Interact") + "]" : "行走 / 跳跃 / 梯子";
+                string warning = station != null ? station.GetInteractionWarning(actor) : string.Empty;
+                if (!string.IsNullOrEmpty(warning)) hint += "\n" + UiLocalization.Text(warning);
+                return name + " · 船上  " + hint;
             }
             return name + " · 水下  O₂ " + actor.oxygen.ToString("0") + "s  背包 " + actor.backpack.Count + "/" + actor.BagCapacity + "  绳长 " + session.CrewRopeLength(actor).ToString("0.0") + "/" + session.ropeLength.ToString("0") + "m";
         }
@@ -151,6 +160,17 @@ namespace Lifeline
             lastPauseFrame = Time.frameCount;
             if (controls != null && controls.IsOpen) { controls.HandleEscape(); return true; }
             if (settings != null && settings.IsOpen) { settings.Close(); return true; }
+            if (OnlineVoyage.InProgress)
+            {
+                var localPanel = OnlineVoyage.Current.LocalRole == CrewRole.Captain ? captainPanel : diverPanel;
+                if (localPanel != null && localPanel.IsOpen) { localPanel.RequestClose(); return true; }
+                if (session.phase == SessionPhase.Playing || session.phase == SessionPhase.Paused)
+                {
+                    TogglePause();
+                    return true;
+                }
+                return false;
+            }
             if ((captainPanel != null && captainPanel.IsOpen) || (diverPanel != null && diverPanel.IsOpen))
             { CloseStationPanels(); return true; }
             if (session == null || session.phase != SessionPhase.Playing && session.phase != SessionPhase.Paused) return false;
@@ -163,20 +183,57 @@ namespace Lifeline
         }
         public void OpenControls() { SetPause(true); controls?.Open(); }
         public void OpenSettings() { SetPause(true); settings?.Open(); }
-        public void TogglePause() { if (session != null) SetPause(session.phase == SessionPhase.Playing); }
+        public void TogglePause() { if (session != null) SetPause(OnlineVoyage.InProgress ? !OnlineVoyage.Current.LocalMenuOpen : session.phase == SessionPhase.Playing); }
         public void SetPause(bool paused)
         {
             if (session == null) return;
             if (session.phase == SessionPhase.Won || session.phase == SessionPhase.Lost) return;
+            if (OnlineVoyage.InProgress)
+            {
+                OnlineVoyage.Current.LocalMenuOpen = paused;
+                if (OnlineVoyage.IsGuest)
+                {
+                    if (!paused) CloseTransientPanels();
+                    SetPausePanelVisible(paused);
+                    return;
+                }
+                if (!paused && !OnlineVoyage.Current.CanResumePlay)
+                {
+                    CloseTransientPanels();
+                    SetPausePanelVisible(false);
+                    return;
+                }
+            }
             if (paused) CloseStationPanels();
             else CloseTransientPanels();
             session.Pause(paused);
-            if (pausePanel != null) { pausePanel.SetActive(paused); if (paused) { pausePanel.transform.SetAsLastSibling(); ConfigureModalLayer(pausePanel,100); } }
+            SetPausePanelVisible(paused);
+        }
+        void SetPausePanelVisible(bool paused)
+        {
+            if (pausePanel == null) return;
+            pausePanel.SetActive(paused);
+            if (paused) { pausePanel.transform.SetAsLastSibling(); ConfigureModalLayer(pausePanel, 100); }
         }
         public void RequestManualSave() { ManualSaveRequested?.Invoke(); }
         public void SetManualSaveAvailable(bool available) { if (saveButton != null) saveButton.interactable = available; }
         public void SetSaveStatus(string status) { if (saveStatusText != null) saveStatusText.text = status; }
-        public void Restart() { if(session!=null&&session.phase==SessionPhase.Lost)GameSaveManager.RequestContinue();else GameSaveManager.RequestNewGame(); Time.timeScale = 1; SceneManager.LoadScene(SceneManager.GetActiveScene().name); }
-        public void ReturnMenu() { Time.timeScale = 1; SceneManager.LoadScene(menuSceneName); }
+        public void Restart()
+        {
+            if (OnlineVoyage.InProgress)
+            {
+                if (OnlineVoyage.Current.ReloadHostSave()) { endingShown = false; endingPanel?.SetActive(false); }
+                return;
+            }
+            if (session != null && session.phase == SessionPhase.Lost) GameSaveManager.RequestContinue(); else GameSaveManager.RequestNewGame();
+            Time.timeScale = 1;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+        public void ReturnMenu()
+        {
+            if (OnlineVoyage.InProgress) { OnlineVoyage.Current.ExitToMenu(); return; }
+            Time.timeScale = 1;
+            SceneManager.LoadScene(menuSceneName);
+        }
     }
 }
