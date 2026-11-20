@@ -399,12 +399,12 @@ namespace Lifeline
         void ForwardAttack(CrewActor actor, CrewVisualEvent kind, float strength)
         {
             if (remoteConnected && (kind == CrewVisualEvent.Melee || kind == CrewVisualEvent.Fire))
-                link?.BroadcastAttack(actor.role, kind);
+                link?.BroadcastAttack(actor.role, kind, kind == CrewVisualEvent.Melee ? actor.MeleeFacing : actor.Facing);
         }
 
-        void OnAttack(CrewRole role, CrewVisualEvent kind)
+        void OnAttack(CrewRole role, CrewVisualEvent kind, Vector2 direction)
         {
-            if (!isHost && ready && queuedBaseline == null) Actor(role)?.EmitPresentationEvent(kind);
+            if (!isHost && ready && queuedBaseline == null) Actor(role)?.EmitPresentationEvent(kind, direction: direction);
         }
 
         void OnMotion(OnlineCrewMotion motion)

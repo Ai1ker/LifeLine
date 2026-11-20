@@ -19,6 +19,8 @@ namespace Lifeline
         public LineRenderer meleeStroke;
         public Material meleeMaterial;
         float swingTimer;
+        float swingReach;
+        Vector2 swingFacing;
         [Tooltip("Tag the replacement Animator melee state with this tag; it blocks retriggering until the state finishes.")]
         public string meleeStateTag = "Melee";
         public bool MeleeAnimationPlaying => swingTimer > 0 || animator != null && animator.isActiveAndEnabled && animator.runtimeAnimatorController != null
@@ -105,22 +107,40 @@ namespace Lifeline
 
         void DrawMelee()
         {
-            swingTimer=Mathf.Max(0,swingTimer-Time.deltaTime);
-            if(meleeStroke==null && swingTimer>0)
+            swingTimer = Mathf.Max(0, swingTimer - Time.deltaTime);
+            bool visible = placeholderPoses && swingTimer > 0 && (actor.session == null || !actor.session.IsHidden(actor));
+            if (meleeStroke == null && visible)
             {
-                meleeStroke=new GameObject("Melee swing / replaceable").AddComponent<LineRenderer>();meleeStroke.transform.SetParent(actor.transform,false);
-                meleeStroke.useWorldSpace=true;meleeStroke.numCapVertices=3;meleeStroke.positionCount=3;
-                if(meleeMaterial==null){generatedMeleeMaterial=new Material(Shader.Find("Sprites/Default"));meleeMaterial=generatedMeleeMaterial;}meleeStroke.sharedMaterial=meleeMaterial;
+                meleeStroke = new GameObject("Melee swing / replaceable").AddComponent<LineRenderer>();
+                meleeStroke.transform.SetParent(actor.transform, false);
+                meleeStroke.numCapVertices = 3;
+                meleeStroke.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                if (meleeMaterial == null)
+                {
+                    generatedMeleeMaterial = new Material(Shader.Find("Sprites/Default"));
+                    meleeMaterial = generatedMeleeMaterial;
+                }
+                meleeStroke.sharedMaterial = meleeMaterial;
             }
-            if(meleeStroke==null)return;
-            meleeStroke.enabled=placeholderPoses&&swingTimer>0;
-            if(!meleeStroke.enabled)return;
-            float sign=actor.Facing.x<0?-1:1;
-            float angle=Mathf.Lerp(-65,70,1-swingTimer/Mathf.Max(.01f,swingSeconds))*Mathf.Deg2Rad;
-            Vector3 hand=actor.Position+new Vector3(sign*.25f,.1f,-1.8f),tip=hand+new Vector3(sign*Mathf.Cos(angle),Mathf.Sin(angle),0)*1.4f;
-            meleeStroke.startWidth=actor.session!=null&&actor.session.hasHarpoon?.07f:.13f;meleeStroke.endWidth=.05f;
-            meleeStroke.startColor=meleeStroke.endColor=new Color(1,.76f,.32f);
-            meleeStroke.SetPosition(0,hand);meleeStroke.SetPosition(1,tip);meleeStroke.SetPosition(2,tip+new Vector3(-sign*.15f,.1f,0));
+            if (meleeStroke == null) return;
+            meleeStroke.enabled = visible;
+            if (!visible) return;
+
+            const int segments = 16;
+            float progress = 1f - swingTimer / Mathf.Max(.01f, swingSeconds);
+            float lastAngle = Mathf.Lerp(-MeleeArc.HalfAngle, MeleeArc.HalfAngle, Mathf.Clamp01(progress * 2f));
+            Vector3 center = actor.transform.position + Vector3.back * 1.8f;
+            meleeStroke.useWorldSpace = true;
+            meleeStroke.positionCount = segments + 3;
+            meleeStroke.startWidth = meleeStroke.endWidth = .055f;
+            meleeStroke.startColor = meleeStroke.endColor = new Color(1f, .76f, .32f, Mathf.Clamp01(swingTimer * 12f));
+            meleeStroke.SetPosition(0, center);
+            for (int i = 0; i <= segments; i++)
+            {
+                float angle = Mathf.Lerp(-MeleeArc.HalfAngle, lastAngle, i / (float)segments);
+                meleeStroke.SetPosition(i + 1, center + (Vector3)(MeleeArc.Rotate(swingFacing, angle) * swingReach));
+            }
+            meleeStroke.SetPosition(segments + 2, center);
         }
         void OnDestroy(){if(generatedMeleeMaterial!=null)Destroy(generatedMeleeMaterial);}
         private bool Has(string name, AnimatorControllerParameterType type)
@@ -133,7 +153,12 @@ namespace Lifeline
         { if (Has(name, AnimatorControllerParameterType.Bool)) animator.SetBool(name, value); }
         private void OnPresentationEvent(CrewActor source, CrewVisualEvent kind, float strength)
         {
-            if(kind==CrewVisualEvent.Melee)swingTimer=swingSeconds;
+            if (kind == CrewVisualEvent.Melee)
+            {
+                swingTimer = swingSeconds;
+                swingFacing = source.MeleeFacing;
+                swingReach = source.session != null && source.session.tuning != null ? source.session.MeleeReach : 1.95f;
+            }
             if ((kind == CrewVisualEvent.Melee || kind == CrewVisualEvent.Fire) && Has(attackTrigger, AnimatorControllerParameterType.Trigger)) animator.SetTrigger(attackTrigger);
             if (eventSinks == null) return;
             foreach (var component in eventSinks)

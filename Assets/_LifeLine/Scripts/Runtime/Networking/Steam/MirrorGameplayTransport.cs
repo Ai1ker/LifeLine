@@ -58,6 +58,7 @@ namespace Lifeline.Steam
     public struct LifeLineCrewAttack : NetworkMessage
     {
         public byte role, kind;
+        public Vector2 direction;
     }
 
     public sealed class MirrorGameplayTransport : IOnlineGameplayTransport
@@ -84,7 +85,7 @@ namespace Lifeline.Steam
         public event Action<ArraySegment<byte>> WorldStateReceived;
         public event Action<string, string> ActionReceived;
         public event Action<OnlineCrewMotion> MotionReceived;
-        public event Action<CrewRole, CrewVisualEvent> AttackReceived;
+        public event Action<CrewRole, CrewVisualEvent, Vector2> AttackReceived;
 
         MirrorGameplayManager manager;
         Func<string, NetworkPeerIdentity> admitPeer;
@@ -218,15 +219,15 @@ namespace Lifeline.Steam
                 var kind = (CrewVisualEvent)message.kind;
                 if (State == NetworkConnectionState.Connected && message.role <= (byte)CrewRole.Diver &&
                     (kind == CrewVisualEvent.Melee || kind == CrewVisualEvent.Fire))
-                    AttackReceived?.Invoke((CrewRole)message.role, kind);
+                    AttackReceived?.Invoke((CrewRole)message.role, kind, message.direction);
             });
         }
 
         public void BroadcastMotion(OnlineCrewMotion motion) =>
             admittedConnection?.Send(new LifeLineCrewMotion { motion = motion }, Channel.Unreliable);
 
-        public void BroadcastAttack(CrewRole role, CrewVisualEvent kind) =>
-            admittedConnection?.Send(new LifeLineCrewAttack { role = (byte)role, kind = (byte)kind }, Channel.Reliable);
+        public void BroadcastAttack(CrewRole role, CrewVisualEvent kind, Vector2 direction) =>
+            admittedConnection?.Send(new LifeLineCrewAttack { role = (byte)role, kind = (byte)kind, direction = direction }, Channel.Reliable);
 
         internal void AwaitAdmission(NetworkConnectionToClient connection)
         {

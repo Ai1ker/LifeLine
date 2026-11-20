@@ -122,10 +122,12 @@ namespace Lifeline
         [ContextMenu("Generate configured seed")]
         public void GenerateConfiguredSeed() => Generate(seed);
 
-        public void Generate(int requestedSeed)
+        public void Generate(int requestedSeed) => Generate(requestedSeed, session != null ? session.day : activeDay);
+
+        internal void Generate(int requestedSeed, int generationDay)
         {
             seed = requestedSeed;
-            activeDay = session != null ? Mathf.Max(1, session.day) : Mathf.Max(1, activeDay);
+            activeDay = Mathf.Max(1, generationDay);
             GenerateInternal(false);
         }
 

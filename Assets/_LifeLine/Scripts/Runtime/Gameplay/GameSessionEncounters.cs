@@ -83,7 +83,8 @@ namespace Lifeline
 
         public void RefreshWorldForDay(int newDay)
         {
-            if (world == null) return;
+            // Keep the same obstacles and rope contacts for anyone who stays submerged overnight.
+            if (world == null || AnyCrewUnderwater) return;
             foreach (LifelineEnemy enemy in enemies.ToArray())
             {
                 if (enemy == null || !enemy.IsAquaticHunter) continue;
@@ -162,17 +163,17 @@ namespace Lifeline
 
         public bool MeleeAttack(CrewActor actor)
         {
-            if (actor == null || IsActorInputBlocked(actor) || meleeCooldowns[(int)actor.role] > 0 || actor.GetComponent<CrewPresentation>() != null && actor.GetComponent<CrewPresentation>().MeleeAnimationPlaying) return false;
-            bool movedCargo = !actor.onboard && TryPushUnderwaterCargo(actor);
-            if (!actor.onboard && !hasHarpoon && !movedCargo) return false;
+            if (actor == null || IsActorInputBlocked(actor) || meleeCooldowns[(int)actor.role] > 0) return false;
             var presentation = actor.GetComponent<CrewPresentation>();
+            if (presentation != null && presentation.MeleeAnimationPlaying) return false;
+            Vector2 facing = MeleeArc.Direction(actor.Facing);
+            float range = MeleeReach;
             meleeCooldowns[(int)actor.role] = Mathf.Max(tuning.meleeCooldown, presentation != null ? presentation.swingSeconds : 0);
-            actor.EmitPresentationEvent(CrewVisualEvent.Melee);
+            actor.EmitPresentationEvent(CrewVisualEvent.Melee, direction: facing);
+            if (!actor.onboard) TryPushUnderwaterCargo(actor, facing, range);
             if (!actor.onboard && !hasHarpoon) return true;
             float damage = (hasHarpoon ? harpoonDamage : meleeDamage) * (Buffs(actor).attack > 0 ? 1 + tuning.fishAttackBonus : 1);
-            float range = tuning.meleeRange * (hasHarpoon ? 1 : .65f);
             LifelineEnemy closest = null; float nearest = range;
-            Vector2 facing = actor.Facing.sqrMagnitude > .1f ? actor.Facing.normalized : Vector2.right;
             foreach (LifelineEnemy enemy in enemies)
             {
                 if (enemy == null || !enemy.IsAlive) continue;
@@ -180,9 +181,9 @@ namespace Lifeline
                 // use the matching point at the small surface boat, never the distant cabin.
                 if (!actor.onboard && enemy.IsAirborne) continue;
                 Vector3 attackOrigin = actor.onboard && !enemy.IsAirborne ? ShipToWaterPoint(actor.Position) : actor.Position;
-                Vector3 offset = enemy.transform.position - attackOrigin;
+                Vector2 offset = enemy.transform.position - attackOrigin;
                 float distance = Mathf.Max(0, offset.magnitude - enemy.hitRadius);
-                if (distance > nearest || Vector2.Dot(facing, new Vector2(offset.x, offset.y).normalized) < -.25f) continue;
+                if (distance > nearest || !MeleeArc.Intersects(offset, facing, range, enemy.hitRadius)) continue;
                 if (actor.onboard && !enemy.IsAirborne && enemy.kind != EnemyKind.Shadow && enemy.transform.position.y < -2) continue;
                 closest = enemy; nearest = distance;
             }
@@ -190,22 +191,23 @@ namespace Lifeline
             return true;
         }
 
-        bool TryPushUnderwaterCargo(CrewActor actor)
+        public float MeleeReach => tuning.meleeRange * (hasHarpoon ? 1f : .65f);
+
+        void TryPushUnderwaterCargo(CrewActor actor, Vector2 facing, float range)
         {
-            if (world == null) return false;
+            if (world == null) return;
             LootPickup target = null;
-            Vector2 facing = actor.Facing.sqrMagnitude > .1f ? actor.Facing.normalized : Vector2.right;
-            float nearest = tuning.meleeRange;
+            float nearest = range;
             foreach (var pickup in world.pickups)
             {
                 if (pickup == null || !pickup.isCrate || pickup.consumed || !pickup.gameObject.activeInHierarchy) continue;
                 Vector2 offset = pickup.transform.position - actor.Position;
                 float distance = offset.magnitude;
-                if (distance > nearest || Vector2.Dot(facing, offset.normalized) < .15f) continue;
+                if (distance > nearest || !MeleeArc.Intersects(offset, facing, range)) continue;
                 target = pickup;
                 nearest = distance;
             }
-            if (target == null) return false;
+            if (target == null) return;
             Vector3 push = (Vector2)(target.transform.position - actor.Position);
             if (push.sqrMagnitude < .001f) push = facing;
             push.Normalize();
@@ -215,7 +217,7 @@ namespace Lifeline
             Vector3 half = Vector3.Max(Vector3.one * .025f, bounds.extents - Vector3.one * .025f);
             if (Physics.BoxCast(bounds.center, half, push, out RaycastHit hit, Quaternion.identity, distanceLimit, 1 << world.geometryLayer, QueryTriggerInteraction.Ignore))
                 distanceLimit = Mathf.Max(0, hit.distance - .025f);
-            if (distanceLimit <= .001f) return true;
+            if (distanceLimit <= .001f) return;
             var origin = target.transform.position;
             var destination = origin + push * distanceLimit;
             if (target.attached)
@@ -227,13 +229,12 @@ namespace Lifeline
                 if (wasRoutable && !isRoutable || isRoutable && route.PathLength > Mathf.Max(ropeLength, previousLength) + .01f)
                 {
                     route.UpdateRoute(BoatAnchor, origin);
-                    return true;
+                    return;
                 }
             }
             target.transform.position = destination;
             target.blockedPull = 0;
             Changed();
-            return true;
         }
 
         public bool FireSpear(CrewActor actor)

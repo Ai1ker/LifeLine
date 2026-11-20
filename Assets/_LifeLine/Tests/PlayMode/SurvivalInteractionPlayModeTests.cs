@@ -35,6 +35,21 @@ namespace Lifeline.Tests
             game.StepSimulation(.8f);Assert.That(game.MeleeAttack(game.captain),Is.False,"animation still running even after simulation cooldown expires");
             yield return new WaitForSeconds(.85f);Assert.That(game.MeleeAttack(game.captain));Assert.That(events,Is.EqualTo(2));
         }
+        [UnityTest] public IEnumerator AnEmptyUnderwaterSwingDrawsTheFacingSectorAtGameplayReach()
+        {
+            var view = game.diver.gameObject.AddComponent<CrewPresentation>();
+            view.swingSeconds = 1f;
+            game.diver.RestorePose(false, game.BoatAnchor + Vector3.down * 5, Vector3.zero, Vector2.up);
+            Assert.That(game.hasHarpoon, Is.False);
+            Assert.That(game.MeleeAttack(game.diver), Is.True);
+            yield return null;
+            Assert.That(view.meleeStroke, Is.Not.Null);
+            Assert.That(view.meleeStroke.enabled, Is.True);
+            Vector3 origin = view.meleeStroke.GetPosition(0);
+            Vector3 edge = view.meleeStroke.GetPosition(1) - origin;
+            Assert.That(Vector3.Angle(Vector3.up, edge), Is.EqualTo(67.5f).Within(.1f));
+            Assert.That(edge.magnitude, Is.EqualTo(game.MeleeReach).Within(.001f));
+        }
         Text Label(string name,Transform parent)
         {var obj=new GameObject(name,typeof(RectTransform),typeof(CanvasRenderer),typeof(Text));obj.transform.SetParent(parent,false);return obj.GetComponent<Text>();}
         [UnityTest] public IEnumerator SwitchingWorkbenchAndRepairStationNeverReusesTheirJobsOrQte()

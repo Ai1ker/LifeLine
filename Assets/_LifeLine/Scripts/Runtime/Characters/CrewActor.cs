@@ -36,6 +36,7 @@ namespace Lifeline
         public float collisionSkin = .035f;
 
         public Vector2 Facing { get; private set; } = Vector2.right;
+        public Vector2 MeleeFacing { get; private set; } = Vector2.right;
         public bool Grounded { get; private set; }
         public bool IsAtLadder { get; private set; }
         public bool IsClimbing { get; private set; }
@@ -384,7 +385,11 @@ namespace Lifeline
             if (health <= 0f) SetDowned(true);
         }
 
-        public void EmitPresentationEvent(CrewVisualEvent kind, float strength = 1f) => PresentationEvent?.Invoke(this, kind, strength);
+        public void EmitPresentationEvent(CrewVisualEvent kind, float strength = 1f, Vector2? direction = null)
+        {
+            if (kind == CrewVisualEvent.Melee) MeleeFacing = MeleeArc.Direction(direction ?? Facing);
+            PresentationEvent?.Invoke(this, kind, strength);
+        }
         private void OnDestroy()
         {
             SetShipCollision(false);

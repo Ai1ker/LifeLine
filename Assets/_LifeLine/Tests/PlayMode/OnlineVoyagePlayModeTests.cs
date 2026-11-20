@@ -141,8 +141,9 @@ namespace Lifeline.Tests
                 guestLink.DeliverMotion(stale);
                 game.RenderOnlineMotion(.03f);
                 Assert.That(game.captain.Position.x, Is.EqualTo(sample.captain.position.x).Within(.001f));
-                guestLink.DeliverAttack(CrewRole.Captain, CrewVisualEvent.Melee);
+                guestLink.DeliverAttack(CrewRole.Captain, CrewVisualEvent.Melee, Vector2.up);
                 Assert.That(game.captain.GetComponent<CrewPresentation>().MeleeAnimationPlaying, Is.True);
+                Assert.That(game.captain.MeleeFacing, Is.EqualTo(Vector2.up));
                 var guestMove = game.captain.input.RuntimeActions.FindAction("Captain/Move", true);
                 guestMove.RemoveAllBindingOverrides();
                 Press(keyboard, Key.D);
@@ -249,7 +250,7 @@ namespace Lifeline.Tests
             public event Action<string> LinkFailed { add { } remove { } }
             public event Action<string, string> ActionReceived;
             public event Action<OnlineCrewMotion> MotionReceived;
-            public event Action<CrewRole, CrewVisualEvent> AttackReceived;
+            public event Action<CrewRole, CrewVisualEvent, Vector2> AttackReceived;
             public event Action<NetworkPeerIdentity> PeerJoined { add { } remove { } }
             public event Action<NetworkCrewCommand> CommandReceived;
             public event Action<SessionNetworkSnapshot> SnapshotReceived { add { } remove { } }
@@ -273,9 +274,9 @@ namespace Lifeline.Tests
             public void Action(string id, string command) => ActionReceived?.Invoke(id, command);
             public void Deliver(ArraySegment<byte> data) => WorldStateReceived?.Invoke(data);
             public void DeliverMotion(OnlineCrewMotion motion) => MotionReceived?.Invoke(motion);
-            public void DeliverAttack(CrewRole role, CrewVisualEvent kind) => AttackReceived?.Invoke(role, kind);
+            public void DeliverAttack(CrewRole role, CrewVisualEvent kind, Vector2 direction) => AttackReceived?.Invoke(role, kind, direction);
             public void BroadcastMotion(OnlineCrewMotion motion) { }
-            public void BroadcastAttack(CrewRole role, CrewVisualEvent kind) => lastAttack = (role, kind);
+            public void BroadcastAttack(CrewRole role, CrewVisualEvent kind, Vector2 direction) => lastAttack = (role, kind);
             public void SendAction(string action) { }
             public void SendCommand(NetworkCrewCommand command) => lastCommand = command.command;
             public void BroadcastSnapshot(SessionNetworkSnapshot snapshot) { }

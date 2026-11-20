@@ -164,7 +164,7 @@ namespace Lifeline
                             RemoveSavedObject(old.gameObject);
                     world.forceCaveDay = data.world.forceCaveDay;
                     world.forceFilterDay = data.world.forceFilterDay;
-                    world.Generate(worldSeed);
+                    world.Generate(worldSeed, data.world.activeDay);
                 }
                 RestoreWorld(data.world, onlyChanged: true);
             }

@@ -136,7 +136,7 @@ namespace Lifeline
             }
             if (repairJobs > 1 || workbenchJobs > (data.state.upgradeLevels[(int)UpgradeKind.Workbench] >= 3 ? 2 : 1))
             { error = "存档设备作业槽数量无效。"; return false; }
-            if (data.world.present && (world == null || data.world.activeDay != data.state.day || WorldGenerator.ComputeDaySeed(data.state.worldSeed, data.world.activeDay, world.dailySeedStride) != data.world.generatedSeed))
+            if (data.world.present && (world == null || data.world.activeDay < 1 || WorldGenerator.ComputeDaySeed(data.state.worldSeed, data.world.activeDay, world.dailySeedStride) != data.world.generatedSeed))
             { error = "存档世界种子与当前地图配置不兼容。"; return false; }
             // All semantic checks above happen before replacing the active world or its inventory.
             // JsonUtility embeds inline serializable classes and can inflate null into an empty
@@ -171,7 +171,8 @@ namespace Lifeline
                 {
                     foreach (LootPickup old in world.pickups.ToArray())
                         if (old != null && (world.generatedRoot == null || !old.transform.IsChildOf(world.generatedRoot))) RemoveSavedObject(old.gameObject);
-                    world.session = this; world.tuning = tuning;world.forceCaveDay=data.world.forceCaveDay;world.forceFilterDay=data.world.forceFilterDay; world.Generate(worldSeed);
+                    world.session = this; world.tuning = tuning;world.forceCaveDay=data.world.forceCaveDay;world.forceFilterDay=data.world.forceFilterDay;
+                    world.Generate(worldSeed, data.world.activeDay);
                     RestoreWorld(data.world);
                     if (data.world.hasHidingSpots) world.RestoreHideSpots(data.world.hidingSpots);
                     else

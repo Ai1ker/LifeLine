@@ -223,7 +223,9 @@ namespace Lifeline
             bool dayChanged = day != Mathf.Max(1, requestedDay);
             day = previousDay = Mathf.Max(1, requestedDay); elapsed = (day-1)*tuning.daySeconds + Mathf.Clamp(fraction,0,.9999f)*tuning.daySeconds;
             forceStormDay = forceStorm ? day : -1; stormWarning=0; stormCountdown=.2f; ClearAreaStrikes();
-            if(dayChanged)RefreshWorldForDay(day);else world?.RefreshDay(day); UpdateQuest(); Changed();
+            if (dayChanged) RefreshWorldForDay(day);
+            else if (!AnyCrewUnderwater) world?.RefreshDay(day);
+            UpdateQuest(); Changed();
         }
         public bool LightEffective => searchlightOn && circuitRepaired && (infinitePower || power > 0);
         public bool IsElectricWinch => GetUpgrade(UpgradeKind.Rope) >= 3;

@@ -110,6 +110,75 @@ namespace Lifeline.Tests
             Assert.That(game.diverRope.PathLength, Is.EqualTo(pathLength).Within(.03f));
         }
 
+        [Test] public void OvernightSwimmerKeepsMapAndWrappedRopeThroughSaveAndReplica()
+        {
+            var worldObject = new GameObject("Overnight world");
+            worldObject.transform.SetParent(root.transform);
+            var world = worldObject.AddComponent<WorldGenerator>();
+            world.session = game; world.tuning = tuning; world.areaCenters = new[] { 0f }; world.generateCaves = false;
+            game.world = world;
+            world.Generate(game.worldSeed);
+            game.SetDayClock(1, .999f);
+            var wall = new GameObject("Fixed test obstruction");
+            wall.transform.SetParent(root.transform);
+            wall.layer = world.geometryLayer;
+            wall.transform.position = game.BoatAnchor + new Vector3(4, -3.5f, 0);
+            wall.AddComponent<BoxCollider>().size = new Vector3(1, 6, 2);
+            var position = game.BoatAnchor + new Vector3(8, -7, 0);
+            game.diver.RestorePose(false, position, Vector3.zero, Vector2.up);
+            Physics.SyncTransforms();
+            game.RefreshLifelines();
+            var contacts = game.diverRope.CaptureContacts();
+            Assert.That(contacts, Is.Not.Empty);
+            var geometry = world.generatedRoot;
+            int firstSeed = world.generatedSeed;
+            int autosaveDay = 0;
+            game.DayReady += readyDay => autosaveDay = readyDay;
+
+            game.StepSimulation(tuning.daySeconds * .002f);
+            Assert.That(game.day, Is.EqualTo(2));
+            Assert.That(autosaveDay, Is.EqualTo(2));
+            Assert.That(world.generatedRoot, Is.SameAs(geometry));
+            Assert.That(game.diver.Position, Is.EqualTo(position));
+            Assert.That(game.diverRope.CaptureContacts(), Is.EqualTo(contacts));
+
+            var saved = game.CaptureSaveData();
+            Assert.That(saved.world.activeDay, Is.EqualTo(1));
+            Assert.That(game.TryRestoreSaveData(saved, out string error), Is.True, error);
+            Assert.That(world.generatedSeed, Is.EqualTo(firstSeed));
+            Assert.That(game.diverRope.CaptureContacts(), Is.EqualTo(contacts));
+            var frame = game.CaptureOnlineFrame(null, false, true);
+            world.RefreshDay(2);
+            game.ApplyOnlineFrame(frame, null);
+            Assert.That(world.activeDay, Is.EqualTo(1));
+            Assert.That(world.generatedSeed, Is.EqualTo(firstSeed));
+            Assert.That(game.diver.Position, Is.EqualTo(position));
+
+            game.diver.RestorePose(true, game.ShipPoint(game.diverSpawnLocal), Vector3.zero, Vector2.right);
+            Assert.That(world.activeDay, Is.EqualTo(1));
+            game.StepSimulation(tuning.daySeconds);
+            Assert.That(world.activeDay, Is.EqualTo(3));
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void MeleeChoosesATargetInTheFacingSector(bool onboard)
+        {
+            var position = onboard ? game.ShipPoint(new Vector3(0, 1, 0)) : game.BoatAnchor + Vector3.down * 8;
+            var facing = onboard ? Vector2.right : Vector2.up;
+            var side = new Vector2(-facing.y, facing.x);
+            game.diver.RestorePose(onboard, position, Vector3.zero, facing);
+            game.hasHarpoon = true;
+            var kind = onboard ? EnemyKind.Bird : EnemyKind.Shadow;
+            var outside = game.SpawnEnemy(kind, position + (Vector3)side, true);
+            var front = game.SpawnEnemy(kind, position + (Vector3)facing * 2.75f, true);
+            front.health = outside.health = 100f;
+            front.hitRadius = outside.hitRadius = .1f;
+            Assert.That(game.MeleeAttack(game.diver));
+            Assert.That(front.health, Is.LessThan(100f));
+            Assert.That(outside.health, Is.EqualTo(100f));
+        }
+
         [Test] public void EveryAttachedCargoRestoresItsOwnWrappedRoute()
         {
             var water = new GameObject("World"); water.transform.SetParent(root.transform);

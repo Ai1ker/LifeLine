@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Lifeline
 {
@@ -10,7 +11,7 @@ namespace Lifeline
         event Action<ArraySegment<byte>> WorldStateReceived;
         event Action<string, string> ActionReceived;
         event Action<OnlineCrewMotion> MotionReceived;
-        event Action<CrewRole, CrewVisualEvent> AttackReceived;
+        event Action<CrewRole, CrewVisualEvent, Vector2> AttackReceived;
 
         bool CanQueueReliableState { get; }
         float StateDownloadProgress { get; }
@@ -19,7 +20,7 @@ namespace Lifeline
         void BroadcastWorldState(ArraySegment<byte> payload, bool replaceable = false);
         void SendAction(string action);
         void BroadcastMotion(OnlineCrewMotion motion);
-        void BroadcastAttack(CrewRole role, CrewVisualEvent kind);
+        void BroadcastAttack(CrewRole role, CrewVisualEvent kind, Vector2 direction);
     }
 
     public static class OnlineGameplayTransport
