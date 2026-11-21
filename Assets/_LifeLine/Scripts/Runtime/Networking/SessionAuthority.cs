@@ -17,7 +17,7 @@ namespace Lifeline
         public NetworkPeerIdentity remotePeer = new NetworkPeerIdentity { displayName = "本地潜水员", role = CrewRole.Diver };
         public int snapshotRate = 20;
         public uint simulationTick;
-        private readonly Dictionary<string, uint> acceptedSequences = new Dictionary<string, uint>();
+        uint latestMovementSequence, latestActionSequence;
         private readonly Dictionary<CrewRole, RemoteCrewInputSource> remoteSources = new Dictionary<CrewRole, RemoteCrewInputSource>();
         public string NameFor(CrewRole role) => localPeer.role == role ? localPeer.displayName : remotePeer.displayName;
 
@@ -37,7 +37,7 @@ namespace Lifeline
 
         public void BindRemoteInput()
         {
-            acceptedSequences.Clear();
+            latestMovementSequence = latestActionSequence = 0;
             var source = new RemoteCrewInputSource { role = remotePeer.role };
             remoteSources[remotePeer.role] = source;
             ActorFor(remotePeer.role)?.SetExternalInput(source);
@@ -46,7 +46,7 @@ namespace Lifeline
         public void ReleaseRemoteInput()
         {
             if (remoteSources.TryGetValue(remotePeer.role, out var source)) source.SetEnabled(false);
-            acceptedSequences.Clear();
+            latestMovementSequence = latestActionSequence = 0;
         }
 
         CrewActor ActorFor(CrewRole role) => role == CrewRole.Captain ? session.captain : session.diver;
@@ -57,8 +57,9 @@ namespace Lifeline
                 string.IsNullOrEmpty(authenticatedPeerId) || authenticatedPeerId != remotePeer.peerId ||
                 packet.senderPeerId != authenticatedPeerId || packet.command.role != remotePeer.role) return false;
             if (!float.IsFinite(packet.command.move.x) || !float.IsFinite(packet.command.move.y)) return false;
-            if (acceptedSequences.TryGetValue(authenticatedPeerId, out uint previous) && packet.sequence <= previous) return false;
-            acceptedSequences[authenticatedPeerId] = packet.sequence;
+            ref uint latest = ref (packet.edgeOnly ? ref latestActionSequence : ref latestMovementSequence);
+            if (packet.sequence <= latest) return false;
+            latest = packet.sequence;
             if (!remoteSources.TryGetValue(packet.command.role, out RemoteCrewInputSource source))
             {
                 source = new RemoteCrewInputSource { role = packet.command.role };
@@ -69,7 +70,8 @@ namespace Lifeline
             CrewCommand command = packet.command;
             command.pause = false;
             command.move = Vector2.ClampMagnitude(command.move, 1f);
-            source.Push(command);
+            if (packet.edgeOnly) source.PushEdges(command);
+            else source.Push(command);
             return true;
         }
     }

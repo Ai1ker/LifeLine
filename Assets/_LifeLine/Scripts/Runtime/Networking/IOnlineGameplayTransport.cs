@@ -15,7 +15,9 @@ namespace Lifeline
 
         bool CanQueueReliableState { get; }
         float StateDownloadProgress { get; }
+        double? RoundTripTimeMilliseconds { get; }
         void Configure(NetworkPeerIdentity local, Func<string, NetworkPeerIdentity> admitPeer);
+        void DisconnectGuest();
         /// <summary>Reliable state. Only the pending replaceable update may be superseded.</summary>
         void BroadcastWorldState(ArraySegment<byte> payload, bool replaceable = false);
         void SendAction(string action);

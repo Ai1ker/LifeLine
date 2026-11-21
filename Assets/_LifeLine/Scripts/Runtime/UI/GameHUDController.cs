@@ -36,6 +36,7 @@ namespace Lifeline
         private bool initialized;
         string shownNotice;
         float noticeExpires;
+        Text onlineStatus;
 
         private void Start() => Initialize();
         public void Initialize()
@@ -107,11 +108,48 @@ namespace Lifeline
             questText.text = session.QuestText;
             if (questChapterText != null) questChapterText.text = string.Format("主线 · 第{0}章", session.QuestChapter);
             RefreshNotice();
+            RefreshOnlineStatus();
             clockText.text = "DAY " + session.day + " · " + (session.IsNight ? "夜晚" : session.IsDusk ? "黄昏" : "白昼") + "  " + (session.elapsed % session.tuning.daySeconds).ToString("0") + "s";
             hullFill.fillAmount = session.hullMax > 0 ? session.hull / session.hullMax : 0;
             powerFill.fillAmount = session.power / Mathf.Max(1, session.tuning.maxPower);
             if(oxygenFill!=null && session.diver!=null)oxygenFill.fillAmount=session.diver.oxygenMax>0?session.diver.oxygen/session.diver.oxygenMax:0;
         }
+        void RefreshOnlineStatus()
+        {
+            if (!OnlineVoyage.InProgress)
+            {
+                if (onlineStatus != null) onlineStatus.gameObject.SetActive(false);
+                return;
+            }
+            if (onlineStatus == null)
+            {
+                var canvas = GetComponentInParent<Canvas>();
+                if (canvas == null) return;
+                var root = new GameObject("Online connection status", typeof(RectTransform));
+                var rect = (RectTransform)root.transform;
+                rect.SetParent(canvas.rootCanvas.transform, false);
+                rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.right;
+                rect.anchoredPosition = new Vector2(-18, 14);
+                rect.sizeDelta = new Vector2(400, 52);
+                onlineStatus = root.AddComponent<Text>();
+                onlineStatus.font = RuntimeUIFont.GetOrCreateFont();
+                onlineStatus.fontSize = 19;
+                onlineStatus.alignment = TextAnchor.LowerRight;
+                onlineStatus.raycastTarget = false;
+                onlineStatus.horizontalOverflow = HorizontalWrapMode.Overflow;
+                var outline = root.AddComponent<Outline>();
+                outline.effectColor = new Color(.02f, .05f, .09f, .95f);
+                outline.effectDistance = new Vector2(1, -1);
+            }
+            var voyage = OnlineVoyage.Current;
+            string milliseconds = voyage.RoundTripTimeMilliseconds?.ToString("0") ?? "—";
+            string latency = string.Format(UiLocalization.Text("online.latency"), milliseconds);
+            onlineStatus.text = !OnlineVoyage.IsGuest && OnlineVoyage.WaitingForCrew
+                ? string.Format(UiLocalization.Text("online.waiting.peer"), voyage.RoomCode) + "\n" + latency
+                : latency;
+            onlineStatus.gameObject.SetActive(true);
+        }
+
         void RefreshNotice()
         {
             if (messageText == null) return;

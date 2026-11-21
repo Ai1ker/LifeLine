@@ -78,6 +78,26 @@ namespace Lifeline.Tests
         }
 
         [Test]
+        public void ReliableTapsDoNotReplaceMovementOrLoseQteTimingWhenMovementArrives()
+        {
+            var source = new RemoteCrewInputSource { role = CrewRole.Diver };
+            source.PushEdges(new CrewCommand { calibrate = true, noteKeys = 2, stationRevision = 11, stationClock = 3 });
+            source.Push(new CrewCommand { move = Vector2.right, interactHeld = true });
+            var first = source.ReadCommand();
+            Assert.That(first.move, Is.EqualTo(Vector2.right));
+            Assert.That(first.interactHeld && first.calibrate, Is.True);
+            Assert.That(first.noteKeys, Is.EqualTo(2));
+            Assert.That(first.stationRevision, Is.EqualTo(11));
+            Assert.That(first.stationClock, Is.EqualTo(3));
+            source.PushEdges(new CrewCommand { fire = true });
+            var second = source.ReadCommand();
+            Assert.That(second.fire && second.interactHeld, Is.True);
+            Assert.That(second.move, Is.EqualTo(Vector2.right));
+            Assert.That(second.calibrate, Is.False);
+            Assert.That(source.ReadCommand().fire, Is.False);
+        }
+
+        [Test]
         public void RuleMigrationIsPreviewableIdempotentAndRetainsCustomValuesAndRecipes()
         {
             var tuning = Keep(ScriptableObject.CreateInstance<GameTuning>());

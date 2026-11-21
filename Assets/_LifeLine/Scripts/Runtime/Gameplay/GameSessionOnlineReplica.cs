@@ -6,6 +6,7 @@ namespace Lifeline
 {
     public partial class GameSession
     {
+        const float OnlineMotionBlendSeconds = 1f / 30f;
         readonly Dictionary<string, LifelineEnemy> replicaEnemies = new();
         readonly Dictionary<string, LifelineSpear> replicaSpears = new();
         bool replicaCombatInitialized;
@@ -76,14 +77,14 @@ namespace Lifeline
             if (!hasReplicaMotion) return GetCrewLifeline(actor).PathLength;
             var start = actor == captain ? motionStart.captain : motionStart.diver;
             var end = actor == captain ? motionTarget.captain : motionTarget.diver;
-            return Mathf.Lerp(start.ropeMeters, end.ropeMeters, Mathf.Clamp01(motionElapsed / .045f));
+            return Mathf.Lerp(start.ropeMeters, end.ropeMeters, Mathf.Clamp01(motionElapsed / OnlineMotionBlendSeconds));
         }
 
         public void RenderOnlineMotion(float seconds)
         {
-            if (!hasReplicaMotion || motionElapsed >= .045f) return;
+            if (!hasReplicaMotion || motionElapsed >= OnlineMotionBlendSeconds) return;
             motionElapsed += seconds;
-            float blend = Mathf.Clamp01(motionElapsed / .045f);
+            float blend = Mathf.Clamp01(motionElapsed / OnlineMotionBlendSeconds);
             Vector3 shipPose = Vector3.Lerp(motionStart.ship, motionTarget.ship, blend);
             ship.body.position = ship.transform.position = shipPose;
             RenderActorMotion(captain, motionStart.captain, motionTarget.captain, blend);

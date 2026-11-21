@@ -19,6 +19,7 @@ namespace Lifeline
             new LocalizationTable.Entry("online.save.failed", "联机存档无法载入。", "Could not load the online save."),
             new LocalizationTable.Entry("online.waiting.peer", "等待队友重新连接 · 房间码 {0}", "Waiting for your teammate · Room code {0}"),
             new LocalizationTable.Entry("online.waiting.host", "房主已暂停航程。", "The host paused the voyage."),
+            new LocalizationTable.Entry("online.latency", "延迟 {0} ms", "Latency {0} ms"),
             new LocalizationTable.Entry("online.camera", "联机镜头：全屏跟随本地角色", "Online camera: Full-screen local follow")
         };
     }

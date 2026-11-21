@@ -17,11 +17,12 @@ namespace Lifeline
     [Serializable]
     public struct NetworkCrewCommand
     {
-        public const int ProtocolVersion = 9;
+        public const int ProtocolVersion = 10;
         public int version;
         public uint sequence;
         public uint tick;
         public string senderPeerId;
+        public bool edgeOnly;
         public CrewCommand command;
     }
 
@@ -77,28 +78,78 @@ namespace Lifeline
     {
         public CrewRole role;
         public float maximumInputAge = .3f;
-        private CrewCommand command;
-        private float lastReceived;
+        private CrewCommand continuous, edges;
+        private float lastContinuous = float.NegativeInfinity, lastEdge = float.NegativeInfinity;
         private bool enabled = true;
         public void Push(CrewCommand next)
         {
-            // More than one packet may be dispatched before the next physics tick.
-            next.jump |= command.jump; next.interact |= command.interact; next.melee |= command.melee;
-            next.fire |= command.fire; next.signal |= command.signal; next.bait |= command.bait; next.hide |= command.hide;
-            next.calibrate |= command.calibrate; next.noteKeys |= command.noteKeys;
-            if (next.stationRevision == 0 && (command.calibrate || command.noteKeys != 0))
-            { next.stationRevision = command.stationRevision; next.stationClock = command.stationClock; }
-            command = next; command.role = role; lastReceived = Time.unscaledTime;
+            if (!enabled) return;
+            continuous = new CrewCommand
+            {
+                move = next.move, collect = next.collect, interactHeld = next.interactHeld,
+                sprint = next.sprint, hideSeparate = next.hideSeparate
+            };
+            lastContinuous = Time.unscaledTime;
+            PushEdges(next);
         }
+        public void PushEdges(CrewCommand next)
+        {
+            if (!enabled || !HasEdges(next)) return;
+            if (Time.unscaledTime - lastEdge > maximumInputAge) edges = default;
+            // Either channel can arrive first. Buffer taps without replacing held inputs.
+            edges.jump |= next.jump;
+            edges.interact |= next.interact;
+            edges.melee |= next.melee;
+            edges.fire |= next.fire;
+            edges.signal |= next.signal;
+            edges.bait |= next.bait;
+            edges.hide |= next.hide;
+            edges.hideSeparate |= next.hideSeparate;
+            edges.calibrate |= next.calibrate;
+            edges.noteKeys |= next.noteKeys;
+            if (next.calibrate || next.noteKeys != 0)
+            {
+                edges.stationRevision = next.stationRevision;
+                edges.stationClock = next.stationClock;
+            }
+            lastEdge = Time.unscaledTime;
+        }
+        public static bool HasEdges(CrewCommand command) => command.jump || command.interact || command.melee ||
+            command.fire || command.signal || command.bait || command.hide || command.calibrate || command.noteKeys != 0;
+
         public CrewCommand ReadCommand()
         {
-            if (!enabled || Time.unscaledTime - lastReceived > maximumInputAge) return new CrewCommand { role = role };
-            CrewCommand next = command;
-            command.jump = command.interact = command.melee = command.fire = command.signal = command.bait = command.hide = command.pause = false;
-            command.calibrate = false;
-            command.noteKeys = 0;
+            var next = new CrewCommand { role = role };
+            if (!enabled) return next;
+            if (Time.unscaledTime - lastContinuous <= maximumInputAge)
+            {
+                next = continuous;
+                next.role = role;
+            }
+            if (Time.unscaledTime - lastEdge <= maximumInputAge)
+            {
+                next.jump = edges.jump;
+                next.interact = edges.interact;
+                next.melee = edges.melee;
+                next.fire = edges.fire;
+                next.signal = edges.signal;
+                next.bait = edges.bait;
+                next.hide = edges.hide;
+                next.hideSeparate |= edges.hideSeparate;
+                next.calibrate = edges.calibrate;
+                next.noteKeys = edges.noteKeys;
+                next.stationRevision = edges.stationRevision;
+                next.stationClock = edges.stationClock;
+            }
+            edges = default;
             return next;
         }
-        public void SetEnabled(bool value) { enabled = value; if (!value) command = default; }
+        public void SetEnabled(bool value)
+        {
+            enabled = value;
+            if (value) return;
+            continuous = edges = default;
+            lastContinuous = lastEdge = float.NegativeInfinity;
+        }
     }
 }

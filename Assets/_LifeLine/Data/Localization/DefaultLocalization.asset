@@ -2694,3 +2694,7 @@ MonoBehaviour:
     zh: "\u6309\u4F4F [{0}] \u6355\u635E\u5C0F\u9C7C"
     en: Hold [{0}] to catch fish
     fragment: 1
+  - key: online.latency
+    zh: "\u5EF6\u8FDF {0} ms"
+    en: Latency {0} ms
+    fragment: 1

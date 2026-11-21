@@ -87,7 +87,8 @@ namespace Lifeline
         public void RefreshBackpack()
         {
             var actor = hud.session.diver;
-            bool show = actor != null && (!online || hud.authority.localRole == CrewRole.Diver && bagOpen && !OnlineVoyage.WaitingForCrew);
+            bool guestWaiting = OnlineVoyage.IsGuest && OnlineVoyage.WaitingForCrew;
+            bool show = actor != null && (!online || hud.authority.localRole == CrewRole.Diver && bagOpen && !guestWaiting);
             onlineBag.gameObject.SetActive(online && show);
             bag.gameObject.SetActive(show);
             if (!show) return;
@@ -137,8 +138,9 @@ namespace Lifeline
             if (hud == null || hud.authority?.cameraRig == null) return;
             var game = hud.session;
             var rig = hud.authority.cameraRig;
-            bool active = game.phase == SessionPhase.Playing && (!OnlineVoyage.IsGuest || OnlineVoyage.Current.GuestReady)
-                && (!online || !OnlineVoyage.WaitingForCrew && (OnlineVoyage.Current == null || !OnlineVoyage.Current.LocalMenuOpen));
+            bool active = game.phase == SessionPhase.Playing &&
+                (!OnlineVoyage.IsGuest || OnlineVoyage.Current.GuestReady && !OnlineVoyage.WaitingForCrew) &&
+                (!online || OnlineVoyage.Current == null || !OnlineVoyage.Current.LocalMenuOpen);
             CrewActor viewer = online && hud.authority.localRole == CrewRole.Diver ? game.diver : game.captain;
             Camera onlineCamera = viewer == game.diver ? rig.diverCamera : rig.captainCamera;
             Vector3 firstPrompt = default;

@@ -9,6 +9,8 @@ namespace Lifeline
     public sealed class OnlineVoyage : MonoBehaviour
     {
         const float StartupTimeout = 45f;
+        const float InputInterval = 1f / 60f;
+        const float MotionInterval = 1f / 60f;
 
         public static OnlineVoyage Current { get; private set; }
         static string menuNotice;
@@ -26,13 +28,13 @@ namespace Lifeline
         public bool LocalMenuOpen { get; set; }
         public bool GuestReady => ready;
         public string RoomCode => room?.RoomCode;
-        public bool CanResumePlay => !isHost || !waiting;
+        public double? RoundTripTimeMilliseconds => remoteConnected ? link?.RoundTripTimeMilliseconds : null;
 
         OnlineRoomService room;
         IOnlineGameplayTransport link;
         NetworkPeerIdentity local, remote;
         string matchId;
-        bool isHost, remoteConnected, ready, waiting, pausedForPeer, ending;
+        bool isHost, remoteConnected, ready, waiting, ending;
         bool needBaseline;
         float sceneDeadline, nextSend, nextWorld, nextInput, nextMotion;
         uint sequence, motionSequence;
@@ -163,7 +165,7 @@ namespace Lifeline
             waiting = true;
             sceneDeadline = Time.unscaledTime + StartupTimeout;
             sequence = motionSequence = 0;
-            nextMotion = 0;
+            nextMotion = nextInput = 0;
             link.Configure(local, Admit);
             link.AdmissionReady += OnAdmitted;
             link.PeerLeft += OnPeerLeft;
@@ -216,7 +218,9 @@ namespace Lifeline
         {
             if (!isHost || remote.steamId != peerId) return;
             remoteConnected = false;
+            waiting = true;
             authority?.ReleaseRemoteInput();
+            if (ready && game != null) game.InterruptOperation(Actor(remote.role));
             if (hud != null) Panel(remote.role)?.Close();
         }
 
@@ -294,23 +298,12 @@ namespace Lifeline
 
         void UpdateHost(float now)
         {
+            // Steam lobby departure can be visible before the legacy P2P disconnect arrives.
+            if (remoteConnected && room.Members.Count < OnlineRoomService.Capacity &&
+                !room.TryGetAssignedRole(remote.steamId, out _))
+                link.DisconnectGuest();
             waiting = !remoteConnected;
-            if (waiting)
-            {
-                if (game.phase == SessionPhase.Playing)
-                {
-                    pausedForPeer = true;
-                    game.Pause(true);
-                    game.Tell(LocalizationManager.Current != null
-                        ? LocalizationManager.Current.Format("online.waiting.peer", RoomCode) : "Waiting for Steam teammate · " + RoomCode);
-                }
-                return;
-            }
-            if (pausedForPeer)
-            {
-                pausedForPeer = false;
-                if (game.phase == SessionPhase.Paused) game.Pause(false);
-            }
+            if (waiting) return;
             if (needBaseline)
             {
                 if (!link.CanQueueReliableState) return;
@@ -320,9 +313,8 @@ namespace Lifeline
                 nextWorld = now + .5f;
                 nextSend = now + .08f;
             }
-            if (now >= nextMotion)
+            if (UpdateDue(now, ref nextMotion, MotionInterval))
             {
-                nextMotion = now + 1f / 30f;
                 var motion = game.CaptureOnlineMotion(++motionSequence);
                 if (Panel(remote.role) is CrewStationPanel station) motion.station = station.CaptureOnlineStationMotion();
                 link.BroadcastMotion(motion);
@@ -420,8 +412,7 @@ namespace Lifeline
 
         void UpdateGuest(float now)
         {
-            if (now < nextInput) return;
-            nextInput = now + .02f;
+            if (!UpdateDue(now, ref nextInput, InputInterval)) return;
             var input = Actor(local.role).input;
             var command = input != null ? input.ReadCommand() : default;
             if (command.pause) hud.HandleEscape();
@@ -439,6 +430,14 @@ namespace Lifeline
                 senderPeerId = local.steamId,
                 command = command
             });
+        }
+
+        static bool UpdateDue(float now, ref float next, float interval)
+        {
+            // Preserve the cadence across uneven frames without sending a burst after a stall.
+            if (now + .0001f < next) return false;
+            next = Mathf.Max(next + interval, now);
+            return true;
         }
 
         void OnCommand(NetworkCrewCommand packet)
@@ -490,7 +489,7 @@ namespace Lifeline
             }
             room = null;
             save = null; game = null; hud = null; authority = null;
-            ready = waiting = remoteConnected = pausedForPeer = needBaseline = false;
+            ready = waiting = remoteConnected = needBaseline = false;
             sceneLoad = null;
             pendingRoom = null;
             LocalMenuOpen = false;

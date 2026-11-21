@@ -24,6 +24,7 @@ namespace Lifeline.Steam
     public struct LifeLinePeerInput : NetworkMessage
     {
         public uint sequence, tick;
+        public bool edgeOnly;
         public float horizontal, vertical;
         public ushort buttons;
         public byte notes;
@@ -68,12 +69,23 @@ namespace Lifeline.Steam
         const int FramesInFlight = 4;
         const double ConnectTimeout = 25;
         const double TransferTimeout = 20;
+        const ushort HeldButtons = 4 | 32 | 512 | 2048;
+        const ushort EdgeButtons = 1 | 2 | 8 | 16 | 64 | 128 | 256 | 1024 | 2048;
 
         public int MaximumStateBytes { get; set; } = 8 * 1024 * 1024;
         public NetworkConnectionState State { get; private set; }
         public bool IsHost => State == NetworkConnectionState.Hosting;
         public bool CanQueueReliableState => admittedConnection != null && pendingBaseline == null;
         public float StateDownloadProgress => incoming == null ? 0 : incoming.sent / (float)incoming.bytes.Length;
+        public double? RoundTripTimeMilliseconds
+        {
+            get
+            {
+                double seconds = IsHost ? admittedConnection?.rtt ?? 0 :
+                    State == NetworkConnectionState.Connected && NetworkClient.isConnected ? NetworkTime.rtt : 0;
+                return double.IsFinite(seconds) && seconds > 0 ? seconds * 1000 : null;
+            }
+        }
         public NetworkPeerIdentity LocalPeer { get; private set; }
 
         public event Action<NetworkPeerIdentity> PeerJoined;
@@ -97,7 +109,7 @@ namespace Lifeline.Steam
         double connectionDeadline;
         string scheduledFailure;
         bool stopping, disposed, originalBackgroundMode;
-        uint lastInputSequence, frameSequence;
+        uint frameSequence;
         double lastInputBudgetAt, lastActionBudgetAt;
         double inputBudget, actionBudget;
 
@@ -270,7 +282,6 @@ namespace Lifeline.Steam
             pendingConnection = null;
             remotePeer = peer;
             admittedConnection = connection;
-            lastInputSequence = 0;
             lastInputBudgetAt = lastActionBudgetAt = Time.realtimeSinceStartupAsDouble;
             inputBudget = 120;
             actionBudget = 30;
@@ -325,27 +336,36 @@ namespace Lifeline.Steam
                 || command.version != NetworkCrewCommand.ProtocolVersion)
                 return;
             CrewCommand crew = command.command;
+            ushort buttons = PackButtons(crew);
             NetworkClient.Send(new LifeLinePeerInput
             {
                 sequence = command.sequence,
                 tick = command.tick,
                 horizontal = crew.move.x,
                 vertical = crew.move.y,
-                buttons = PackButtons(crew), notes = crew.noteKeys,
+                buttons = (ushort)(buttons & HeldButtons)
+            }, Channel.Unreliable);
+            if (!RemoteCrewInputSource.HasEdges(crew)) return;
+            NetworkClient.Send(new LifeLinePeerInput
+            {
+                sequence = command.sequence,
+                tick = command.tick,
+                edgeOnly = true,
+                buttons = (ushort)(buttons & EdgeButtons),
+                notes = crew.noteKeys,
                 stationRevision = crew.stationRevision, stationClock = crew.stationClock
             }, Channel.Reliable);
         }
 
         void ReceiveInput(NetworkConnectionToClient connection, LifeLinePeerInput input)
         {
-            if (connection != admittedConnection || input.sequence <= lastInputSequence
+            if (connection != admittedConnection
                 || !IsFinite(input.horizontal) || !IsFinite(input.vertical) || !IsFinite(input.stationClock)
                 || !UseBudget(ref inputBudget, ref lastInputBudgetAt, 120))
                 return;
-            lastInputSequence = input.sequence;
-            CrewCommand crew = UnpackButtons(input.buttons);
+            CrewCommand crew = UnpackButtons((ushort)(input.buttons & (input.edgeOnly ? EdgeButtons : HeldButtons)));
             crew.role = remotePeer.role;
-            crew.noteKeys = (byte)(input.notes & 63);
+            crew.noteKeys = input.edgeOnly ? (byte)(input.notes & 63) : (byte)0;
             crew.stationRevision = input.stationRevision;
             crew.stationClock = input.stationClock;
             crew.move = Vector2.ClampMagnitude(new Vector2(Mathf.Clamp(input.horizontal, -1, 1), Mathf.Clamp(input.vertical, -1, 1)), 1);
@@ -355,6 +375,7 @@ namespace Lifeline.Steam
                 sequence = input.sequence,
                 tick = input.tick,
                 senderPeerId = remotePeer.peerId,
+                edgeOnly = input.edgeOnly,
                 command = crew
             });
         }
@@ -371,6 +392,8 @@ namespace Lifeline.Steam
                 && UseBudget(ref actionBudget, ref lastActionBudgetAt, 30))
                 ActionReceived?.Invoke(remotePeer.steamId, action.json);
         }
+
+        public void DisconnectGuest() => admittedConnection?.Disconnect();
 
         public void BroadcastWorldState(ArraySegment<byte> payload, bool replaceable = false) =>
             QueueState(payload, false, replaceable);

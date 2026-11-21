@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -74,6 +75,9 @@ namespace Lifeline.Tests
                 Press(keyboard);
 
                 var hud = Object.FindAnyObjectByType<GameHUDController>();
+                hostLink.RoundTripTimeMilliseconds = 123.4;
+                yield return Until(() => ConnectionStatus()?.text.Contains("123 ms") == true);
+                Assert.That(ConnectionStatus().rectTransform.anchorMin, Is.EqualTo(Vector2.right));
                 hud.SetPause(true);
                 Assert.That(game.phase, Is.EqualTo(SessionPhase.Playing));
                 Assert.That(Time.timeScale, Is.EqualTo(1f));
@@ -91,7 +95,9 @@ namespace Lifeline.Tests
                 foreach (var station in game.ship.GetComponentsInChildren<StationAnchor>())
                     if (station.kind == StationKind.Workbench)
                         game.captain.RestorePose(true, station.InteractionPosition, Vector3.zero, Vector2.right);
-                hostLink.Command(room.guestId, CrewRole.Captain);
+                uint interactSequence = hostLink.ReserveInputSequence();
+                hostLink.Command(room.guestId, CrewRole.Captain, move: Vector2.zero);
+                hostLink.Command(room.guestId, CrewRole.Captain, edgeSequence: interactSequence);
                 yield return Until(() => hud.captainPanel.IsOpen);
                 var workbench = hud.captainPanel.CaptureOnlineStation();
                 Assert.That(workbench.kind, Is.EqualTo(StationKind.Workbench));
@@ -99,13 +105,32 @@ namespace Lifeline.Tests
                 Assert.That(game.jobs.Count, Is.EqualTo(1), "The authenticated guest starts the job on the host.");
                 game.AddResource(ResourceKind.FiberBundle, 4);
                 hostLink.Drop(room.guestId);
-                yield return Until(() => OnlineVoyage.WaitingForCrew && game.phase == SessionPhase.Paused);
+                yield return Until(() => OnlineVoyage.WaitingForCrew && ConnectionStatus()?.text.Contains(room.RoomCode) == true);
+                Assert.That(hud.captainPanel.IsOpen, Is.False);
+                Assert.That(game.phase, Is.EqualTo(SessionPhase.Playing));
+                Assert.That(Time.timeScale, Is.EqualTo(1f));
+                Assert.That(ConnectionStatus().text, Does.Not.Contain("123 ms"));
+                float clockAtDisconnect = game.elapsed;
+                float hostXAtDisconnect = game.diver.Position.x;
+                Press(keyboard, Key.A);
+                yield return Until(() => game.diver.Position.x < hostXAtDisconnect - .05f && game.elapsed > clockAtDisconnect);
+                Press(keyboard);
+                hud.SetPause(true);
                 Assert.That(save.TrySave(game, SaveReason.Manual, out string saveError), Is.True, saveError);
+                hud.SetPause(false);
+                Assert.That(game.phase, Is.EqualTo(SessionPhase.Playing));
                 Assert.That(OnlineSaveSlot.TryRead(room.hostId, out var stored, out _), Is.True);
                 Assert.That(stored.state.bank.Find(item => item.resource == ResourceKind.FiberBundle).amount, Is.EqualTo(4));
                 hostLink.baseline = null;
                 hostLink.Admit(room.guestId);
                 yield return Until(() => hostLink.baseline != null && game.phase == SessionPhase.Playing);
+                room.guestPresent = false;
+                yield return Until(() => hostLink.GuestDisconnects == 1 && OnlineVoyage.WaitingForCrew);
+                Assert.That(game.phase, Is.EqualTo(SessionPhase.Playing));
+                room.guestPresent = true;
+                hostLink.baseline = null;
+                hostLink.Admit(room.guestId);
+                yield return Until(() => hostLink.baseline != null && !OnlineVoyage.WaitingForCrew);
                 ArraySegment<byte> state = hostLink.baseline.Value;
                 OnlineVoyage.Current.ExitToMenu(saveHost: false);
                 yield return Until(() => SceneManager.GetActiveScene().name == "MainMenu");
@@ -123,6 +148,8 @@ namespace Lifeline.Tests
                 yield return Until(() => SceneManager.GetActiveScene().name == "Gameplay" &&
                     Object.FindAnyObjectByType<GameSaveManager>() != null);
                 yield return Until(() => OnlineVoyage.Current.GuestReady);
+                guestLink.RoundTripTimeMilliseconds = 147;
+                yield return Until(() => ConnectionStatus()?.text.Contains("147 ms") == true);
                 game = GameSession.Current;
                 Assert.That(game.enabled, Is.False, "Only the host advances the simulation.");
                 Assert.That(game.GetResource(ResourceKind.FiberBundle), Is.EqualTo(4));
@@ -188,20 +215,24 @@ namespace Lifeline.Tests
             }
         }
 
+        static UnityEngine.UI.Text ConnectionStatus() =>
+            GameObject.Find("Online connection status")?.GetComponent<UnityEngine.UI.Text>();
+
         static void Press(Keyboard keyboard, params Key[] keys) =>
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(keys));
 
-        static IEnumerator Until(Func<bool> condition)
+        static IEnumerator Until(Func<bool> condition, [CallerLineNumber] int line = 0)
         {
             float deadline = Time.realtimeSinceStartup + 12;
             while (!condition() && Time.realtimeSinceStartup < deadline) yield return null;
-            Assert.That(condition(), Is.True, "Timed out waiting for the online scene or authoritative frame.");
+            Assert.That(condition(), Is.True, $"Online test condition at line {line} timed out.");
         }
 
         sealed class TestRoom : OnlineRoomService
         {
             public string hostId;
             public string guestId = "10000001";
+            public bool guestPresent = true;
             bool occupied, host, started, assigned, hostTransportReady;
             public override bool Available => true;
             public override bool Busy => false;
@@ -215,12 +246,16 @@ namespace Lifeline.Tests
             public override string LocalSteamId => host ? hostId : guestId;
             public override string HostSteamId => hostId;
             public override string MatchId => "test-voyage";
-            public override IReadOnlyList<OnlineRoomMember> Members => new[]
+            public override IReadOnlyList<OnlineRoomMember> Members
             {
-                new OnlineRoomMember(hostId, "Test host", assigned ? CrewRole.Diver : (CrewRole?)null, true),
-                new OnlineRoomMember(guestId, "Test guest", assigned ? CrewRole.Captain : (CrewRole?)null, false)
-            };
-            public override OnlineRoomMember ReservedGuest => Members[1];
+                get
+                {
+                    var owner = new OnlineRoomMember(hostId, "Test host", assigned ? CrewRole.Diver : (CrewRole?)null, true);
+                    return guestPresent ? new[] { owner, ReservedGuest } : new[] { owner };
+                }
+            }
+            public override OnlineRoomMember ReservedGuest =>
+                new OnlineRoomMember(guestId, "Test guest", assigned ? CrewRole.Captain : (CrewRole?)null, false);
             public override void RefreshAvailability() { }
             public override void Create(bool resumeSavedGame) { occupied = host = true; started = assigned = false; }
             public override void Join(string roomCode) { occupied = assigned = started = true; host = false; }
@@ -238,7 +273,7 @@ namespace Lifeline.Tests
             public override bool TryGetAssignedRole(string steamId, out CrewRole role)
             {
                 role = steamId == hostId ? CrewRole.Diver : CrewRole.Captain;
-                return occupied && assigned && (steamId == hostId || steamId == guestId);
+                return occupied && assigned && (steamId == hostId || guestPresent && steamId == guestId);
             }
         }
 
@@ -251,6 +286,8 @@ namespace Lifeline.Tests
             public bool IsHost => State == NetworkConnectionState.Hosting;
             public bool CanQueueReliableState => true;
             public float StateDownloadProgress => 0;
+            public double? RoundTripTimeMilliseconds { get; set; }
+            public int GuestDisconnects { get; private set; }
             public NetworkPeerIdentity LocalPeer { get; private set; }
             public event Action<string> PeerLeft;
             public event Action<string> AdmissionReady;
@@ -267,16 +304,26 @@ namespace Lifeline.Tests
             public void Join(string steamHostId) => State = NetworkConnectionState.Connecting;
             public void Leave() => State = NetworkConnectionState.Offline;
             public void Dispose() => Leave();
+            string admittedPeer;
             public void Admit(string id)
             {
                 if (!IsHost) State = NetworkConnectionState.Connected;
+                admittedPeer = id;
                 AdmissionReady?.Invoke(id);
             }
             public void Drop(string id) => PeerLeft?.Invoke(id);
-            uint inputSequence;
-            public void Command(string id, CrewRole role, Vector2? move = null) => CommandReceived?.Invoke(new NetworkCrewCommand
+            public void DisconnectGuest()
             {
-                version = NetworkCrewCommand.ProtocolVersion, sequence = ++inputSequence, senderPeerId = id,
+                GuestDisconnects++;
+                Drop(admittedPeer);
+                admittedPeer = null;
+            }
+            uint inputSequence;
+            public uint ReserveInputSequence() => ++inputSequence;
+            public void Command(string id, CrewRole role, Vector2? move = null, uint? edgeSequence = null) => CommandReceived?.Invoke(new NetworkCrewCommand
+            {
+                version = NetworkCrewCommand.ProtocolVersion, sequence = edgeSequence ?? ReserveInputSequence(),
+                senderPeerId = id, edgeOnly = edgeSequence.HasValue,
                 command = new CrewCommand { role = role, interact = !move.HasValue, move = move ?? Vector2.zero }
             });
             public void Action(string id, string command) => ActionReceived?.Invoke(id, command);
