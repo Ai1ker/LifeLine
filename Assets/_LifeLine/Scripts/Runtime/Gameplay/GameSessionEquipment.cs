@@ -78,6 +78,8 @@ namespace Lifeline
                     station.kind == StationKind.Turret || station.kind == StationKind.Generator ||
                     station.kind == StationKind.HullRepair || station.kind == StationKind.Filter;
                 if (gated) station.gameObject.SetActive(IsStationUnlocked(station.kind));
+                if (station.kind == StationKind.Generator && world != null && world.pixelArt != null)
+                    station.ShowEelGenerator(world.pixelArt.eelGenerator, infinitePower);
             }
         }
 

@@ -25,8 +25,14 @@ namespace Lifeline
         {
             onlineView = enabled; localRole = role;
             if (cameraRig != null) cameraRig.SetNetworkView(enabled, role);
-            session?.captain?.GetComponent<CrewPresentation>()?.SetFront(!enabled || role == CrewRole.Captain);
-            session?.diver?.GetComponent<CrewPresentation>()?.SetFront(enabled && role == CrewRole.Diver);
+            ApplyCrewRenderOrder(session, enabled, role);
+        }
+
+        public static void ApplyCrewRenderOrder(GameSession game, bool online, CrewRole localRole)
+        {
+            bool diverInFront = online && localRole == CrewRole.Diver;
+            game?.captain?.GetComponent<CrewPresentation>()?.SetFront(!diverInFront);
+            game?.diver?.GetComponent<CrewPresentation>()?.SetFront(diverInFront);
         }
 
         public void BindRemoteInput()

@@ -78,6 +78,7 @@ namespace Lifeline
         public float rescueProgress, stormCountdown, stormWarning;
         public CrewRole lightningTarget;
         public bool shadowSpawnedThisNight, shadowRepelled;
+        public bool shadowWorldRefreshPending;
         public int shadowHits;
         public float crewWipeTimer, birdCountdown, turretShotClock, turretPowerClock, baitTime;
         public Vector3 baitPosition;
@@ -139,6 +140,7 @@ namespace Lifeline
         public float health, maxHealth, stateTime, pursuitTime, attackCooldown, reacquireTime;
         public int shadowHitCount, shadowAttackIndex, shadowPhase; public bool variantApplied;
         public float shadowAttackClock; public Vector3 shadowAim;
+        public float shadowBasicClock, shadowBasicCooldown;
         public bool caveGuard, damagedRetreat, birdTargetsCrew;
         public CrewRole birdTargetRole;
         public Vector3 fleeDirection;

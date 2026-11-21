@@ -69,7 +69,7 @@ namespace Lifeline
                 {
                     if (pickup == null) continue;
                     if (string.IsNullOrEmpty(pickup.saveId)) pickup.saveId = "dynamic:" + Guid.NewGuid().ToString("N");
-                    pickups.Add(new PickupSaveState { id = pickup.saveId, dynamic = pickup.mazeIndex < 0 || !pickup.saveId.StartsWith(prefix, StringComparison.Ordinal), resource = pickup.resource, amount = pickup.amount, capacity = pickup.capacity, persistAcrossDays=pickup.persistAcrossDays, isLostCargo=pickup.isLostCargo, isCrate = pickup.isCrate, isCabinet = pickup.isCabinet, contents = pickup.contents, attached = pickup.attached, consumed = pickup.consumed, position = pickup.transform.position, mazeIndex = pickup.mazeIndex, mazeCell = pickup.mazeCell, ropeContacts = !networkFrame && pickup.attached && !pickup.consumed ? GetCargoLifeline(pickup).CaptureContacts() : Array.Empty<Vector3>() });
+                    pickups.Add(new PickupSaveState { id = pickup.saveId, dynamic = pickup.mazeIndex < 0 || !pickup.saveId.StartsWith(prefix, StringComparison.Ordinal), resource = pickup.resource, amount = pickup.amount, capacity = pickup.capacity, persistAcrossDays=pickup.persistAcrossDays, isLostCargo=pickup.isLostCargo, isCrate = pickup.isCrate, isCabinet = pickup.isCabinet, contents = pickup.contents, attached = pickup.attached, consumed = pickup.consumed, position = pickup.SavePosition, mazeIndex = pickup.mazeIndex, mazeCell = pickup.mazeCell, ropeContacts = !networkFrame && pickup.attached && !pickup.consumed ? GetCargoLifeline(pickup).CaptureContacts() : Array.Empty<Vector3>() });
                 }
                 data.world.pickups = pickups.ToArray();
                 var gates = new List<GateSaveState>();
@@ -193,8 +193,22 @@ namespace Lifeline
                     }
                     LifelineEnemy enemy = SpawnEnemy(saved.kind, saved.position, true);
                     if (enemy == null) throw new InvalidOperationException("存档敌人位置或数量与当前配置不兼容。");
-                    CopySaveFields(saved, enemy); enemyMap.Add(saved.id, enemy);
+                    float configuredHealth = enemy.maxHealth;
+                    CopySaveFields(saved, enemy);
+                    if (saved.kind == EnemyKind.Shadow)
+                    {
+                        enemy.maxHealth = configuredHealth;
+                        enemy.health = Mathf.Clamp(configuredHealth - saved.shadowHitCount, 1, configuredHealth);
+                    }
+                    else if (enemy.IsAquaticHunter && saved.maxHealth < configuredHealth)
+                    {
+                        enemy.maxHealth = configuredHealth;
+                        enemy.health = Mathf.Clamp(configuredHealth - (saved.maxHealth - saved.health), 1, configuredHealth);
+                        if (enemy.damagedRetreat) enemy.targetPoint = enemy.transform.position;
+                    }
+                    enemyMap.Add(saved.id, enemy);
                 }
+                if (world != null && world.activeDay < day && HasLivingShadow) shadowWorldRefreshPending = true;
                 foreach (SpearSaveState saved in data.spears)
                 {
                     // Old saves had one map. A lodged/targeted projectile follows its enemy;
@@ -269,7 +283,11 @@ namespace Lifeline
                     existing.amount == state.amount && existing.capacity == state.capacity &&
                     existing.resource == state.resource && existing.contents.SequenceEqual(state.contents))
                 {
-                    if (existing.transform.position != state.position) existing.transform.position = state.position;
+                    if (existing.SavePosition != state.position)
+                    {
+                        existing.transform.position = state.position;
+                        if (existing.IsSwimmingFish) world.PrepareRoomFish(existing);
+                    }
                     continue;
                 }
                 if (!current.TryGetValue(state.id, out LootPickup pickup))

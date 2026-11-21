@@ -22,6 +22,7 @@ namespace Lifeline.Development
                 case "Thunderstorm": return "雷雨夜";
                 case "Move both crew into cabin": return "两名船员移入船舱";
                 case "Add materials / fuel": return "添加材料和燃油";
+                case "Build all stations and maximize upgrades": return "一键建造全部设备并升满总控（含过滤器）";
                 case "Restore hull / power / oxygen / crew": return "恢复耐久、电力、氧气和船员";
                 case "Create 2 attached cargo crates": return "生成两个已挂绳货箱";
                 case "Summon abyss shadow": return "召唤深渊之影（切至夜晚）";

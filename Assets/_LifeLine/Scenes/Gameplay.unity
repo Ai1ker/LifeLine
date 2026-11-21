@@ -2026,6 +2026,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 13920186}
   visualRoot: {fileID: 1018404761}
+  doorSprite: {fileID: 0}
   label: {fileID: 1178557582}
   horizontal: 0
   open: 0
@@ -2893,6 +2894,8 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 4d81a4a90efe1b6488d6afb41f8ce705, type: 2}
   - {fileID: 2100000, guid: ee1a4151844557540a59a9999942eecc, type: 2}
   - {fileID: 2100000, guid: 7eb69f6ec7ba9ec4e917644eeda78caf, type: 2}
+  pixelArt: {fileID: 11400000, guid: 65515b27fb931ee4e8e9fe1c27b754e0, type: 2}
+  oceanArt: {fileID: 11400000, guid: f62aa95e7fd2c034b9abf11aeec5c0b1, type: 2}
   lootPrefab: {fileID: 6782238094792604633, guid: 9cac2a8f88e700b4c84972f0e5f97b41, type: 3}
   cratePrefab: {fileID: 3751371235993629979, guid: a6e1d28f084c52c4bbec51bc174e84c3, type: 3}
   sharkPrefab: {fileID: 5332596500574162975, guid: 0a21417bb338efc40afbe221affa7177, type: 3}
@@ -3153,7 +3156,7 @@ MonoBehaviour:
   filterSalvageSeconds: 3
   filterGuardMinimum: 2
   filterGuardRadius: 6
-  filterSalvageVisualPrefab: {fileID: 0}
+  filterSalvageVisualPrefab: {fileID: 1234351804580777566, guid: 34c3fe8f484410d4198539163809480b, type: 3}
   filterSalvage: {fileID: 0}
   caveWallMaterial: {fileID: 2100000, guid: f46b729bc48222e4bb02c0ebed5aa616, type: 2}
   caveBackgroundMaterial: {fileID: 2100000, guid: 470cc1e17570af54aaeb7ed83d8bfb12, type: 2}
@@ -7761,6 +7764,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 47522527}
   visualRoot: {fileID: 106063552}
+  doorSprite: {fileID: 0}
   label: {fileID: 1169696639}
   horizontal: 1
   open: 0
@@ -11137,6 +11141,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 74043600}
   visualRoot: {fileID: 663667623}
+  doorSprite: {fileID: 0}
   label: {fileID: 1998228442}
   horizontal: 0
   open: 0
@@ -17987,6 +17992,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 131932144}
   visualRoot: {fileID: 304132921}
+  doorSprite: {fileID: 0}
   label: {fileID: 1184530008}
   horizontal: 0
   open: 0
@@ -20948,6 +20954,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 156780364}
   visualRoot: {fileID: 918156378}
+  doorSprite: {fileID: 0}
   label: {fileID: 50826029}
   horizontal: 0
   open: 0
@@ -48814,6 +48821,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 369159289}
   visualRoot: {fileID: 653047379}
+  doorSprite: {fileID: 0}
   label: {fileID: 1779124972}
   horizontal: 0
   open: 0
@@ -59031,6 +59039,7 @@ GameObject:
   - component: {fileID: 446259234}
   - component: {fileID: 446259236}
   - component: {fileID: 446259235}
+  - component: {fileID: 446259237}
   m_Layer: 0
   m_Name: Power label
   m_TagString: Untagged
@@ -59070,7 +59079,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
   m_Material: {fileID: 0}
-  m_Color: {r: 0.07, g: 0.18, b: 0.2, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -59099,6 +59108,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 446259233}
   m_CullTransparentMesh: 1
+--- !u!114 &446259237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 446259233}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
+  m_EffectColor: {r: 0.02, g: 0.08, b: 0.12, a: 0.98}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 1
 --- !u!1 &447034264
 GameObject:
   m_ObjectHideFlags: 0
@@ -60798,6 +60822,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 460002305}
   visualRoot: {fileID: 734673755}
+  doorSprite: {fileID: 0}
   label: {fileID: 28718306}
   horizontal: 1
   open: 0
@@ -68902,6 +68927,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 523205923}
   visualRoot: {fileID: 487919840}
+  doorSprite: {fileID: 0}
   label: {fileID: 1112018444}
   horizontal: 1
   open: 0
@@ -71045,6 +71071,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 542019342}
   visualRoot: {fileID: 1122080944}
+  doorSprite: {fileID: 0}
   label: {fileID: 576193195}
   horizontal: 1
   open: 0
@@ -76648,6 +76675,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 587122991}
   visualRoot: {fileID: 1194848959}
+  doorSprite: {fileID: 0}
   label: {fileID: 1536677756}
   horizontal: 0
   open: 0
@@ -89223,6 +89251,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 697739714}
   visualRoot: {fileID: 870724261}
+  doorSprite: {fileID: 0}
   label: {fileID: 701921169}
   horizontal: 0
   open: 0
@@ -95627,6 +95656,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 754233904}
   visualRoot: {fileID: 260352672}
+  doorSprite: {fileID: 0}
   label: {fileID: 453450393}
   horizontal: 1
   open: 0
@@ -99174,6 +99204,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 783511119}
   visualRoot: {fileID: 2073623832}
+  doorSprite: {fileID: 0}
   label: {fileID: 342368987}
   horizontal: 1
   open: 0
@@ -105060,6 +105091,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 830409970}
   visualRoot: {fileID: 434493588}
+  doorSprite: {fileID: 0}
   label: {fileID: 1390370230}
   horizontal: 1
   open: 0
@@ -106739,6 +106771,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 848394812}
   visualRoot: {fileID: 768217424}
+  doorSprite: {fileID: 0}
   label: {fileID: 660017782}
   horizontal: 0
   open: 0
@@ -108953,6 +108986,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 867756045}
   visualRoot: {fileID: 762758069}
+  doorSprite: {fileID: 0}
   label: {fileID: 581406447}
   horizontal: 0
   open: 0
@@ -110952,6 +110986,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 884830032}
   visualRoot: {fileID: 1176417488}
+  doorSprite: {fileID: 0}
   label: {fileID: 1778588228}
   horizontal: 0
   open: 0
@@ -114692,6 +114727,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 924559917}
   visualRoot: {fileID: 466322679}
+  doorSprite: {fileID: 0}
   label: {fileID: 335012197}
   horizontal: 0
   open: 0
@@ -118056,6 +118092,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 945339987}
   visualRoot: {fileID: 781437126}
+  doorSprite: {fileID: 0}
   label: {fileID: 1105913578}
   horizontal: 0
   open: 0
@@ -123642,6 +123679,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 996578608}
   visualRoot: {fileID: 1743150598}
+  doorSprite: {fileID: 0}
   label: {fileID: 1262679008}
   horizontal: 1
   open: 0
@@ -124737,6 +124775,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1003568531}
   visualRoot: {fileID: 1842220310}
+  doorSprite: {fileID: 0}
   label: {fileID: 728741065}
   horizontal: 0
   open: 0
@@ -128624,6 +128663,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1031612718}
   visualRoot: {fileID: 1255511721}
+  doorSprite: {fileID: 0}
   label: {fileID: 1142319409}
   horizontal: 0
   open: 0
@@ -142398,6 +142438,15 @@ MonoBehaviour:
   winchVisual: {fileID: 1991550868}
   winchLocalPosition: {x: 0.252, y: 0.3, z: -0.25}
   shipToProxyScale: 0.14
+  surfaceFrames:
+  - {fileID: 21300000, guid: b04da8c31426b774ab57aa92cb74124e, type: 3}
+  - {fileID: 21300000, guid: a6b4fb4cb968625479a6f5e84b8d3dc4, type: 3}
+  - {fileID: 21300000, guid: 6b7ac539a845c9e47920136f81712b4b, type: 3}
+  - {fileID: 21300000, guid: 5845fb3ecf7a4884aad2caa62e2a4cdf, type: 3}
+  surfaceSpriteWidth: 3.7
+  surfaceFramesPerSecond: 6
+  bobAmplitude: 0.055
+  pixelWinchOffset: {x: 0.87, y: 0.42, z: -0.26}
 --- !u!4 &1148523038
 Transform:
   m_ObjectHideFlags: 0
@@ -143439,6 +143488,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1159357124}
   visualRoot: {fileID: 1252081506}
+  doorSprite: {fileID: 0}
   label: {fileID: 229658757}
   horizontal: 0
   open: 0
@@ -147302,6 +147352,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1186488589}
   visualRoot: {fileID: 377929064}
+  doorSprite: {fileID: 0}
   label: {fileID: 648992782}
   horizontal: 0
   open: 0
@@ -159759,7 +159810,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1469479745}
   - {fileID: 1822960060}
   - {fileID: 446259234}
   - {fileID: 1428643655}
@@ -159786,7 +159836,6 @@ MonoBehaviour:
   hull: {fileID: 1822960061}
   power: {fileID: 446259235}
   oxygen: {fileID: 1428643656}
-  background: {fileID: 1469479746}
 --- !u!1 &1308831942
 GameObject:
   m_ObjectHideFlags: 0
@@ -164644,6 +164693,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1355895446}
   visualRoot: {fileID: 15149354}
+  doorSprite: {fileID: 0}
   label: {fileID: 181097900}
   horizontal: 1
   open: 0
@@ -165521,6 +165571,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1363530510}
   visualRoot: {fileID: 2133561943}
+  doorSprite: {fileID: 0}
   label: {fileID: 657538615}
   horizontal: 1
   open: 0
@@ -168134,6 +168185,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1386458703}
   visualRoot: {fileID: 1118152928}
+  doorSprite: {fileID: 0}
   label: {fileID: 386982112}
   horizontal: 0
   open: 0
@@ -170984,6 +171036,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1411246742}
   visualRoot: {fileID: 2137821876}
+  doorSprite: {fileID: 0}
   label: {fileID: 573652337}
   horizontal: 1
   open: 0
@@ -172281,6 +172334,7 @@ GameObject:
   - component: {fileID: 1428643655}
   - component: {fileID: 1428643657}
   - component: {fileID: 1428643656}
+  - component: {fileID: 1428643658}
   m_Layer: 0
   m_Name: Oxygen label
   m_TagString: Untagged
@@ -172320,7 +172374,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
   m_Material: {fileID: 0}
-  m_Color: {r: 0.07, g: 0.18, b: 0.2, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -172349,6 +172403,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1428643654}
   m_CullTransparentMesh: 1
+--- !u!114 &1428643658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1428643654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
+  m_EffectColor: {r: 0.02, g: 0.08, b: 0.12, a: 0.98}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1428995693
 GameObject:
   m_ObjectHideFlags: 0
@@ -172383,6 +172452,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1428995696}
   visualRoot: {fileID: 1322744222}
+  doorSprite: {fileID: 0}
   label: {fileID: 999562901}
   horizontal: 0
   open: 0
@@ -174846,6 +174916,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1446421097}
   visualRoot: {fileID: 30483173}
+  doorSprite: {fileID: 0}
   label: {fileID: 1412456473}
   horizontal: 0
   open: 0
@@ -177101,81 +177172,6 @@ Transform:
   - {fileID: 1120139658}
   m_Father: {fileID: 173160002}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1469479744
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1469479745}
-  - component: {fileID: 1469479747}
-  - component: {fileID: 1469479746}
-  m_Layer: 0
-  m_Name: Readable bar label strip
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1469479745
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1469479744}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1308685346}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.799}
-  m_AnchorMax: {x: 1, y: 0.823}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1469479746
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1469479744}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.9, g: 0.94, b: 0.91, a: 0.98}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1469479747
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1469479744}
-  m_CullTransparentMesh: 1
 --- !u!1 &1472081552
 GameObject:
   m_ObjectHideFlags: 0
@@ -178499,6 +178495,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1485192226}
   visualRoot: {fileID: 1860319577}
+  doorSprite: {fileID: 0}
   label: {fileID: 348410562}
   horizontal: 1
   open: 0
@@ -185076,6 +185073,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1528450787}
   visualRoot: {fileID: 1907212269}
+  doorSprite: {fileID: 0}
   label: {fileID: 1942698716}
   horizontal: 0
   open: 0
@@ -193618,6 +193616,7 @@ GameObject:
   - component: {fileID: 1594206556}
   - component: {fileID: 1594206558}
   - component: {fileID: 1594206559}
+  - component: {fileID: 1594206560}
   m_Layer: 0
   m_Name: GameSession - authoritative simulation
   m_TagString: Untagged
@@ -193973,6 +193972,18 @@ MonoBehaviour:
   finishedNotices: 0
   activeNotice: -1
   remainingNoticeSeconds: 0
+--- !u!114 &1594206560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1594206553}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 482493bdf5399a1408148888ada83ca3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.PixelOceanBackdrop
 --- !u!1 &1594760112
 GameObject:
   m_ObjectHideFlags: 0
@@ -195044,6 +195055,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1605375763}
   visualRoot: {fileID: 2033711894}
+  doorSprite: {fileID: 0}
   label: {fileID: 812833394}
   horizontal: 1
   open: 0
@@ -209102,6 +209114,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1719842122}
   visualRoot: {fileID: 1485993678}
+  doorSprite: {fileID: 0}
   label: {fileID: 1377666671}
   horizontal: 1
   open: 0
@@ -221394,6 +221407,7 @@ GameObject:
   - component: {fileID: 1822960060}
   - component: {fileID: 1822960062}
   - component: {fileID: 1822960061}
+  - component: {fileID: 1822960063}
   m_Layer: 0
   m_Name: Hull label
   m_TagString: Untagged
@@ -221433,7 +221447,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
   m_Material: {fileID: 0}
-  m_Color: {r: 0.07, g: 0.18, b: 0.2, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -221462,6 +221476,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1822960059}
   m_CullTransparentMesh: 1
+--- !u!114 &1822960063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1822960059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
+  m_EffectColor: {r: 0.02, g: 0.08, b: 0.12, a: 0.98}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1822996359
 GameObject:
   m_ObjectHideFlags: 0
@@ -227203,6 +227232,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1865424096}
   visualRoot: {fileID: 139869054}
+  doorSprite: {fileID: 0}
   label: {fileID: 226316174}
   horizontal: 0
   open: 0
@@ -229650,6 +229680,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1881549974}
   visualRoot: {fileID: 2040402701}
+  doorSprite: {fileID: 0}
   label: {fileID: 1249409342}
   horizontal: 1
   open: 0
@@ -235435,6 +235466,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 1926609959}
   visualRoot: {fileID: 1165051418}
+  doorSprite: {fileID: 0}
   label: {fileID: 1880678755}
   horizontal: 1
   open: 0
@@ -251371,6 +251403,7 @@ MonoBehaviour:
   world: {fileID: 20026270}
   barrier: {fileID: 2062417732}
   visualRoot: {fileID: 2098037551}
+  doorSprite: {fileID: 0}
   label: {fileID: 692442187}
   horizontal: 1
   open: 0

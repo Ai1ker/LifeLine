@@ -71,7 +71,7 @@ namespace Lifeline
                 if (enemy != null)
                 {
                     if (!enemy.IsAlive) continue;
-                    if (!hasHit) { hasHit = true; enemy.ReceiveHit(damage, owner); }
+                    if (!hasHit) { hasHit = true; enemy.ReceiveHit(!turretShot && enemy.IsAirborne ? damage * session.AirborneWeaponMultiplier(owner) : damage, owner); }
                     transform.position = hit.point;
                     if (turretShot) Destroy(gameObject);
                     else { lodged = true; transform.SetParent(enemy.transform, true); }

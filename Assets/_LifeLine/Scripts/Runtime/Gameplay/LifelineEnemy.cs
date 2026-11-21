@@ -17,6 +17,7 @@ namespace Lifeline
         public int shadowHitCount;
         public int shadowAttackIndex, shadowPhase;
         public float shadowAttackClock;
+        public float shadowBasicCooldown, shadowBasicClock;
         public Vector3 shadowAim;
         public float stateTime;
         public float pursuitTime;
@@ -40,18 +41,20 @@ namespace Lifeline
         public float patrolRadius = 4f;
         public float birdSpeed = 3f;
         public float birdAttackDistance = 1.6f;
+        public const float BirdStrikeWindup = .55f;
         public float sharkAttackDistance = 1.2f;
         public float sharkWarningDistance = 2.2f;
         public float sharkLungeSeconds = .38f;
         public float shadowAttackDistance = 7.5f;
         public float damagedRetreatSeconds = 1.2f;
-        public float shadowRetreatSeconds = 6f;
         public float destroyDelay = 1f;
         public float damageFlash;
         public bool IsAlive => state != EnemyState.Defeated && health > 0;
         public bool IsAirborne => kind == EnemyKind.Bird || kind == EnemyKind.ArmoredBird;
         public bool IsShark => kind == EnemyKind.Shark || kind == EnemyKind.WhiteShark;
         public bool IsAquaticHunter => IsShark || kind == EnemyKind.Piranha;
+        public float SizeMultiplier => kind == EnemyKind.Shadow && session != null && session.tuning != null
+            ? Mathf.Max(.1f, session.tuning.shadowSizeMultiplier) : 1f;
         public float AttackRange => kind == EnemyKind.Piranha ? session.tuning.piranhaAttackDistance : sharkAttackDistance;
         public float WarningRange => kind == EnemyKind.Piranha ? session.tuning.piranhaWarningDistance : sharkWarningDistance;
         public float AttackWindup => kind == EnemyKind.Piranha ? session.tuning.piranhaWindup : session.tuning.sharkWindup;
@@ -60,14 +63,16 @@ namespace Lifeline
         public float DetectionRadius => session.IsNight && !session.LightEffective ? session.tuning.sharkNightDetectionRange : session.tuning.sharkDetectionRange;
         Vector3 originalVisualScale;
         Renderer visualRenderer;
+        PixelEnemyView pixelView;
         Color baseColor;
 
         public void Initialize(GameSession owner, EnemyKind type)
         {
             session = owner; kind = type; home = spawnPoint = transform.position; state = EnemyState.Patrol;
             variantApplied = type == EnemyKind.WhiteShark;
-            health = maxHealth = type == EnemyKind.WhiteShark ? owner.tuning.whiteSharkHealth : type == EnemyKind.ArmoredBird ? owner.tuning.armoredBirdHealth : type == EnemyKind.Shadow ? owner.tuning.shadowHitsRequired : type == EnemyKind.Shark ? owner.tuning.sharkHealth : type == EnemyKind.Piranha ? 1 : owner.tuning.birdHealth;
-            hitRadius = type == EnemyKind.Shadow ? 2.8f : IsAirborne ? .5f : type == EnemyKind.Piranha ? owner.tuning.piranhaScaleMultiplier : 1;
+            health = maxHealth = StartingHealth(owner.tuning, type);
+            pixelView = GetComponent<PixelEnemyView>();
+            hitRadius = type == EnemyKind.Shadow ? 2.8f * SizeMultiplier : IsAirborne ? .5f : type == EnemyKind.Piranha ? owner.tuning.piranhaScaleMultiplier : 1;
             damagedRetreatSeconds = owner.tuning.sharkHitRetreatSeconds;
             damagedRetreat = false; fleeDirection = Vector3.zero;
             body = GetComponent<Rigidbody>(); if (body == null) body = gameObject.AddComponent<Rigidbody>();
@@ -86,11 +91,13 @@ namespace Lifeline
             visualRoot = existing != null ? existing : BuildVisual();
             if (type == EnemyKind.Piranha) visualRoot.localScale *= owner.tuning.piranhaScaleMultiplier;
             originalVisualScale = visualRoot.localScale;
+            if (pixelView == null || pixelView.body == null) originalVisualScale *= SizeMultiplier;
             if (type == EnemyKind.Piranha) collisionRadius *= owner.tuning.piranhaScaleMultiplier;
             visualRenderer = visualRoot.GetComponentInChildren<Renderer>();
             Material material = kind == EnemyKind.Piranha ? owner.piranhaMaterial : kind == EnemyKind.Shadow ? owner.shadowMaterial : kind == EnemyKind.WhiteShark ? owner.whiteSharkMaterial : IsAirborne ? owner.birdMaterial : owner.sharkMaterial;
             if (visualRenderer != null)
             {
+                if (visualRenderer is SpriteRenderer) return;
                 if (material != null) visualRenderer.sharedMaterial = material;
                 else
                 {
@@ -105,6 +112,16 @@ namespace Lifeline
                 baseColor = visualRenderer.sharedMaterial != null ? visualRenderer.sharedMaterial.color : Color.white;
             }
         }
+
+        internal static float StartingHealth(GameTuning tuning, EnemyKind type) => type switch
+        {
+            EnemyKind.Shark => tuning.sharkHealth,
+            EnemyKind.Piranha => tuning.piranhaHealth,
+            EnemyKind.WhiteShark => tuning.whiteSharkHealth,
+            EnemyKind.Shadow => tuning.shadowHitsRequired,
+            EnemyKind.ArmoredBird => tuning.armoredBirdHealth,
+            _ => tuning.birdHealth
+        };
 
         Transform BuildVisual()
         {
@@ -128,13 +145,13 @@ namespace Lifeline
             if (kind == EnemyKind.Shark && !variantApplied && session.day >= session.tuning.mutationStartDay && spawnPoint.x >= session.tuning.deepBoundary)
             {
                 variantApplied = true; kind = EnemyKind.WhiteShark; health = maxHealth = session.tuning.whiteSharkHealth;
-                if (visualRenderer != null && session.whiteSharkMaterial != null) visualRenderer.sharedMaterial = session.whiteSharkMaterial;
+                if (visualRenderer is MeshRenderer && session.whiteSharkMaterial != null) visualRenderer.sharedMaterial = session.whiteSharkMaterial;
             }
             stateTime += dt; attackCooldown = Mathf.Max(0, attackCooldown - dt); reacquireTime = Mathf.Max(0, reacquireTime - dt); damageFlash = Mathf.Max(0, damageFlash - dt);
             if (kind == EnemyKind.Shadow) TickShadow(dt);
             else if (IsAirborne) TickBird(dt);
             else TickShark(dt);
-            if (visualRoot != null)
+            if (visualRoot != null && (pixelView == null || pixelView.body == null))
             {
                 float pulse = state == EnemyState.Telegraph ? 1 + .13f * Mathf.Sin(stateTime * 25) : 1;
                 visualRoot.localScale = originalVisualScale * pulse;
@@ -155,14 +172,17 @@ namespace Lifeline
                 {
                     if (available) { var away = transform.position - diver.Position; away.z = 0; if (away.sqrMagnitude > .001f) fleeDirection = away.normalized; }
                     if (fleeDirection.sqrMagnitude < .001f) fleeDirection = Vector3.right;
-                    Move(transform.position + fleeDirection * 10, ChaseSpeed * dt);
+                    float budget = session.tuning.hitRetreatDistance - Vector2.Distance(transform.position, targetPoint);
+                    if (available) budget = Mathf.Min(budget, detection * .9f - distance);
+                    if (budget > 0) Move(transform.position + fleeDirection * budget, Mathf.Min(budget, ChaseSpeed * dt));
                 }
                 else Move(home, PatrolSpeed * 1.5f * dt);
                 if (stateTime >= (damagedRetreat ? session.tuning.sharkHitRetreatSeconds : 1.2f))
                 {
+                    bool resumePursuit = damagedRetreat && available && distance <= detection * 1.15f;
                     reacquireTime = damagedRetreat ? 0 : session.tuning.sharkReacquireDelay; damagedRetreat = false;
                     if (!caveGuard) home = transform.position;
-                    ChangeState(EnemyState.Patrol);
+                    ChangeState(resumePursuit ? EnemyState.Pursuit : EnemyState.Patrol);
                 }
                 return;
             }
@@ -233,7 +253,7 @@ namespace Lifeline
             Vector3 attackPoint = birdTargetsCrew&&valid ? target.Position : session.ShipPoint(new Vector3(0, 1.2f, 0));
             if (state == EnemyState.Telegraph)
             {
-                if (stateTime >= .55f)
+                if (stateTime >= BirdStrikeWindup)
                 {
                     if(birdTargetsCrew&&valid)
                     {
@@ -257,26 +277,42 @@ namespace Lifeline
 
         void TickShadow(float dt)
         {
-            if (!session.IsNight || state == EnemyState.Retreat)
-            {
-                if (state != EnemyState.Retreat) ChangeState(EnemyState.Retreat);
-                Move(transform.position + Vector3.down * 20, session.tuning.playerSwimSpeed * dt);
-                if (stateTime > shadowRetreatSeconds) Destroy(gameObject);
-                return;
-            }
+            var tuning = session.tuning;
+            shadowBasicCooldown = Mathf.Max(0, shadowBasicCooldown - dt);
+            if (state == EnemyState.Retreat) ChangeState(EnemyState.Pursuit); // Migrate a living shadow saved under the dawn retreat rule.
             CrewActor diver=session.FindWaterTarget(transform.position);
             float length=diver!=null&&diver.GetComponent<CapsuleCollider>()!=null?diver.GetComponent<CapsuleCollider>().height*diver.transform.lossyScale.y:1.8f;
             float normal=session.tuning.playerSwimSpeed*session.tuning.shadowSpeedMultiplier;
             Vector3 target=diver!=null&&!diver.onboard&&!diver.downed?diver.Position:session.BoatAnchor+Vector3.down*2;
+            if (shadowBasicClock > 0)
+            {
+                shadowBasicClock = Mathf.Max(0, shadowBasicClock - dt);
+                return;
+            }
             if(shadowPhase==0)
             {
                 Move(target,normal*dt);
+                if (diver != null && shadowBasicCooldown <= 0 && crewCollision != null && crewCollision.DistanceTo(diver) <= tuning.shadowBasicReach)
+                {
+                    shadowBasicClock = tuning.shadowBasicDuration;
+                    shadowBasicCooldown = tuning.shadowBasicInterval;
+                    ChangeState(EnemyState.Pursuit);
+                    diver.ReceiveDamage(tuning.shadowBasicDamage);
+                    return;
+                }
                 float reach=shadowAttackIndex==1?shadowAttackDistance:length*session.tuning.shadowBiteRadiusMultiplier+1;
-                if(attackCooldown>0||Vector2.Distance(transform.position,target)>reach)return;
+                Vector3 attackOrigin = transform.position;
+                if (crewCollision != null && crewCollision.solid != null && SizeMultiplier > 1f)
+                {
+                    // Extend the launch point by the extra body depth facing the player.
+                    Vector3 surface = crewCollision.solid.ClosestPoint(target);
+                    attackOrigin = Vector3.Lerp(attackOrigin, surface, 1f - 1f / SizeMultiplier);
+                }
+                if(attackCooldown>0||Vector2.Distance(attackOrigin,target)>reach)return;
                 shadowAim=target;shadowAttackClock=0;shadowPhase=1;ChangeState(EnemyState.Telegraph);
                 if(shadowAttackIndex==0)
                 {
-                    Vector3 center=transform.position+(target-transform.position).normalized*length*.5f;
+                    Vector3 center=attackOrigin+(target-attackOrigin).normalized*length*.5f;
                     session.QueueAreaStrike(AreaStrikeKind.ShadowBite,center,false,length*session.tuning.shadowBiteRadiusMultiplier,session.tuning.shadowWindup,Random.Range(session.tuning.shadowMeleeHullDamage.x,session.tuning.shadowMeleeHullDamage.y));
                 }
                 else if(shadowAttackIndex==1)
@@ -310,21 +346,22 @@ namespace Lifeline
             damageFlash = .2f;
             if (kind == EnemyKind.Shadow)
             {
-                shadowHitCount++; session.shadowHits = shadowHitCount;
+                shadowHitCount = Mathf.Min(session.tuning.shadowHitsRequired, shadowHitCount + Mathf.Max(1, Mathf.RoundToInt(damage)));
+                session.shadowHits = shadowHitCount;
                 health = Mathf.Max(0, session.tuning.shadowHitsRequired - shadowHitCount);
-                if (shadowHitCount >= session.tuning.shadowHitsRequired) { session.shadowRepelled = true; session.Tell("第20次命中！深渊巨影退回了黑暗，救援航道暂时安全。"); Defeat(); }
+                if (health <= 0) { session.shadowRepelled = true; session.Tell("深渊之影已被击退，救援航道暂时安全。"); Defeat(); }
             }
             else
             {
-                // Sharks survive a fixed count of successful hits; weapon damage buffs do not bypass the count.
-                health = kind == EnemyKind.Piranha ? 0 : Mathf.Max(0, health - (IsShark ? 1 : damage));
+                health = Mathf.Max(0, health - damage);
                 if (health <= 0) Defeat();
-                else if (IsShark)
+                else if (IsAquaticHunter)
                 {
                     Vector3 threat = source != null && !source.onboard ? source.Position : session.BoatAnchor;
                     fleeDirection = transform.position - threat; fleeDirection.z = 0;
                     if (fleeDirection.sqrMagnitude < .001f) fleeDirection = -facing;
                     fleeDirection.Normalize(); damagedRetreat = true; pursuitTime = 0;
+                    targetPoint = transform.position;
                     attackCooldown = Mathf.Max(attackCooldown, session.tuning.sharkHitRetreatSeconds);
                     reacquireTime = session.tuning.sharkHitRetreatSeconds;
                     ChangeState(EnemyState.Retreat);

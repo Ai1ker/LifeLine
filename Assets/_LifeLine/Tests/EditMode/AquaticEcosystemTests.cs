@@ -60,9 +60,25 @@ namespace Lifeline.Tests
             Assert.That(world.piranhaSpawnPoints.All(p => p.x >= tuning.shallowBoundary && p.x < tuning.deepBoundary && world.WaterSurface - p.y >= 20 && world.WaterSurface - p.y <= 35));
             var ids = world.pickups.Select(p => p.saveId).ToArray(); var points = world.piranhaSpawnPoints.ToArray();
             world.Generate(8417); Assert.That(world.pickups.Select(p => p.saveId), Is.EqualTo(ids)); Assert.That(world.piranhaSpawnPoints, Is.EqualTo(points));
-            var fish = world.pickups.First(p => p.resource == ResourceKind.Fish); fish.consumed = true; string fishId = fish.saveId;
+            var fish = world.pickups.First(p => p.resource == ResourceKind.Fish); string fishId = fish.saveId;
+            Assert.That(fish.IsSwimmingFish);
+            Vector3 home = fish.SavePosition;
+            Vector3 initial = fish.roomFish.PositionAt(0);
+            Assert.That(fish.roomFish.PositionAt(1), Is.Not.EqualTo(initial));
+            Rect bounds = fish.roomFish.SwimBounds;
+            for (float time = 0; time < 60; time += .11f)
+            {
+                Vector3 point = fish.roomFish.PositionAt(time);
+                Assert.That(point.x, Is.InRange(bounds.xMin - .001f, bounds.xMax + .001f));
+                Assert.That(point.y, Is.InRange(bounds.yMin - .001f, bounds.yMax + .001f));
+            }
+            fish.transform.position = fish.roomFish.PositionAt(5);
+            fish.consumed = true;
             var saved = game.CaptureSaveData(); Assert.That(game.TryRestoreSaveData(saved, out string error), Is.True, error);
-            Assert.That(world.pickups.Single(p => p.saveId == fishId).consumed);
+            var restoredFish = world.pickups.Single(p => p.saveId == fishId);
+            Assert.That(restoredFish.consumed);
+            Assert.That(restoredFish.SavePosition, Is.EqualTo(home));
+            Assert.That(restoredFish.roomFish.PositionAt(0), Is.EqualTo(initial));
         }
         [Test] public void SchoolRollHasSixIndependentSixtyPercentSlotsAndOneFishFloor()
         {
@@ -71,26 +87,28 @@ namespace Lifeline.Tests
             Assert.That(total / 10000f, Is.InRange(3.5f, 3.7f)); Assert.That(full, Is.InRange(350, 600));
             Assert.That(WorldGenerator.RollPiranhaCount(rng, 6, 0), Is.EqualTo(1)); Assert.That(WorldGenerator.RollPiranhaCount(rng, 0, .6f), Is.Zero);
         }
-        [Test] public void SharksNeedTwoOrThreeHitsAndEverySurvivedHitInterruptsIntoThreeSecondFlight()
+        [Test] public void AquaticHunterHitsInterruptIntoBoundedThreeSecondFlight()
         {
-            tuning.maximumSharks = 8; game.BeginDive(); game.diver.RestorePose(false, new Vector3(33, -32, 0), Vector3.zero, Vector2.right);
-            foreach (var kind in new[] { EnemyKind.Shark, EnemyKind.WhiteShark })
+            tuning.maximumSharks = 8; game.BeginDive(); game.diver.RestorePose(false, new Vector3(80, -32, 0), Vector3.zero, Vector2.right);
+            foreach (var kind in new[] { EnemyKind.Shark, EnemyKind.WhiteShark, EnemyKind.Piranha })
             {
-                var enemy = game.SpawnEnemy(kind, new Vector3(35, -32, 0)); enemy.geometryMask = 1 << 20; enemy.state = EnemyState.Lunge;
-                int hits = kind == EnemyKind.Shark ? 2 : 3;
+                var enemy = game.SpawnEnemy(kind, new Vector3(82, -32, 0)); enemy.geometryMask = 1 << 20; enemy.state = EnemyState.Lunge;
+                int hits = kind == EnemyKind.Shark ? 4 : kind == EnemyKind.WhiteShark ? 6 : 2;
                 for (int i = 1; i < hits; i++)
                 {
-                    enemy.ReceiveHit(99, game.diver); Assert.That(enemy.health, Is.EqualTo(hits - i)); Assert.That(enemy.state, Is.EqualTo(EnemyState.Retreat));
+                    enemy.body.position = enemy.transform.position = new Vector3(82, -32, 0);
+                    enemy.ReceiveHit(1, game.diver); Assert.That(enemy.health, Is.EqualTo(hits - i)); Assert.That(enemy.state, Is.EqualTo(EnemyState.Retreat));
                     float before = Vector3.Distance(enemy.transform.position, game.diver.Position);
                     game.baitTime = 10; game.baitPosition = enemy.transform.position;
                     enemy.StepEnemy(2.99f); Assert.That(enemy.state, Is.EqualTo(EnemyState.Retreat));
                     Assert.That(Vector3.Distance(enemy.transform.position, game.diver.Position), Is.GreaterThan(before));
-                    enemy.StepEnemy(.02f); Assert.That(enemy.state, Is.EqualTo(EnemyState.Patrol));
+                    Assert.That(Vector3.Distance(enemy.transform.position, game.diver.Position), Is.LessThan(enemy.DetectionRadius));
+                    enemy.StepEnemy(.02f); Assert.That(enemy.state, Is.EqualTo(EnemyState.Pursuit));
                 }
                 enemy.ReceiveHit(1, game.diver); Assert.That(enemy.IsAlive, Is.False);
             }
         }
-        [Test] public void PiranhaUsesOneHitUnitAndOneShotDeathWithConcreteAttackTuning()
+        [Test] public void PiranhaUsesOneHitUnitAndDiesFromTwoWeaponDamageWithConcreteAttackTuning()
         {
             game.BeginDive(); game.diver.RestorePose(false, new Vector3(80, -29, 0), Vector3.zero, Vector2.right);
             var fish = game.SpawnEnemy(EnemyKind.Piranha, game.diver.Position);
@@ -99,7 +117,32 @@ namespace Lifeline.Tests
             game.diver.ReceiveDamage(1f); Assert.That(game.diverBites, Is.EqualTo(1f)); Assert.That(game.diverFainted, Is.False);
             var saved = game.CaptureSaveData(); Assert.That(game.TryRestoreSaveData(saved, out string error), Is.True, error);
             Assert.That(game.diverBites, Is.EqualTo(1f)); game.diverInvulnerable = 0; game.diver.ReceiveDamage(1f); Assert.That(game.diverFainted);
-            var restoredFish = game.enemies.Single(); restoredFish.ReceiveHit(.01f, game.captain); Assert.That(restoredFish.IsAlive, Is.False);
+            var restoredFish = game.enemies.Single(); restoredFish.ReceiveHit(2, game.captain); Assert.That(restoredFish.IsAlive, Is.False);
+        }
+        [Test] public void ShadowNormalBiteRequiresProximityAndHasItsOwnCooldown()
+        {
+            game.SetDayClock(1, .9f);
+            game.BeginDive();
+            game.diver.RestorePose(false, new Vector3(36, -32, 0), Vector3.zero, Vector2.right);
+            var shadow = game.SpawnEnemy(EnemyKind.Shadow, new Vector3(46, -32, 0));
+            Assert.That(shadow.SizeMultiplier, Is.EqualTo(2));
+            Assert.That(shadow.crewCollision.solid.height, Is.EqualTo(14));
+            Assert.That(shadow.hitRadius, Is.EqualTo(5.6f));
+            shadow.attackCooldown = 10;
+            shadow.StepEnemy(.01f);
+            Assert.That(shadow.shadowBasicCooldown, Is.Zero);
+            shadow.transform.position = game.diver.Position;
+            Physics.SyncTransforms();
+            shadow.StepEnemy(.01f);
+            Assert.That(game.diverBites, Is.EqualTo(1));
+            Assert.That(shadow.shadowPhase, Is.Zero);
+            Assert.That(shadow.shadowBasicClock, Is.Positive);
+            Assert.That(shadow.shadowBasicCooldown, Is.EqualTo(1.5f));
+            game.diverInvulnerable = 0;
+            shadow.StepEnemy(.4f); shadow.StepEnemy(.99f);
+            Assert.That(game.diverBites, Is.EqualTo(1));
+            shadow.StepEnemy(.13f);
+            Assert.That(game.diverFainted);
         }
         [Test] public void AquaticHuntersSeeCircularMetreRangesAndPassThroughSolidWalls()
         {

@@ -49,7 +49,7 @@ namespace Lifeline
 
         OnlineActorMotion CaptureActorMotion(CrewActor actor) => new OnlineActorMotion
         {
-            position = actor.Position, facing = actor.Facing, onboard = actor.onboard,
+            position = actor.Position, facing = actor.Facing, onboard = actor.onboard, climbing = actor.IsClimbing,
             ropeMeters = actor.onboard ? 0 : GetCrewLifeline(actor).PathLength,
             craftNoticeSeconds = Mathf.Max(0, actor.craftFailureUntil - Time.unscaledTime)
         };
@@ -95,7 +95,7 @@ namespace Lifeline
             if (actor.onboard != target.onboard) actor.SetOnboard(target.onboard, target.position);
             Vector3 position = start.onboard != target.onboard || (start.position - target.position).sqrMagnitude > 64f
                 ? target.position : Vector3.Lerp(start.position, target.position, blend);
-            actor.ApplyReplicatedPose(position, target.facing);
+            actor.ApplyReplicatedPose(position, target.facing, target.climbing);
         }
 
         public OnlineWorldFrame CaptureOnlineFrame(GameHUDController hud, bool baseline, bool includeWorld)
@@ -287,6 +287,14 @@ namespace Lifeline
                     && incoming[i].remaining <= areaStrikes[i].remaining + .02f;
             if (!same)
             {
+                foreach (var previous in areaStrikes)
+                {
+                    if (previous.kind != AreaStrikeKind.Lightning || previous.view == null || previous.remaining > .55f) continue;
+                    bool stillPending = Array.Exists(incoming, strike => strike.kind == previous.kind && strike.point == previous.point);
+                    if (stillPending) continue;
+                    previous.view.Complete();
+                    previous.view = null;
+                }
                 ClearAreaStrikes();
                 areaStrikes.AddRange(incoming);
             }

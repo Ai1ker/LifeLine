@@ -10,6 +10,24 @@ namespace Lifeline
         public Transform interactionPoint;
         public Transform visualRoot;
         public bool available = true;
+        SpriteRenderer generatorSprite;
+        Sprite regularGeneratorSprite;
+
+        public void ShowEelGenerator(Sprite eel, bool installed)
+        {
+            if (eel == null || visualRoot == null) return;
+            if (generatorSprite == null)
+            {
+                generatorSprite = visualRoot.GetComponentInChildren<SpriteRenderer>(true);
+                if (generatorSprite == null) return;
+                regularGeneratorSprite = generatorSprite.sprite;
+            }
+            Sprite sprite = installed ? eel : regularGeneratorSprite;
+            if (generatorSprite.sprite == sprite || sprite == null) return;
+            float width = generatorSprite.sprite.bounds.size.x * Mathf.Abs(generatorSprite.transform.localScale.x);
+            generatorSprite.sprite = sprite;
+            generatorSprite.transform.localScale = Vector3.one * (width / sprite.bounds.size.x);
+        }
         public Vector3 InteractionPosition => interactionPoint != null ? interactionPoint.position : transform.position;
         public bool CanInteract(CrewActor actor) => available && isActiveAndEnabled && actor != null && (actor.session == null || actor.session.IsStationUnlocked(kind)) && actor.onboard && Vector2.Distance(actor.Position, InteractionPosition) <= interactionRadius;
         /// <summary>Context stays visible beside the binding even when the shared status message changes.</summary>

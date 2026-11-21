@@ -37,6 +37,7 @@ namespace Lifeline
 
         public Vector2 Facing { get; private set; } = Vector2.right;
         public Vector2 MeleeFacing { get; private set; } = Vector2.right;
+        public Vector2 SpeargunFacing { get; private set; } = Vector2.right;
         public bool Grounded { get; private set; }
         public bool IsAtLadder { get; private set; }
         public bool IsClimbing { get; private set; }
@@ -143,11 +144,12 @@ namespace Lifeline
             source?.SetEnabled(true);
         }
 
-        public void ApplyReplicatedPose(Vector3 position, Vector2 facing)
+        public void ApplyReplicatedPose(Vector3 position, Vector2 facing, bool climbing = false)
         {
             if (body != null) body.position = position;
             transform.position = position;
             Facing = facing;
+            IsClimbing = onboard && climbing;
         }
 
         private CrewCommand ReadCommand()
@@ -388,6 +390,7 @@ namespace Lifeline
         public void EmitPresentationEvent(CrewVisualEvent kind, float strength = 1f, Vector2? direction = null)
         {
             if (kind == CrewVisualEvent.Melee) MeleeFacing = MeleeArc.Direction(direction ?? Facing);
+            if (kind == CrewVisualEvent.Fire) SpeargunFacing = MeleeArc.Direction(direction ?? Facing);
             PresentationEvent?.Invoke(this, kind, strength);
         }
         private void OnDestroy()

@@ -157,6 +157,14 @@ namespace Lifeline.Tests
             foreach (StationAnchor station in proxy.GetComponentsInChildren<StationAnchor>(true)) Assert.Fail("A proxy must never copy cabin stations: " + station.name);
             var bounds = proxy.visualRoot.GetComponentInChildren<Renderer>().bounds;
             Assert.That(bounds.size.x, Is.LessThan(4));
+            var originalHull = proxy.visualRoot.Find("Hull").GetComponent<Renderer>();
+            var texture = Texture2D.whiteTexture;
+            var frame = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.one * .5f);
+            proxy.surfaceFrames = new[] { frame };
+            proxy.Initialize(session, rig);
+            Assert.That(originalHull.enabled, Is.False, "serialized or existing geometric proxies must be replaced by the sprite");
+            Assert.That(proxy.visualRoot.GetComponentInChildren<SpriteRenderer>().sprite, Is.EqualTo(frame));
+            Assert.That(proxy.edgeMarker.Find("Pixel silhouette"), Is.Not.Null);
             Rect pixels = rig.diverCamera.pixelRect; Vector3 marker = proxy.edgeMarker.position;
             Assert.That(marker.x, Is.InRange(pixels.xMin, pixels.xMax));
             Assert.That(marker.y, Is.InRange(pixels.yMin, pixels.yMax));
@@ -166,6 +174,7 @@ namespace Lifeline.Tests
             session.diver.SetOnboard(true, session.ShipPoint(session.bankArrivalLocal)); maps.MoveCrewToMap(session.diver);
             rig.RefreshViewNow(); proxy.RefreshNow();
             Assert.That(proxy.IsSurfaceProxyVisible || proxy.IsEdgeMarkerVisible, Is.False, "boarding restores only the ship map view");
+            Object.Destroy(frame);
         }
     }
 }

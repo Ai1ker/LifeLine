@@ -15,12 +15,23 @@ namespace Lifeline
         public float movementDamping = .1f;
         [Min(0)] public float foregroundOffset = .65f;
         public bool placeholderPoses = true;
+        public bool drawMeleeWithCustomPoses;
+        public bool rotateSwimmingSprite;
+        [Min(0)] public float swimmingTurnSpeed = 360f;
+        [Min(0)] public float paddlePoseSeconds = .28f, harpoonPoseSeconds = .28f, speargunPoseSeconds = .32f;
+        [Min(0)] public float actionBlendSeconds = .025f;
         public float swingSeconds=.25f;
         public LineRenderer meleeStroke;
         public Material meleeMaterial;
         float swingTimer;
         float swingReach;
         Vector2 swingFacing;
+        Vector2 actionFacing;
+        float actionTime, swimmingAngle;
+        float easedFootSpeed;
+        float easedClimbRate;
+        bool walking;
+        bool wasDownedOnDeck;
         [Tooltip("Tag the replacement Animator melee state with this tag; it blocks retriggering until the state finishes.")]
         public string meleeStateTag = "Melee";
         public bool MeleeAnimationPlaying => swingTimer > 0 || animator != null && animator.isActiveAndEnabled && animator.runtimeAnimatorController != null
@@ -39,6 +50,8 @@ namespace Lifeline
         private Transform cachedVisual;
         private Vector3 basePosition;
         private readonly Dictionary<SpriteRenderer, int> baseSorting = new();
+        private Vector2 lastAnimatedPosition;
+        private bool hadAnimatedPosition, wasOnboard;
 
         private void OnEnable() => Resolve();
         private void OnDisable()
@@ -90,25 +103,74 @@ namespace Lifeline
         {
             Resolve();
             if (actor == null) return;
-            if (mirrorFacing && visualRoot != null && Mathf.Abs(actor.Facing.x) > .05f)
-                visualRoot.localScale = new Vector3(Mathf.Abs(baseScale.x) * Mathf.Sign(actor.Facing.x), baseScale.y, baseScale.z);
+            bool lying = actor.downed || actor.session != null && actor.session.IsFainted(actor);
+            actionTime = lying ? 0f : Mathf.Max(0, actionTime - Time.deltaTime);
+            Vector2 facing = actionTime > 0 ? actionFacing : actor.Facing;
+            if (mirrorFacing && visualRoot != null && Mathf.Abs(facing.x) > .05f)
+                visualRoot.localScale = new Vector3(Mathf.Abs(baseScale.x) * Mathf.Sign(facing.x), baseScale.y, baseScale.z);
             if(placeholderPoses&&visualRoot!=null)
             {
-                bool lying=actor.downed||actor.session!=null&&actor.session.IsFainted(actor);
-                float angle=lying?90:!actor.onboard?actor.Facing.x<0?90:-90:0;
+                float angle = !actor.onboard ? (actor.Facing.x < 0 ? 90 : -90) : lying ? 90 : 0;
                 visualRoot.localRotation=Quaternion.Euler(0,0,angle);
             }
+            else if (rotateSwimmingSprite && visualRoot != null)
+            {
+                float sign = Mathf.Sign(visualRoot.localScale.x);
+                if (actor.onboard) swimmingAngle = 0;
+                else if (!lying)
+                {
+                    float angle = Vector2.SignedAngle(Vector2.right, facing * sign);
+                    swimmingAngle = Mathf.MoveTowardsAngle(swimmingAngle, angle, swimmingTurnSpeed * Time.deltaTime);
+                }
+                visualRoot.localRotation = Quaternion.Euler(0, 0, swimmingAngle);
+            }
             DrawMelee();
-            SetFloat(speedParameter, actor.RelativeMoveSpeed);
+            Vector2 motion = AnimationVelocity();
+            float walkingSpeed = actor.onboard ? Mathf.Abs(motion.x) : motion.magnitude;
+            SetFloat(speedParameter, walkingSpeed);
+            easedFootSpeed = Mathf.Lerp(easedFootSpeed, walkingSpeed, 1 - Mathf.Exp(-Time.deltaTime * 22f));
+            walking = easedFootSpeed > (walking ? .16f : .28f);
+            SetBool("Moving", walking);
+            bool climbing = actor.onboard && actor.IsClimbing && !lying;
+            float climbRate = climbing ? Mathf.Clamp(motion.y / Mathf.Max(.01f, actor.ladderSpeed), -1.4f, 1.4f) : 0;
+            easedClimbRate = Mathf.MoveTowards(easedClimbRate, climbRate, Time.deltaTime * 22f);
+            SetBool("Climbing", climbing);
+            SetFloat("ClimbRate", easedClimbRate);
             SetBool(swimmingParameter, !actor.onboard);
             SetBool(groundedParameter, actor.Grounded);
-            SetBool(downedParameter, actor.downed);
+            SetBool(downedParameter, lying);
+            SetBool("PixelAction", actionTime > 0);
+            bool downedOnDeck = lying && actor.onboard;
+            if (downedOnDeck && !wasDownedOnDeck && animator != null && animator.isActiveAndEnabled && animator.runtimeAnimatorController != null)
+            {
+                int pose = Animator.StringToHash(animator.GetLayerName(0) + ".Downed");
+                if (animator.HasState(0, pose)) animator.Play(pose, 0, 0);
+            }
+            wasDownedOnDeck = downedOnDeck;
+        }
+
+        Vector2 AnimationVelocity()
+        {
+            if (actor.isActiveAndEnabled || actor.session == null || actor.session.ship == null)
+            {
+                Vector2 local = actor.body != null ? (Vector2)actor.body.linearVelocity : Vector2.zero;
+                if (actor.onboard && actor.session != null && actor.session.ship != null) local.x -= actor.session.ship.speed;
+                return local;
+            }
+            // A guest discards local physics velocities and follows the host's interpolated pose.
+            Vector2 position = actor.Position;
+            if (actor.onboard) position -= (Vector2)actor.session.ship.Position;
+            Vector2 movement = hadAnimatedPosition && wasOnboard == actor.onboard ? position - lastAnimatedPosition : Vector2.zero;
+            lastAnimatedPosition = position;
+            hadAnimatedPosition = true;
+            wasOnboard = actor.onboard;
+            return movement.sqrMagnitude <= 4f ? movement / Mathf.Max(.001f, Time.deltaTime) : Vector2.zero;
         }
 
         void DrawMelee()
         {
             swingTimer = Mathf.Max(0, swingTimer - Time.deltaTime);
-            bool visible = placeholderPoses && swingTimer > 0 && (actor.session == null || !actor.session.IsHidden(actor));
+            bool visible = (placeholderPoses || drawMeleeWithCustomPoses) && swingTimer > 0 && (actor.session == null || !actor.session.IsHidden(actor));
             if (meleeStroke == null && visible)
             {
                 meleeStroke = new GameObject("Melee swing / replaceable").AddComponent<LineRenderer>();
@@ -159,10 +221,30 @@ namespace Lifeline
                 swingFacing = source.MeleeFacing;
                 swingReach = source.session != null && source.session.tuning != null ? source.session.MeleeReach : 1.95f;
             }
-            if ((kind == CrewVisualEvent.Melee || kind == CrewVisualEvent.Fire) && Has(attackTrigger, AnimatorControllerParameterType.Trigger)) animator.SetTrigger(attackTrigger);
+            if (kind == CrewVisualEvent.Melee || kind == CrewVisualEvent.Fire)
+            {
+                if (!PlayPixelAction(source, kind) && Has(attackTrigger, AnimatorControllerParameterType.Trigger))
+                    animator.SetTrigger(attackTrigger);
+            }
             if (eventSinks == null) return;
             foreach (var component in eventSinks)
                 if (component is ICrewPresentationSink sink) sink.OnCrewPresentationEvent(source, kind, source.Position, strength);
+        }
+
+        bool PlayPixelAction(CrewActor source, CrewVisualEvent kind)
+        {
+            if (!Has("PixelAction", AnimatorControllerParameterType.Bool) || !animator.isActiveAndEnabled) return false;
+            bool fire = kind == CrewVisualEvent.Fire;
+            bool harpoon = source.session != null && source.session.hasHarpoon;
+            string action = fire ? "Speargun" : harpoon ? "Harpoon" : "Paddle";
+            if (!source.onboard) action += "Swim";
+            int state = Animator.StringToHash(animator.GetLayerName(0) + "." + action);
+            if (!animator.HasState(0, state)) return false;
+            actionFacing = fire ? source.SpeargunFacing : source.MeleeFacing;
+            actionTime = fire ? speargunPoseSeconds : harpoon ? harpoonPoseSeconds : paddlePoseSeconds;
+            SetBool("PixelAction", true);
+            animator.CrossFadeInFixedTime(state, actionBlendSeconds, 0, 0);
+            return true;
         }
     }
 }

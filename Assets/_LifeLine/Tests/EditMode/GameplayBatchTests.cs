@@ -95,6 +95,42 @@ namespace Lifeline.Tests
             game.captain.RestorePose(true,game.WaterToShipPoint(point),Vector3.zero,Vector2.right);game.ResolveAreaStrike(strike);
             Assert.That(game.captain.downed,Is.True);
         }
+        [Test] public void LivingShadowSurvivesDawnAndLocksWorldUntilDefeatAndCrewReturn()
+        {
+            var map = new GameObject("Water map"); map.transform.SetParent(root.transform);
+            var world = map.AddComponent<WorldGenerator>(); world.session = game; world.tuning = tuning; world.drawLabels = false;
+            game.world = world;
+            world.Generate(game.worldSeed, game.day);
+            game.SetDayClock(4, .999f);
+            var generation = world.generatedRoot;
+            var shadow = game.SpawnEnemy(EnemyKind.Shadow, game.BoatAnchor + Vector3.down * 14);
+            shadow.ReceiveHit(2, game.captain);
+            game.StepSimulation(tuning.daySeconds * .01f);
+            shadow.StepEnemy(.1f);
+            Assert.That(game.day, Is.EqualTo(5));
+            Assert.That(game.IsNight, Is.False);
+            Assert.That(shadow.state, Is.Not.EqualTo(EnemyState.Retreat));
+            Assert.That(shadow.health, Is.EqualTo(tuning.shadowHitsRequired - 2));
+            Assert.That(world.generatedRoot, Is.SameAs(generation));
+            Assert.That(game.shadowWorldRefreshPending);
+            Assert.That(game.SpawnEnemy(EnemyKind.Shadow, shadow.transform.position), Is.Null);
+            game.SetDayClock(5, .15f);
+            Assert.That(world.generatedRoot, Is.SameAs(generation));
+
+            var saved = game.CaptureSaveData();
+            Assert.That(game.TryRestoreSaveData(saved, out string error), Is.True, error);
+            Assert.That(world.activeDay, Is.EqualTo(4));
+            Assert.That(game.shadowWorldRefreshPending);
+            shadow = game.enemies.Single(enemy => enemy.kind == EnemyKind.Shadow);
+            Assert.That(game.BeginDive());
+            shadow.ReceiveHit(tuning.shadowHitsRequired, game.diver);
+            game.StepSimulation(.02f);
+            Assert.That(world.activeDay, Is.EqualTo(4));
+            game.diver.SetOnboard(true, game.ShipPoint(game.bankArrivalLocal));
+            game.StepSimulation(.02f);
+            Assert.That(world.activeDay, Is.EqualTo(5));
+            Assert.That(game.shadowWorldRefreshPending, Is.False);
+        }
         [Test] public void CaptainTwoUnitsSuitThreeUnitsAndBothDownedFailWithoutLosingBank()
         {
             game.upgradeLevels[(int)UpgradeKind.DivingSuit]=1;game.AddResource(ResourceKind.Metal,6);
@@ -115,6 +151,7 @@ namespace Lifeline.Tests
         {
             game.SetDayClock(4,.9f);game.diver.RestorePose(false,new Vector3(0,-8,0),Vector3.zero,Vector2.right);
             var enemy=game.SpawnEnemy(EnemyKind.Shadow,new Vector3(1,-8,0));enemy.geometryMask=0;
+            enemy.shadowBasicCooldown=100f; // Proximity strikes have their own regression test.
             var tick=typeof(LifelineEnemy).GetMethod("TickShadow",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
             float length=game.diver.GetComponent<CapsuleCollider>().height;
             tick.Invoke(enemy,new object[]{.001f});

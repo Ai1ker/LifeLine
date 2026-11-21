@@ -18,17 +18,19 @@ namespace Lifeline
                 solid=root.AddComponent<CapsuleCollider>();
             }
             solid.direction=0; solid.isTrigger=false;
-            float scale=owner.kind==EnemyKind.Piranha?owner.session.tuning.piranhaScaleMultiplier:1;
-            solid.radius=owner.kind==EnemyKind.Shadow?1.2f:.4f*scale;
-            solid.height=owner.kind==EnemyKind.Shadow?7:2.4f*scale;
+            float scale=owner.kind==EnemyKind.Piranha?owner.session.tuning.piranhaScaleMultiplier:owner.SizeMultiplier;
+            solid.radius=(owner.kind==EnemyKind.Shadow?1.2f:.4f)*scale;
+            solid.height=(owner.kind==EnemyKind.Shadow?7f:2.4f)*scale;
             solid.excludeLayers=~crewLayers.value;
         }
-        public bool Touches(CrewActor actor)
+        public bool Touches(CrewActor actor) => DistanceTo(actor) <= .15f;
+
+        public float DistanceTo(CrewActor actor)
         {
-            if(solid==null||actor==null)return false;
-            var capsule=actor.GetComponent<CapsuleCollider>();if(capsule==null)return false;
+            if(solid==null||actor==null)return float.PositiveInfinity;
+            var capsule=actor.GetComponent<CapsuleCollider>();if(capsule==null)return float.PositiveInfinity;
             Vector3 onEnemy=solid.ClosestPoint(capsule.bounds.center);
-            return Vector3.Distance(onEnemy,capsule.ClosestPoint(onEnemy))<=.15f;
+            return Vector3.Distance(onEnemy,capsule.ClosestPoint(onEnemy));
         }
         public Vector3 LimitMove(Vector3 direction,float step)
         {

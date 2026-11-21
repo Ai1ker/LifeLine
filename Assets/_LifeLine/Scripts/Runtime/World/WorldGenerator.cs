@@ -15,6 +15,8 @@ namespace Lifeline
         public Material[] placeholderMaterials;
         [Tooltip("Optional materials indexed by ResourceKind. Prefab palettes are preserved if unset.")]
         public Material[] resourceMaterials;
+        public PixelWorldArt pixelArt;
+        public PixelOceanArt oceanArt;
         public GameObject lootPrefab, cratePrefab, sharkPrefab, shadowPrefab, trapdoorPrefab, piranhaPrefab;
         public List<LootPickup> pickups = new List<LootPickup>();
         public Transform generatedRoot;
@@ -173,7 +175,7 @@ namespace Lifeline
             solidRoot = Child(generatedRoot, "Solids");
             var lootRoot = Child(generatedRoot, "Resources and cargo");
             EnsurePalette();
-            BuildSea();
+            if (oceanArt == null || oceanArt.backdropShader == null) BuildSea();
             // Only the world edges constrain swimming; rooms have real navigable portals.
             float underwaterHeight = waterSurface - worldBounds.yMin;
             float underwaterCenterY = (waterSurface + worldBounds.yMin) * .5f;
@@ -230,8 +232,6 @@ namespace Lifeline
                     generatedEel = true;
                     if (!eelOccurs) SpawnPickup(lootRoot, cave.Center(cave.rewardCell), ResourceKind.Eel, false, false, layouts.Count - 1, cave.rewardCell).name = "Guaranteed cave eel generator";
                     BuildCaveGuardPoints(cave);
-                    foreach (int cell in cave.rewardRoute)
-                        Visual(Child(generatedRoot, "Cave guide marker"), "VisualRoot", cave.Center(cell) + new Vector3(0, -.7f, .7f), new Vector3(.12f, .12f, .12f), 5);
                 }
             }
             if (eelOccurs && rewardMaze != null)
@@ -422,8 +422,13 @@ namespace Lifeline
         {
             var roomRoot = Child(solidRoot, maze.name);
             var background = Child(roomRoot, "VisualRoot");
-            var backdrop = Visual(background, "Distant silhouette", new Vector3(maze.topLeft.x + maze.columns * maze.cellSize * .5f, maze.topLeft.y - maze.rows * maze.cellSize * .5f, 2.4f), new Vector3(maze.columns * maze.cellSize, maze.rows * maze.cellSize, .25f), tier == 3 ? 0 : 1);
-            if (tier == 3) backdrop.GetComponent<Renderer>().sharedMaterial = CaveMaterial(false);
+            if (oceanArt != null && oceanArt.backdropShader != null)
+                oceanArt.DressRoom(background, maze, this);
+            else
+            {
+                var backdrop = Visual(background, "Distant silhouette", new Vector3(maze.topLeft.x + maze.columns * maze.cellSize * .5f, maze.topLeft.y - maze.rows * maze.cellSize * .5f, 2.4f), new Vector3(maze.columns * maze.cellSize, maze.rows * maze.cellSize, .25f), tier == 3 ? 0 : 1);
+                if (tier == 3) backdrop.GetComponent<Renderer>().sharedMaterial = CaveMaterial(false);
+            }
             for (int row = 0; row <= maze.rows; row++)
                 for (int column = 0; column < maze.columns; column++)
                 {
@@ -623,9 +628,6 @@ namespace Lifeline
                 fromCell = a, toCell = b, from = start, to = end,
                 waypoints = new List<Vector3> { start, end }
             });
-            // Small paired stones communicate broken openings without filling the swimming lane.
-            foreach (Vector3 point in new[] { from.Center(a), to.Center(b) })
-                Visual(generatedRoot, "Passage guide", point + new Vector3(0, -.65f, .95f), new Vector3(.2f, .1f, .15f), 5);
         }
 
         void ConnectDepthBands(MazeLayout upper, MazeLayout lower)
@@ -785,23 +787,9 @@ namespace Lifeline
                 pickup.visualRoot = Child(go.transform, "VisualRoot");
                 var size = crate ? new Vector3(1.05f, .65f, .65f) : cabinet ? new Vector3(.75f, .9f, .6f) : Vector3.one * .38f;
                 Visual(pickup.visualRoot, "Container", position, size, crate || cabinet ? 3 : 4 + (int)kind % 3);
-                if (crate)
-                {
-                    pickup.cargoSlotRenderers = new Renderer[3];
-                    for (int i = 0; i < 3; i++)
-                        pickup.cargoSlotRenderers[i] = Visual(pickup.visualRoot, "Cargo slot " + (i + 1), position + new Vector3((i - 1) * .3f, .08f, -.4f), new Vector3(.21f, .25f, .2f), 4).GetComponent<Renderer>();
-                }
                 if (drawLabels) pickup.label = AddLabel(pickup.visualRoot, "", position + new Vector3(0, .68f, -.6f), .1f, new Color(.7f, .94f, .85f));
             }
             else pickup.visualRoot = go.transform.Find("VisualRoot");
-            if (crate && (pickup.cargoSlotRenderers == null || pickup.cargoSlotRenderers.Length == 0))
-            {
-                // Optional indicators are separate from an artist's replaceable mesh hierarchy.
-                var indicators = Child(go.transform, "Cargo indicators");
-                pickup.cargoSlotRenderers = new Renderer[3];
-                for (int i = 0; i < 3; i++)
-                    pickup.cargoSlotRenderers[i] = Visual(indicators, "Cargo slot " + (i + 1), position + new Vector3((i - 1) * .3f, .08f, -.4f), new Vector3(.21f, .25f, .2f), 4).GetComponent<Renderer>();
-            }
             if (pickup.label == null && drawLabels)
             {
                 pickup.label = AddLabel(go.transform, "", position + new Vector3(0, .68f, -.6f), .1f, new Color(.7f, .94f, .85f));
@@ -816,9 +804,10 @@ namespace Lifeline
             if (!crate && !cabinet && pickup.tintPlaceholderVisuals && pickup.visualRoot != null)
             {
                 Material material = pickup.resourceMaterials[(int)kind % pickup.resourceMaterials.Length];
-                foreach (var renderer in pickup.visualRoot.GetComponentsInChildren<Renderer>())
-                    if (!(renderer is MeshRenderer meshRenderer) || meshRenderer.GetComponent<TextMesh>() == null) renderer.sharedMaterial = material;
+                foreach (var renderer in pickup.visualRoot.GetComponentsInChildren<MeshRenderer>())
+                    if (renderer.GetComponent<TextMesh>() == null) renderer.sharedMaterial = material;
             }
+            PrepareRoomFish(pickup);
             ConfigureInteractionLabel(pickup.label, pickup.transform);
             pickup.RefreshVisual(); pickups.Add(pickup);
             return pickup;
@@ -834,13 +823,17 @@ namespace Lifeline
             var nearest = FindNearest(actor, true);
             return nearest != null && nearest.TryLoad(actor);
         }
-        public LootPickup FindNearest(CrewActor actor, bool cratesOnly)
+        public LootPickup FindNearest(CrewActor actor, bool cratesOnly) => FindNearest(actor, cratesOnly, false);
+
+        LootPickup FindNearest(CrewActor actor, bool cratesOnly, bool swimmingFish)
         {
             if (actor == null) return null;
             LootPickup best = null; float distance = float.PositiveInfinity;
             foreach (var pickup in pickups)
             {
-                if (pickup == null || pickup.attached || !pickup.InRange(actor) || (cratesOnly && !pickup.isCrate)) continue;
+                if (pickup == null || !pickup.gameObject.activeInHierarchy || pickup.attached || pickup.IsSwimmingFish != swimmingFish ||
+                    !pickup.InRange(actor) || (cratesOnly && !pickup.isCrate)) continue;
+                if (swimmingFish && !HasFishAccess(actor, pickup)) continue;
                 if (!cratesOnly && pickup.isCrate && pickup.contents.Count == 0) continue;
                 float candidate = (pickup.transform.position - actor.Position).sqrMagnitude;
                 if (candidate < distance) { distance = candidate; best = pickup; }
@@ -865,8 +858,9 @@ namespace Lifeline
             }
             if (!pickup.isCrate && !pickup.isCabinet && pickup.tintPlaceholderVisuals && pickup.visualRoot != null
                 && pickup.resourceMaterials != null && pickup.resourceMaterials.Length > 0)
-                foreach (var renderer in pickup.visualRoot.GetComponentsInChildren<Renderer>())
+                foreach (var renderer in pickup.visualRoot.GetComponentsInChildren<MeshRenderer>())
                     if (renderer.GetComponent<TextMesh>() == null) renderer.sharedMaterial = pickup.resourceMaterials[(int)pickup.resource % pickup.resourceMaterials.Length];
+            PrepareRoomFish(pickup);
             ConfigureInteractionLabel(pickup.label, pickup.transform);
             if (!string.IsNullOrEmpty(pickup.saveId) && pickup.saveId.StartsWith(FilterSalvage.SaveIdPrefix, StringComparison.Ordinal))
             {
@@ -882,6 +876,8 @@ namespace Lifeline
             var view = label.GetComponent<WorldInteractionLabel>();
             if (view == null) view = label.gameObject.AddComponent<WorldInteractionLabel>();
             view.world = this; view.owner = owner; view.label = label; view.characterSize = interactionLabelSize;
+            var pickup = owner.GetComponent<LootPickup>();
+            view.cargo = pickup != null && pickup.isCrate && !pickup.isLostCargo ? pickup : null;
             view.RefreshNow();
         }
 
@@ -904,6 +900,13 @@ namespace Lifeline
             session.Tell(GameNames.Role(actor.role)+"进入藏匿处。", actor);session.Changed();return true;
         }
         public Transform GetLabelFocus()=>GetLabelFocus(session!=null?session.diver:null);
+        public bool IsCargoLabelVisible(LootPickup cargo)
+        {
+            if (session == null || session.phase != SessionPhase.Playing) return false;
+            if (OnlineVoyage.InProgress)
+                return cargo.InRange(OnlineVoyage.Current.LocalRole == CrewRole.Captain ? session.captain : session.diver);
+            return cargo.InRange(session.captain) || cargo.InRange(session.diver);
+        }
         public bool IsLabelFocus(Transform target)
         {
             if(session==null)return false;
@@ -921,7 +924,7 @@ namespace Lifeline
             float best = labelVisibleDistance * labelVisibleDistance;
             foreach (var pickup in pickups)
             {
-                if (pickup == null || pickup.attached || pickup.consumed || !pickup.gameObject.activeInHierarchy) continue;
+                if (pickup == null || pickup.IsSwimmingFish || pickup.attached || pickup.consumed || !pickup.gameObject.activeInHierarchy) continue;
                 float distance = (pickup.transform.position - position).sqrMagnitude;
                 if (distance >= best) continue;
                 best = distance; labelFocus = pickup.transform;
@@ -1067,7 +1070,9 @@ namespace Lifeline
             var collider = root.AddComponent<BoxCollider>(); collider.size = size;
             var view = Visual(root.transform, "VisualRoot", center, size, material);
             if (parent != null && parent.name.Contains("BRANCH CAVE"))
-                view.GetComponent<Renderer>().sharedMaterial = CaveMaterial(true);
+                view.GetComponent<Renderer>().sharedMaterial = pixelArt != null && pixelArt.caveWall != null ? pixelArt.caveWall : CaveMaterial(true);
+            else if (parent != null && pixelArt != null && pixelArt.ruinWall != null)
+                view.GetComponent<Renderer>().sharedMaterial = pixelArt.ruinWall;
             generatedWalls.Add(collider); return collider;
         }
         GameObject Visual(Transform parent, string title, Vector3 position, Vector3 size, int material)

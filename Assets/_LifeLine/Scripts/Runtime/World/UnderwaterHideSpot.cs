@@ -17,7 +17,10 @@ namespace Lifeline
             if(visualRoot==null)
             {
                 visualRoot=new GameObject("Hide spot visual / replaceable").transform;visualRoot.SetParent(transform,false);
-                for(int i=0;i<5;i++)
+                Sprite art = world != null && world.pixelArt != null ? world.pixelArt.hideSpot : null;
+                if (art != null)
+                    PixelWorldArt.PlaceSprite(visualRoot, "Pixel locker", art, new Vector3(0, -.12f, -.5f), new Vector2(.8f, 1.35f), gameObject.layer);
+                else for(int i=0;i<5;i++)
                 {
                     var reed=GameObject.CreatePrimitive(PrimitiveType.Cube);reed.GetComponent<Collider>().enabled=false;reed.transform.SetParent(visualRoot,false);
                     reed.transform.localPosition=new Vector3((i-2)*.25f,-.3f,-.5f);reed.transform.localScale=new Vector3(.16f,.5f+(i%3)*.23f,.2f);

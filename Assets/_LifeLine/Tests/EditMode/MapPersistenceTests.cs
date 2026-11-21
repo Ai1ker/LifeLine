@@ -227,7 +227,7 @@ namespace Lifeline.Tests
             TickTurret();
             shot = Object.FindObjectsByType<LifelineSpear>(FindObjectsSortMode.None).Single(s => s.session == game);
             Assert.That(shot.onShipMap, Is.False); Assert.That(shot.target, Is.SameAs(shadow)); Assert.That(shot.transform.position.y, Is.LessThan(10));
-            game.hasHarpoon = true; Assert.That(game.MeleeAttack(game.captain)); Assert.That(shadow.shadowHitCount, Is.EqualTo(1));
+            game.hasHarpoon = true; Assert.That(game.MeleeAttack(game.captain)); Assert.That(shadow.shadowHitCount, Is.EqualTo(2));
         }
 
         void TickTurret() => typeof(GameSession).GetMethod("UpdateTurret", BindingFlags.NonPublic | BindingFlags.Instance)

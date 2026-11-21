@@ -116,8 +116,9 @@ namespace Lifeline
         [Min(0)] public int maximumSharks = 8;
         [Min(1)] public int mutationStartDay = 3;
         [Range(0, 1)] public float armoredBirdChance = .35f;
-        [Min(1)] public float sharkHealth = 2, whiteSharkHealth = 3, birdHealth = 1, armoredBirdHealth = 2;
+        [Min(1)] public float sharkHealth = 4, piranhaHealth = 2, whiteSharkHealth = 6, birdHealth = 1, armoredBirdHealth = 2;
         [Min(.1f)] public float sharkHitRetreatSeconds = 3f;
+        [Min(.1f)] public float hitRetreatDistance = 3f;
         [Header("城区食人鱼 / Middle-depth city schools")]
         [Range(0, 6)] public int maximumPiranhas = 6;
         [Range(0, 1)] public float piranhaSpawnChance = .6f;
@@ -134,8 +135,13 @@ namespace Lifeline
         [Range(0, 1)] public float extraCaveGuardChance = .75f;
         [Range(0, 1)] public float underwaterFishChance = .12f;
         [Min(0)] public int minimumFishPerArea = 1;
+        [Min(.05f)] public float roomFishSwimSpeed = .48f;
+        [Min(.1f)] public float roomFishCatchDistance = 1.35f;
+        [Min(.1f)] public float roomFishCatchSeconds = .85f;
         public float shadowWindup = 1.76f;
-        public int shadowHitsRequired = 20;
+        public int shadowHitsRequired = 30;
+        [Min(.1f)] public float shadowSizeMultiplier = 2f;
+        public float shadowBasicReach = .18f, shadowBasicInterval = 1.5f, shadowBasicDuration = .36f, shadowBasicDamage = 1f;
         public float shadowSpeedMultiplier = .9f;
         public float shadowSweepHullDamage = 10f;
         public Vector2 shadowMeleeHullDamage = new Vector2(5,10);

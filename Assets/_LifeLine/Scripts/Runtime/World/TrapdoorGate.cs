@@ -9,6 +9,7 @@ namespace Lifeline
         public WorldGenerator world;
         public BoxCollider barrier;
         public Transform visualRoot;
+        public SpriteRenderer doorSprite;
         public TextMesh label;
         public bool horizontal, open;
         [Tooltip("A winch-broken hatch stays open until this daily map is regenerated.")]
@@ -38,6 +39,7 @@ namespace Lifeline
                 mesh.GetComponent<Renderer>().sharedMaterial = material;
             }
             if (fitPlaceholderSize) visualRoot.localScale = barrier.size;
+            if (doorSprite != null) doorSprite.transform.localRotation = Quaternion.Euler(0, 0, horizontal ? 0 : 90);
             if (animatePlaceholder) visualRoot.localRotation = Quaternion.identity;
             closedScale = visualRoot.localScale;
             if (label == null)

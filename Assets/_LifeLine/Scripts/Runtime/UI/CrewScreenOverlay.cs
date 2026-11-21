@@ -170,7 +170,7 @@ namespace Lifeline
                 names[index].gameObject.SetActive(showName && Place(names[index], view, actor.transform.position + Vector3.up * nameOffset));
                 if (showName) names[index].text = hud.authority.NameFor(actor.role);
                 var panel = actor.role == CrewRole.Captain ? hud.captainPanel : hud.diverPanel;
-                bool canShowPrompt = owned && (panel == null || !panel.IsOpen);
+                bool canShowPrompt = owned && (panel == null || !panel.IsOpen || game.FindReviveTarget(actor) != null);
                 if (canShowPrompt && TryGetPrompt(actor, out Vector3 point, out string prompt))
                 {
                     prompts[index].text = prompt;
@@ -195,7 +195,7 @@ namespace Lifeline
             target = default;
             caption = null;
             var game = hud.session;
-            if (game.IsIncapacitated(actor) || actor.controlsCaptured || actor.input == null) return false;
+            if (game.IsIncapacitated(actor) || actor.input == null) return false;
             string interact = actor.input.GetBindingLabel("Interact");
             string hideKey = actor.input.HasBinding("Hide") ? actor.input.GetBindingLabel("Hide") : interact;
             if (game.IsHidden(actor))
@@ -212,6 +212,7 @@ namespace Lifeline
                 caption = Format("按住 [{0}] 扶起同伴 · {1:0.0}/{2:0.#} 秒", interact, game.reviveProgress[(int)actor.role], game.tuning.reviveSeconds);
                 return true;
             }
+            if (actor.controlsCaptured) return false;
             if (actor.onboard)
             {
                 var station = actor.NearbyStation;
@@ -232,6 +233,13 @@ namespace Lifeline
             var game = hud.session;
             var world = game.world;
             if (world == null) return false;
+            var fish = world.FindCatchableFish(actor);
+            if (fish != null)
+            {
+                target = fish.transform.position;
+                caption = Format("按住 [{0}] 捕捞小鱼", interact);
+                return true;
+            }
             string collect = actor.input.GetBindingLabel("Collect");
             var crate = world.FindNearest(actor, true);
             bool canLoad = crate != null && crate.contents.Count < crate.capacity && actor.backpack.Count > 0;
@@ -241,7 +249,7 @@ namespace Lifeline
             if (canLoad)
             {
                 target = crate.transform.position;
-                caption = Format("[{0}] 存入 · {1}/{2}", interact, crate.contents.Count, crate.capacity);
+                caption = Format("[{0}] 装载货箱", interact);
                 if (pickup == crate && crate.contents.Count > 0) caption += "\n" + Format("按住 [{0}] 挂绳", collect);
                 return true;
             }

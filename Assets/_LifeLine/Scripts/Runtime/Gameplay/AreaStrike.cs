@@ -48,7 +48,7 @@ namespace Lifeline
             {
                 var strike=areaStrikes[i];EnsureWarning(strike);strike.remaining-=dt;
                 if(strike.remaining>0)continue;
-                ResolveAreaStrike(strike);if(strike.view!=null)Destroy(strike.view.gameObject);areaStrikes.RemoveAt(i);
+                ResolveAreaStrike(strike);if(strike.view!=null)strike.view.Complete();areaStrikes.RemoveAt(i);
             }
         }
         public void ResolveAreaStrike(AreaStrike strike)

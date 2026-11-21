@@ -18,7 +18,7 @@ namespace Lifeline
     {
         public Vector3 position;
         public Vector2 facing;
-        public bool onboard;
+        public bool onboard, climbing;
         public float ropeMeters, craftNoticeSeconds;
     }
 

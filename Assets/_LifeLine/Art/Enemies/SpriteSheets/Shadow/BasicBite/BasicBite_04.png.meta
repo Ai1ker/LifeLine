@@ -1,0 +1,1619 @@
+fileFormatVersion: 2
+guid: 58a84fabca213d643bbbc4f8f06025bb
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4871018958787578925
+    second: BasicBite_04_0
+  - first:
+      213: -9007141045404655767
+    second: BasicBite_04_1
+  - first:
+      213: -3606018382222007046
+    second: BasicBite_04_2
+  - first:
+      213: -4990375654207095201
+    second: BasicBite_04_3
+  - first:
+      213: 1645866920841761620
+    second: BasicBite_04_4
+  - first:
+      213: -7303467254013210975
+    second: BasicBite_04_5
+  - first:
+      213: -2521444384630204842
+    second: BasicBite_04_6
+  - first:
+      213: 1630056263057841696
+    second: BasicBite_04_7
+  - first:
+      213: 7577787780147847885
+    second: BasicBite_04_8
+  - first:
+      213: 6778046061687408298
+    second: BasicBite_04_9
+  - first:
+      213: -6641866490042924334
+    second: BasicBite_04_10
+  - first:
+      213: -2565620464846551406
+    second: BasicBite_04_11
+  - first:
+      213: -5692717752053768944
+    second: BasicBite_04_12
+  - first:
+      213: -5569728853143159194
+    second: BasicBite_04_13
+  - first:
+      213: 3088831575082032313
+    second: BasicBite_04_14
+  - first:
+      213: 1340119029556662866
+    second: BasicBite_04_15
+  - first:
+      213: 2981748749558566816
+    second: BasicBite_04_16
+  - first:
+      213: 8616679606244376875
+    second: BasicBite_04_17
+  - first:
+      213: -809352176514914128
+    second: BasicBite_04_18
+  - first:
+      213: 7308540277305269014
+    second: BasicBite_04_19
+  - first:
+      213: 8278215952073444487
+    second: BasicBite_04_20
+  - first:
+      213: -1580026833989412949
+    second: BasicBite_04_21
+  - first:
+      213: -5402457266224248249
+    second: BasicBite_04_22
+  - first:
+      213: -5547982356299426663
+    second: BasicBite_04_23
+  - first:
+      213: -8334998693715876122
+    second: BasicBite_04_24
+  - first:
+      213: 6225939449477620876
+    second: BasicBite_04_25
+  - first:
+      213: 1048721493925570271
+    second: BasicBite_04_26
+  - first:
+      213: -1303263040756915972
+    second: BasicBite_04_27
+  - first:
+      213: -3299343743982094248
+    second: BasicBite_04_28
+  - first:
+      213: 4647935266804600173
+    second: BasicBite_04_29
+  - first:
+      213: 6915026367461339421
+    second: BasicBite_04_30
+  - first:
+      213: -7308194266723915491
+    second: BasicBite_04_31
+  - first:
+      213: -4122498664794083149
+    second: BasicBite_04_32
+  - first:
+      213: -7873049648839998517
+    second: BasicBite_04_33
+  - first:
+      213: -8377417754893951267
+    second: BasicBite_04_34
+  - first:
+      213: -4212747487131067155
+    second: BasicBite_04_35
+  - first:
+      213: 4571155695302665473
+    second: BasicBite_04_36
+  - first:
+      213: 2540421943229692007
+    second: BasicBite_04_37
+  - first:
+      213: 378693227514937774
+    second: BasicBite_04_38
+  - first:
+      213: -8270794890117948031
+    second: BasicBite_04_39
+  - first:
+      213: 9053297324568964646
+    second: BasicBite_04_40
+  - first:
+      213: 2367066321201522490
+    second: BasicBite_04_41
+  - first:
+      213: 2993976695522220459
+    second: BasicBite_04_42
+  - first:
+      213: 8671272341943600486
+    second: BasicBite_04_43
+  - first:
+      213: 5387268198506682702
+    second: BasicBite_04_44
+  - first:
+      213: 5481331488789852141
+    second: BasicBite_04_45
+  - first:
+      213: -2180933463255746468
+    second: BasicBite_04_46
+  - first:
+      213: 6652963410443058501
+    second: BasicBite_04_47
+  - first:
+      213: 3344547591707742065
+    second: BasicBite_04_48
+  - first:
+      213: -1786129243335956540
+    second: BasicBite_04_49
+  - first:
+      213: -6552768293372516286
+    second: BasicBite_04_50
+  - first:
+      213: -6110618810219860128
+    second: BasicBite_04_51
+  - first:
+      213: 388661264177570119
+    second: BasicBite_04_52
+  - first:
+      213: -5635816045957967600
+    second: BasicBite_04_53
+  - first:
+      213: -4514924329540398781
+    second: BasicBite_04_54
+  - first:
+      213: -2027502693900581866
+    second: BasicBite_04_55
+  - first:
+      213: 6145246870342887413
+    second: BasicBite_04_56
+  - first:
+      213: 1641187681425665358
+    second: BasicBite_04_57
+  - first:
+      213: 57337638622811360
+    second: BasicBite_04_58
+  - first:
+      213: 2556512423423743080
+    second: BasicBite_04_59
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 9
+  spritePivot: {x: 0.4746336, y: 0.56207675}
+  spritePixelsToUnits: 124
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: BasicBite_04_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 872
+        height: 443
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d3f543901aa66cb0800000000000000
+      internalID: -4871018958787578925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 407
+        width: 23
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96f90dae0f4300380800000000000000
+      internalID: -9007141045404655767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_2
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 403
+        width: 18
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af4e02a0369d4fdc0800000000000000
+      internalID: -3606018382222007046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_3
+      rect:
+        serializedVersion: 2
+        x: 188
+        y: 405
+        width: 61
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5e7a3b58cf9ebab0800000000000000
+      internalID: -4990375654207095201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_4
+      rect:
+        serializedVersion: 2
+        x: 247
+        y: 429
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 453d65c8e3b47d610800000000000000
+      internalID: 1645866920841761620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_5
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 435
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ae48d75a3fd4aa90800000000000000
+      internalID: -7303467254013210975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_6
+      rect:
+        serializedVersion: 2
+        x: 675
+        y: 431
+        width: 18
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 656963df0b7020dd0800000000000000
+      internalID: -2521444384630204842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_7
+      rect:
+        serializedVersion: 2
+        x: 691
+        y: 339
+        width: 114
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02e967be88f1f9610800000000000000
+      internalID: 1630056263057841696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_8
+      rect:
+        serializedVersion: 2
+        x: 806
+        y: 426
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc2220356d5b92960800000000000000
+      internalID: 7577787780147847885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_9
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 409
+        width: 22
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa60d124bf4701e50800000000000000
+      internalID: 6778046061687408298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_10
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 402
+        width: 10
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d2cb6f0e9953d3a0800000000000000
+      internalID: -6641866490042924334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_11
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 401
+        width: 17
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 296495cc7c5156cd0800000000000000
+      internalID: -2565620464846551406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_12
+      rect:
+        serializedVersion: 2
+        x: 306
+        y: 419
+        width: 14
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01d5646ad576ff0b0800000000000000
+      internalID: -5692717752053768944
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_13
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 370
+        width: 11
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66e78252e1954b2b0800000000000000
+      internalID: -5569728853143159194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_14
+      rect:
+        serializedVersion: 2
+        x: 853
+        y: 385
+        width: 25
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bc56c3c3fbbdda20800000000000000
+      internalID: 3088831575082032313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_15
+      rect:
+        serializedVersion: 2
+        x: 829
+        y: 371
+        width: 17
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2525779382f099210800000000000000
+      internalID: 1340119029556662866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_16
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 335
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0af47e290bc416920800000000000000
+      internalID: 2981748749558566816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_17
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 327
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b218c81e278949770800000000000000
+      internalID: 8616679606244376875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_18
+      rect:
+        serializedVersion: 2
+        x: 847
+        y: 317
+        width: 7
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b8a3accb7a94c4f0800000000000000
+      internalID: -809352176514914128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_19
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 302
+        width: 15
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61b5a6fe8a62d6560800000000000000
+      internalID: 7308540277305269014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_20
+      rect:
+        serializedVersion: 2
+        x: 851
+        y: 302
+        width: 11
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78c4f4d6c8122e270800000000000000
+      internalID: 8278215952073444487
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_21
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 268
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba7d97047fd921ae0800000000000000
+      internalID: -1580026833989412949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_22
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 131
+        width: 10
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74ac9746dbd9605b0800000000000000
+      internalID: -5402457266224248249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_23
+      rect:
+        serializedVersion: 2
+        x: 837
+        y: 123
+        width: 11
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99453a0017b9103b0800000000000000
+      internalID: -5547982356299426663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_24
+      rect:
+        serializedVersion: 2
+        x: 845
+        y: 111
+        width: 13
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e668b949d2245c80800000000000000
+      internalID: -8334998693715876122
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_25
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 62
+        width: 39
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c84643f51faf66650800000000000000
+      internalID: 6225939449477620876
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_26
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 28
+        width: 58
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd620c174aecd8e00800000000000000
+      internalID: 1048721493925570271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_27
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 58
+        width: 59
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf0e9ce5b21e9ede0800000000000000
+      internalID: -1303263040756915972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_28
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 46
+        width: 58
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8583a0478506632d0800000000000000
+      internalID: -3299343743982094248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_29
+      rect:
+        serializedVersion: 2
+        x: 701
+        y: 71
+        width: 20
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6d06e4df78c08040800000000000000
+      internalID: 4647935266804600173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_30
+      rect:
+        serializedVersion: 2
+        x: 756
+        y: 64
+        width: 17
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d113ef408db17ff50800000000000000
+      internalID: 6915026367461339421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_31
+      rect:
+        serializedVersion: 2
+        x: 847
+        y: 83
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d19ef5ee804149a90800000000000000
+      internalID: -7308194266723915491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_32
+      rect:
+        serializedVersion: 2
+        x: 177
+        y: 64
+        width: 12
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b03de96e41f9c6c0800000000000000
+      internalID: -4122498664794083149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_33
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 34
+        width: 62
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc3c0edbe0f4db290800000000000000
+      internalID: -7873049648839998517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_34
+      rect:
+        serializedVersion: 2
+        x: 417
+        y: 70
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ddede78ffee6dbb80800000000000000
+      internalID: -8377417754893951267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_35
+      rect:
+        serializedVersion: 2
+        x: 562
+        y: 71
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dec12250b705985c0800000000000000
+      internalID: -4212747487131067155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_36
+      rect:
+        serializedVersion: 2
+        x: 570
+        y: 64
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 105e487c2e1007f30800000000000000
+      internalID: 4571155695302665473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_37
+      rect:
+        serializedVersion: 2
+        x: 705
+        y: 68
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76830d13c44614320800000000000000
+      internalID: 2540421943229692007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_38
+      rect:
+        serializedVersion: 2
+        x: 780
+        y: 65
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea1cfd8eb73614500800000000000000
+      internalID: 378693227514937774
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_39
+      rect:
+        serializedVersion: 2
+        x: 818
+        y: 50
+        width: 20
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18d57643edb383d80800000000000000
+      internalID: -8270794890117948031
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_40
+      rect:
+        serializedVersion: 2
+        x: 58
+        y: 50
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62e6de443f5c3ad70800000000000000
+      internalID: 9053297324568964646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_41
+      rect:
+        serializedVersion: 2
+        x: 91
+        y: 46
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a37e103274289d020800000000000000
+      internalID: 2367066321201522490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_42
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 6
+        width: 80
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba9566a11fdbc8920800000000000000
+      internalID: 2993976695522220459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_43
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 46
+        width: 17
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 665c73ca04c865870800000000000000
+      internalID: 8671272341943600486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_44
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 46
+        width: 7
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e49dfb132eb63ca40800000000000000
+      internalID: 5387268198506682702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_45
+      rect:
+        serializedVersion: 2
+        x: 564
+        y: 30
+        width: 28
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: def6b7d92f9911c40800000000000000
+      internalID: 5481331488789852141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_46
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 54
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c58f0ebf194cbb1e0800000000000000
+      internalID: -2180933463255746468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_47
+      rect:
+        serializedVersion: 2
+        x: 683
+        y: 14
+        width: 34
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54d312f09f2145c50800000000000000
+      internalID: 6652963410443058501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_48
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 32
+        width: 23
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17fc02280583a6e20800000000000000
+      internalID: 3344547591707742065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_49
+      rect:
+        serializedVersion: 2
+        x: 810
+        y: 50
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c7e500aae46637e0800000000000000
+      internalID: -1786129243335956540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_50
+      rect:
+        serializedVersion: 2
+        x: 839
+        y: 46
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 248a61a84f3ef05a0800000000000000
+      internalID: -6552768293372516286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_51
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1
+        width: 61
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06f660b4198b23ba0800000000000000
+      internalID: -6110618810219860128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_52
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 14
+        width: 35
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 741224d4c5dc46500800000000000000
+      internalID: 388661264177570119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_53
+      rect:
+        serializedVersion: 2
+        x: 296
+        y: 28
+        width: 19
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0119a318a2f89c1b0800000000000000
+      internalID: -5635816045957967600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_54
+      rect:
+        serializedVersion: 2
+        x: 780
+        y: 40
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 341d9fd4e34c751c0800000000000000
+      internalID: -4514924329540398781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_55
+      rect:
+        serializedVersion: 2
+        x: 812
+        y: 38
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61488e4ca0ddcd3e0800000000000000
+      internalID: -2027502693900581866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_56
+      rect:
+        serializedVersion: 2
+        x: 734
+        y: 32
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f76edb387d484550800000000000000
+      internalID: 6145246870342887413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_57
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 1
+        width: 19
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4daf19308ba6c610800000000000000
+      internalID: 1641187681425665358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_58
+      rect:
+        serializedVersion: 2
+        x: 780
+        y: 14
+        width: 11
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e45f5e4744bbc000800000000000000
+      internalID: 57337638622811360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BasicBite_04_59
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 41
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8649b0e018e8a7320800000000000000
+      internalID: 2556512423423743080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

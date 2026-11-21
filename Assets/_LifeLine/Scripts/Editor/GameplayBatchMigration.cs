@@ -55,24 +55,39 @@ namespace Lifeline.Editor
         }
         public static void InstallBars(GameHUDController hud)
         {
-            var existing=hud.GetComponentInChildren<StatusBarValuesView>(true);if(existing!=null){InstallBarBackground(existing);return;}
+            var existing = hud.GetComponentInChildren<StatusBarValuesView>(true);
+            if (existing != null)
+            {
+                var strip = existing.transform.Find("Readable bar label strip");
+                if (strip != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(strip.gameObject);
+                    StyleBarLabel(existing.hull);
+                    StyleBarLabel(existing.power);
+                    StyleBarLabel(existing.oxygen);
+                }
+                return;
+            }
             var obj=new GameObject("HUD bar names and values",typeof(RectTransform));obj.transform.SetParent(hud.transform,false);
             var root=obj.GetComponent<RectTransform>();root.anchorMin=Vector2.zero;root.anchorMax=Vector2.one;root.offsetMin=root.offsetMax=Vector2.zero;
             var view=obj.AddComponent<StatusBarValuesView>();view.session=hud.session;
             view.hull=BarLabel(root,"Hull label",.02f,.25f);view.power=BarLabel(root,"Power label",.28f,.51f);view.oxygen=BarLabel(root,"Oxygen label",.54f,.97f);
-            InstallBarBackground(view);obj.transform.SetAsLastSibling();
+            obj.transform.SetAsLastSibling();
         }
-        static void InstallBarBackground(StatusBarValuesView view)
+        static void StyleBarLabel(Text label)
         {
-            if(view.background!=null)return;
-            var obj=new GameObject("Readable bar label strip",typeof(RectTransform));obj.transform.SetParent(view.transform,false);obj.transform.SetAsFirstSibling();
-            var rect=obj.GetComponent<RectTransform>();rect.anchorMin=new Vector2(0,.799f);rect.anchorMax=new Vector2(1,.823f);rect.offsetMin=rect.offsetMax=Vector2.zero;
-            view.background=obj.AddComponent<Image>();view.background.color=new Color(.9f,.94f,.91f,.98f);view.background.raycastTarget=false;
+            if (label == null) return;
+            label.color = Color.white;
+            var outline = label.GetComponent<Outline>();
+            if (outline == null) outline = label.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(.02f, .08f, .12f, .98f);
         }
         static Text BarLabel(Transform parent,string name,float left,float right)
         {
             var obj=new GameObject(name,typeof(RectTransform));obj.transform.SetParent(parent,false);var rect=obj.GetComponent<RectTransform>();rect.anchorMin=new Vector2(left,.803f);rect.anchorMax=new Vector2(right,.823f);rect.offsetMin=rect.offsetMax=Vector2.zero;
-            var text=obj.AddComponent<Text>();text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");text.fontSize=14;text.color=new Color(.07f,.18f,.2f);text.alignment=TextAnchor.MiddleLeft;text.raycastTarget=false;return text;
+            var text=obj.AddComponent<Text>();text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");text.fontSize=14;text.alignment=TextAnchor.MiddleLeft;text.raycastTarget=false;
+            StyleBarLabel(text);
+            return text;
         }
     }
 }

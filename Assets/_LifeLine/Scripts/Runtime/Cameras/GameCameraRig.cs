@@ -30,7 +30,7 @@ namespace Lifeline
         [Tooltip("Reserve this layer for ship-only visuals. Never assign it to underwater weapons or physics roots.")]
         [Range(0, 31)] public int shipPresentationLayer = 12;
         public bool isolateUnderwaterShip = true;
-        [Tooltip("Only the small water-map ship proxy uses this layer; the cabin stays in the remote ship map.")]
+        [Tooltip("Water-map presentation layer for the miniature boat, sky and underwater backdrop.")]
         [Range(0, 31)] public int underwaterProxyLayer = 14;
 
         [Header("Serialized Cinemachine rig (safe to tune / replace)")]
@@ -206,7 +206,11 @@ namespace Lifeline
             diverCamera.rect = IsSplitScreen ? new Rect(.5f, 0, .5f, 1) : new Rect(0, 0, 1, 1);
             RefreshViewLayers();
             var sky=session!=null&&session.IsNight?nightBackground:session!=null&&session.IsDusk?duskBackground:dayBackground;
-            captainCamera.backgroundColor=diverCamera.backgroundColor=sky;
+            Color water = new Color(.10f, .26f, .43f);
+            if (session != null && session.IsNight) water *= .4f;
+            water.a = 1;
+            captainCamera.backgroundColor = capAboard ? sky : water;
+            diverCamera.backgroundColor = divAboard ? sky : water;
 
             Vector3 boatPosition = ship != null ? ship.transform.position : Vector3.zero;
             if (shipBoundary != null) shipBoundary.transform.position = new Vector3(boatPosition.x, boatPosition.y, 0);

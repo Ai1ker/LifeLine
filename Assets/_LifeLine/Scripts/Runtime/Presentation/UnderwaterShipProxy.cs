@@ -31,14 +31,24 @@ namespace Lifeline
         public Transform winchVisual;
         public Vector3 winchLocalPosition = new Vector3(-.85f, .3f, -.25f);
         public float shipToProxyScale = .14f;
+        public Sprite[] surfaceFrames;
+        [Min(.1f)] public float surfaceSpriteWidth = 3.7f;
+        [Min(1)] public float surfaceFramesPerSecond = 6;
+        [Min(0)] public float bobAmplitude = .055f;
+        public Vector3 pixelWinchOffset = new Vector3(.87f, .42f, -.26f);
+        SpriteRenderer pixelShip;
+        Image pixelMarker, captainPixelMarker;
+
+        bool HasPixelShip => surfaceFrames != null && surfaceFrames.Length > 0 && surfaceFrames[0] != null;
+        float Bob => HasPixelShip ? Mathf.Sin(Time.time * 2f) * bobAmplitude : 0f;
 
         public Vector3 WinchPoint
         {
             get
             {
                 float surface = session != null && session.world != null ? session.world.WaterSurface : -1.5f;
-                Vector3 origin = session != null ? new Vector3(session.BoatAnchor.x, surface + surfaceHeight, foregroundZ) : transform.position;
-                return origin + Vector3.Scale(winchLocalPosition, proxyScale);
+                Vector3 origin = session != null ? new Vector3(session.BoatAnchor.x, surface + surfaceHeight + Bob, foregroundZ) : transform.position;
+                return origin + Vector3.Scale(HasPixelShip ? pixelWinchOffset : winchLocalPosition, proxyScale);
             }
         }
 
@@ -58,6 +68,13 @@ namespace Lifeline
             session = owner; cameraRig = rig;
             if (visualRoot == null) BuildGeometry();
             if (edgeMarker == null) BuildEdgeMarker();
+            if (HasPixelShip && pixelShip == null)
+            {
+                foreach (var original in visualRoot.GetComponentsInChildren<Renderer>(true)) original.enabled = false;
+                CreatePixelShip();
+            }
+            if (HasPixelShip && pixelMarker == null) pixelMarker = CreatePixelBearing(edgeMarker);
+            if (HasPixelShip && captainEdgeMarker != null && captainPixelMarker == null) captainPixelMarker = CreatePixelBearing(captainEdgeMarker);
             if (session != null && session.ship != null)
                 foreach (var station in session.ship.GetComponentsInChildren<StationAnchor>())
                     if (station.kind == StationKind.Winch)
@@ -66,12 +83,13 @@ namespace Lifeline
                         winchLocalPosition.x = (session.ShipToWaterPoint(source).x - session.BoatAnchor.x) * shipToProxyScale;
                         break;
                     }
-            if (winchVisual == null && visualRoot != null)
+            if (!HasPixelShip && winchVisual == null && visualRoot != null)
             {
                 Part("Winch drum", winchLocalPosition, new Vector3(.3f, .27f, .22f), mastMaterial != null ? mastMaterial : MakeMaterial("Proxy winch", mastColor));
                 winchVisual = visualRoot.Find("Winch drum");
             }
             if (winchVisual != null) winchVisual.localPosition = winchLocalPosition;
+            foreach (var renderer in visualRoot.GetComponentsInChildren<Renderer>(true)) renderer.gameObject.layer = presentationLayer;
             if (session != null)
             {
                 var maps = session.GetComponent<GameMapPartition>();
@@ -95,11 +113,22 @@ namespace Lifeline
                 return;
             }
             float surface = session.world != null ? session.world.WaterSurface : -1.5f;
-            transform.position = new Vector3(session.BoatAnchor.x, surface + surfaceHeight, foregroundZ);
+            transform.position = new Vector3(session.BoatAnchor.x, surface + surfaceHeight + Bob, foregroundZ);
             visualRoot.localScale = proxyScale;
-            foreach (var renderer in visualRoot.GetComponentsInChildren<Renderer>(true)) renderer.gameObject.layer = presentationLayer;
             if(edgeMarker==null)return;
-            if(captainEdgeMarker==null){captainEdgeMarker=Instantiate(edgeMarker,edgeMarker.parent);captainEdgeMarker.name="Captain small ship bearing";}
+            if(captainEdgeMarker==null)
+            {
+                captainEdgeMarker=Instantiate(edgeMarker,edgeMarker.parent);captainEdgeMarker.name="Captain small ship bearing";
+                if (pixelMarker != null) captainPixelMarker = CreatePixelBearing(captainEdgeMarker);
+            }
+            if (pixelShip != null && HasPixelShip)
+            {
+                int index = Mathf.FloorToInt(Time.time * surfaceFramesPerSecond) % surfaceFrames.Length;
+                Sprite current = surfaceFrames[index] != null ? surfaceFrames[index] : surfaceFrames[0];
+                pixelShip.sprite = current;
+                if (pixelMarker != null) pixelMarker.sprite = current;
+                if (captainPixelMarker != null) captainPixelMarker.sprite = current;
+            }
             UpdateMarker(edgeMarker,session.diver,cameraRig!=null?cameraRig.diverCamera:null);
             UpdateMarker(captainEdgeMarker,session.captain,cameraRig!=null?cameraRig.captainCamera:null);
         }
@@ -120,6 +149,11 @@ namespace Lifeline
         {
             visualRoot = new GameObject("Small surface ship - visual only").transform;
             visualRoot.SetParent(transform, false);
+            if (HasPixelShip)
+            {
+                CreatePixelShip();
+                return;
+            }
             Material hull = hullMaterial != null ? hullMaterial : MakeMaterial("Water map proxy hull", hullColor);
             Material deck = deckMaterial != null ? deckMaterial : MakeMaterial("Water map proxy deck", deckColor);
             Material mast = mastMaterial != null ? mastMaterial : MakeMaterial("Water map proxy mast", mastColor);
@@ -129,6 +163,12 @@ namespace Lifeline
             Part("Mast", new Vector3(.42f, .88f, 0), new Vector3(.07f, 1.1f, .2f), mast);
             Part("Flag", new Vector3(.69f, 1.27f, 0), new Vector3(.48f, .28f, .15f), hull);
             Part("Window", new Vector3(-.25f, .49f, -.17f), new Vector3(.62f, .22f, .06f), mast);
+        }
+
+        void CreatePixelShip()
+        {
+            pixelShip = PixelWorldArt.PlaceSprite(visualRoot, "Pixel surface ship", surfaceFrames[0],
+                new Vector3(0, .53f, -.08f), new Vector2(surfaceSpriteWidth, 5f), presentationLayer);
         }
 
         void Part(string title, Vector3 position, Vector3 scale, Material material)
@@ -165,11 +205,30 @@ namespace Lifeline
             edgeMarker = Rect("Small ship bearing", canvasObject.transform, Vector2.zero, Vector2.zero);
             edgeMarker.anchorMin = edgeMarker.anchorMax = Vector2.zero; edgeMarker.pivot = new Vector2(.5f, .5f);
             edgeMarker.sizeDelta = markerSize;
-            Image("Hull", edgeMarker, new Vector2(.08f, .12f), new Vector2(.92f, .38f), hullColor);
-            Image("Deck", edgeMarker, new Vector2(.28f, .38f), new Vector2(.62f, .69f), deckColor);
-            Image("Mast", edgeMarker, new Vector2(.65f, .38f), new Vector2(.69f, .98f), mastColor);
-            Image("Flag", edgeMarker, new Vector2(.69f, .80f), new Vector2(.93f, .98f), hullColor);
+            if (HasPixelShip)
+                pixelMarker = CreatePixelBearing(edgeMarker);
+            else
+            {
+                Image("Hull", edgeMarker, new Vector2(.08f, .12f), new Vector2(.92f, .38f), hullColor);
+                Image("Deck", edgeMarker, new Vector2(.28f, .38f), new Vector2(.62f, .69f), deckColor);
+                Image("Mast", edgeMarker, new Vector2(.65f, .38f), new Vector2(.69f, .98f), mastColor);
+                Image("Flag", edgeMarker, new Vector2(.69f, .80f), new Vector2(.93f, .98f), hullColor);
+            }
             Image("Bearing", edgeMarker, new Vector2(.49f, -.15f), new Vector2(.51f, .07f), mastColor);
+        }
+
+        Image CreatePixelBearing(RectTransform marker)
+        {
+            var existing = marker.Find("Pixel silhouette");
+            if (existing != null) return existing.GetComponent<Image>();
+            foreach (string name in new[] { "Hull", "Deck", "Mast", "Flag" })
+            {
+                var legacy = marker.Find(name);
+                if (legacy != null) legacy.gameObject.SetActive(false);
+            }
+            var image = Rect("Pixel silhouette", marker, Vector2.zero, Vector2.one).gameObject.AddComponent<Image>();
+            image.sprite = surfaceFrames[0]; image.preserveAspect = true; image.raycastTarget = false;
+            return image;
         }
 
         static RectTransform Rect(string title, Transform parent, Vector2 min, Vector2 max)

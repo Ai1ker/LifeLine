@@ -158,6 +158,7 @@ namespace Lifeline
         public bool shadowSpawnedThisNight;
         public int shadowHits;
         public bool shadowRepelled;
+        public bool shadowWorldRefreshPending;
         public float crewWipeTimer;
         public float crewWipeDelay = 2.5f;
         [Header("持续扶起 / hold interaction to revive")]
@@ -223,8 +224,8 @@ namespace Lifeline
             bool dayChanged = day != Mathf.Max(1, requestedDay);
             day = previousDay = Mathf.Max(1, requestedDay); elapsed = (day-1)*tuning.daySeconds + Mathf.Clamp(fraction,0,.9999f)*tuning.daySeconds;
             forceStormDay = forceStorm ? day : -1; stormWarning=0; stormCountdown=.2f; ClearAreaStrikes();
-            if (dayChanged) RefreshWorldForDay(day);
-            else if (!AnyCrewUnderwater) world?.RefreshDay(day);
+            if (dayChanged || shadowWorldRefreshPending) RefreshWorldForDay(day);
+            else if (!AnyCrewUnderwater && !HasLivingShadow) world?.RefreshDay(day);
             UpdateQuest(); Changed();
         }
         public bool LightEffective => searchlightOn && circuitRepaired && (infinitePower || power > 0);
@@ -274,7 +275,7 @@ namespace Lifeline
             elapsed = 0; day = previousDay = 1; radioStage = 0;
             rescueVoyage = false; rescueProgress = 0;
             stormWarning = 0; stormCountdown = UnityEngine.Random.Range(tuning.lightningIntervalMin, tuning.lightningIntervalMax);
-            shadowSpawnedThisNight = shadowRepelled = false; shadowHits = 0; crewWipeTimer = 0;
+            shadowSpawnedThisNight = shadowRepelled = shadowWorldRefreshPending = false; shadowHits = 0; crewWipeTimer = 0;
             reviveHeld = new bool[2]; reviveProgress = new float[2]; reviveTargets = new CrewActor[2];
             storyLog.Clear();
             ropeLength = tuning.ropeLengths[0];
@@ -334,6 +335,8 @@ namespace Lifeline
                 else if (day == 4) Tell("第4天：搜救频道开启。完成三级电台，向东航行接回幸存者。");
                 else Tell("新的一天：继续发送求救信号，合作守住这条船。");
             }
+            else if (shadowWorldRefreshPending && !HasLivingShadow && !AnyCrewUnderwater)
+                RefreshWorldForDay(day);
             UpdateQuest();
             notifyClock -= dt;
             if (notifyClock <= 0) { notifyClock = .15f; Changed(); }
@@ -346,8 +349,21 @@ namespace Lifeline
         public void HandleCommand(CrewActor actor, CrewCommand command)
         {
             if (actor == null) return;
+            int role = (int)actor.role;
+            bool interacting = command.interactHeld || command.interact;
+            if (phase == SessionPhase.Playing && !command.pause && interacting && !IsHidden(actor) && TryReviveTeammate(actor))
+            {
+                reviveHeld[role] = true;
+                world?.TryCatchRoomFish(actor, false);
+                if (actor == captain) { captainBoardHeld = false; captainBoardProgress = 0; }
+                return;
+            }
             bool capturedBeforeEvent = actor.controlsCaptured;
             CommandReceived?.Invoke(actor, command);
+            reviveHeld[role] = false;
+            if (phase != SessionPhase.Playing || !interacting || actor.onboard || capturedBeforeEvent || actor.controlsCaptured ||
+                IsHidden(actor) || IsIncapacitated(actor) || command.hide)
+                world?.TryCatchRoomFish(actor, false);
             if (phase != SessionPhase.Playing) return;
             if(IsHidden(actor))
             {
@@ -355,10 +371,11 @@ namespace Lifeline
                     world?.TryHide(actor);
                 return;
             }
-            reviveHeld[(int)actor.role] = command.interactHeld || command.interact;
-            if (reviveHeld[(int)actor.role] && !capturedBeforeEvent && !actor.controlsCaptured && TryReviveTeammate(actor))
+            if (interacting && !actor.onboard && !capturedBeforeEvent && !actor.controlsCaptured && !command.hide &&
+                world != null && world.TryCatchRoomFish(actor, true))
             {
-                if (actor == captain) { captainBoardHeld = false; captainBoardProgress = 0; }
+                if (actor == captain) { captainBoardHeld = false; captainBoardProgress = 0; captainSprinting = command.sprint; }
+                else if (actor == diver) diverSprinting = command.sprint;
                 return;
             }
             if(actor==captain)

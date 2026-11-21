@@ -29,6 +29,9 @@ namespace Lifeline
         [Tooltip("Disable for authored art. Procedural and placeholder loose loot follows resource materials.")]
         public bool tintPlaceholderVisuals = true;
         public int mazeIndex = -1, mazeCell = -1;
+        [System.NonSerialized] public RoomFish roomFish;
+        public bool IsSwimmingFish => roomFish != null;
+        public Vector3 SavePosition => IsSwimmingFish ? roomFish.Home : transform.position;
         public float CollectionProgress { get; private set; }
         CrewActor collector;
         float startedAt, lastCollectAt = -100f;
@@ -46,6 +49,7 @@ namespace Lifeline
             if (isCrate && contents.Count == 0) return false;
             if (!isCrate && filter == null && actor.backpack.Count >= actor.BagCapacity) return false;
             float now = Time.time;
+            if (IsSwimmingFish && collector != null && collector != actor && now - lastCollectAt <= .2f) return true;
             if (collector != actor || now - lastCollectAt > .2f)
             {
                 collector = actor; startedAt = now; CollectionProgress = 0;
@@ -91,6 +95,14 @@ namespace Lifeline
             return true;
         }
 
+        public void CancelCollection(CrewActor actor)
+        {
+            if (collector != actor) return;
+            collector = null;
+            CollectionProgress = 0;
+            lastCollectAt = -100f;
+        }
+
         public bool TryLoad(CrewActor actor)
         {
             if (!isCrate || attached || !InRange(actor) || contents.Count >= capacity || actor.backpack.Count == 0)
@@ -123,11 +135,12 @@ namespace Lifeline
             {
                 CollectionProgress = 0; collector = null;
             }
-            if (label != null && generatedVisual) RefreshLabel();
+            if (label != null && generatedVisual && !isCrate) RefreshLabel();
         }
 
         public void RefreshVisual()
         {
+            if (world != null && world.pixelArt != null) world.pixelArt.ApplyPickup(this);
             if (isCrate && attached && !consumed && world != null && world.session != null)
             {
                 var view = GetComponent<DiverLifelineView>();
@@ -141,9 +154,7 @@ namespace Lifeline
             {
                 var slot = cargoSlotRenderers[i];
                 if (slot == null) continue;
-                slot.gameObject.SetActive(i < contents.Count);
-                if (i < contents.Count && resourceMaterials != null && resourceMaterials.Length > 0)
-                    slot.sharedMaterial = resourceMaterials[(int)contents[i] % resourceMaterials.Length];
+                slot.enabled = false;
             }
         }
 
@@ -154,9 +165,10 @@ namespace Lifeline
         void RefreshLabel()
         {
             if (label == null) return;
+            if (IsSwimmingFish) { label.text = string.Empty; return; }
             var filter = GetComponent<FilterSalvage>();
             string progress = CollectionProgress > 0 ? " " + Mathf.RoundToInt(CollectionProgress * 100) + "%" : "";
-            label.text = filter != null ? filter.Prompt() + progress : isLostCargo ? LostCargoPrompt() + progress : isCrate ? (attached ? "CARGO / ATTACHED" : "CARGO " + contents.Count + "/" + capacity) + progress
+            label.text = filter != null ? filter.Prompt() + progress : isLostCargo ? LostCargoPrompt() + progress : isCrate ? contents.Count + "/" + capacity
                 : isCabinet ? "SALVAGE " + contents.Count + progress : GameNames.Resource(resource) + progress;
             label.text = UiLocalization.Text(label.text);
         }

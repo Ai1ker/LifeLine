@@ -132,6 +132,7 @@ namespace Lifeline.Tests
                 var sample = game.CaptureOnlineMotion(2);
                 float initialX = game.captain.Position.x;
                 sample.captain.position.x += 1f;
+                sample.captain.climbing = true;
                 guestLink.DeliverMotion(sample);
                 game.RenderOnlineMotion(.02f);
                 Assert.That(game.captain.Position.x, Is.InRange(initialX + .1f, initialX + .9f));
@@ -141,6 +142,13 @@ namespace Lifeline.Tests
                 guestLink.DeliverMotion(stale);
                 game.RenderOnlineMotion(.03f);
                 Assert.That(game.captain.Position.x, Is.EqualTo(sample.captain.position.x).Within(.001f));
+                Assert.That(game.captain.IsClimbing, Is.True);
+                var landed = sample;
+                landed.sequence++;
+                landed.captain.climbing = false;
+                guestLink.DeliverMotion(landed);
+                game.RenderOnlineMotion(.05f);
+                Assert.That(game.captain.IsClimbing, Is.False);
                 guestLink.DeliverAttack(CrewRole.Captain, CrewVisualEvent.Melee, Vector2.up);
                 Assert.That(game.captain.GetComponent<CrewPresentation>().MeleeAnimationPlaying, Is.True);
                 Assert.That(game.captain.MeleeFacing, Is.EqualTo(Vector2.up));

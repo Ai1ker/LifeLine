@@ -40,6 +40,7 @@ namespace Lifeline
         static readonly int FeatherId = Shader.PropertyToID("_FeatherPixels");
         static readonly int OpacityId = Shader.PropertyToID("_Opacity");
         static readonly int DarknessId = Shader.PropertyToID("_DarknessColor");
+        static readonly int WaterlineId = Shader.PropertyToID("_WaterlineUV");
 
         public void Initialize(GameSession owner, GameCameraRig rig, CrewActor actor, Image image, Material material)
         {
@@ -100,8 +101,17 @@ namespace Lifeline
                 rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
             }
             Vector3 focus = camera.WorldToViewportPoint(actor.transform.position + focusWorldOffset);
+            float waterlineUV = 2f;
+            var world = session.world;
+            if (world != null && world.oceanArt != null && world.oceanArt.backdropShader != null)
+            {
+                Vector3 surface = actor.transform.position;
+                surface.y = world.WaterSurface;
+                waterlineUV = camera.WorldToViewportPoint(surface).y;
+            }
             CurrentRadiusPixels = session.LightEffective ? searchlightRadiusPixels : personalRadiusPixels;
             materialInstance.SetVector(FocusId, new Vector4(focus.x, focus.y, 0, 0));
+            materialInstance.SetFloat(WaterlineId, waterlineUV);
             materialInstance.SetVector(ViewportId, new Vector4(Mathf.Max(1, camera.pixelWidth), Mathf.Max(1, camera.pixelHeight), 0, 0));
             Rect localRect = rect.rect;
             materialInstance.SetVector(RectId, new Vector4(localRect.xMin, localRect.yMin, localRect.width, localRect.height));

@@ -87,6 +87,51 @@ namespace Lifeline.Tests
             game.HandleCommand(game.diver, new CrewCommand { hide = true, hideSeparate = true }); Assert.That(game.IsHidden(game.diver), Is.False);
         }
 
+        [TestCase(false)] [TestCase(true)]
+        public void RescueTakesPriorityOverAnOverlappingStationAndClosesACapturedOperation(bool deviceAlreadyOpen)
+        {
+            var station = Station(StationKind.Workbench);
+            game.diver.SetOnboard(true, station.transform.position + Vector3.right * .3f);
+            game.diver.SetDowned(true);
+            game.captain.controlsCaptured = deviceAlreadyOpen;
+            int stationRequests = 0, deviceCommands = 0, interrupted = 0;
+            game.StationRequested += (_, _) => stationRequests++;
+            game.CommandReceived += (_, _) => deviceCommands++;
+            game.OperationInterrupted += _ => interrupted++;
+            game.HandleCommand(game.captain, new CrewCommand { interact = true, interactHeld = true });
+            Assert.That(game.reviveTargets[(int)CrewRole.Captain], Is.SameAs(game.diver));
+            Assert.That(stationRequests, Is.Zero);
+            Assert.That(deviceCommands, Is.Zero);
+            Assert.That(interrupted, Is.EqualTo(deviceAlreadyOpen ? 1 : 0));
+            game.StepSimulation(tuning.reviveSeconds);
+            Assert.That(game.diver.downed, Is.False);
+        }
+
+        [Test] public void RoomFishUsesHeldInteractRatherThanCollectAndCancelsOnRelease()
+        {
+            var world = World();
+            Assert.That(game.BeginDive());
+            var room = new MazeLayout { columns = 1, rows = 1, cellSize = 3, topLeft = new Vector2(-1.5f, -10) };
+            world.layouts.Add(room);
+            var fish = Child("Swimmer").AddComponent<LootPickup>();
+            fish.transform.position = room.Center(0);
+            fish.resource = ResourceKind.Fish; fish.saveId = "fish-check"; fish.mazeIndex = fish.mazeCell = 0;
+            world.PrepareRestoredPickup(fish); world.pickups.Add(fish);
+            game.diver.SetOnboard(false, fish.transform.position);
+            var startedAt = typeof(LootPickup).GetField("startedAt", BindingFlags.Instance | BindingFlags.NonPublic);
+            game.HandleCommand(game.diver, new CrewCommand { collect = true });
+            Assert.That(world.FindNearest(game.diver, false), Is.Null);
+            game.HandleCommand(game.diver, new CrewCommand { interact = true, interactHeld = true });
+            startedAt.SetValue(fish, Time.time - 1);
+            game.HandleCommand(game.diver, new CrewCommand());
+            game.HandleCommand(game.diver, new CrewCommand { interactHeld = true });
+            Assert.That(game.diver.backpack, Is.Empty);
+            startedAt.SetValue(fish, Time.time - 1);
+            game.HandleCommand(game.diver, new CrewCommand { interactHeld = true });
+            Assert.That(game.diver.backpack, Is.EqualTo(new[] { ResourceKind.Fish }));
+            Assert.That(fish.consumed);
+        }
+
         [Test] public void ATeammateCanReviveAnUnconsciousDiverUnderwater()
         {
             World();

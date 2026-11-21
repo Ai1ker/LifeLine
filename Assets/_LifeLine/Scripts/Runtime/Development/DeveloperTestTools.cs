@@ -88,6 +88,7 @@ namespace Lifeline.Development
             {
                 IsolateSave(); foreach (ResourceKind kind in new[] { ResourceKind.Wood, ResourceKind.Metal, ResourceKind.Fiber, ResourceKind.Plank, ResourceKind.Plate, ResourceKind.FiberBundle, ResourceKind.Fuel }) game.AddResource(kind, resourceAmount);
             }
+            if (GUILayout.Button(T("Build all stations and maximize upgrades"))) BuildAndUpgradeAll(game);
             if (GUILayout.Button(T("Restore hull / power / oxygen / crew")))
             {
                 IsolateSave(); game.hull = game.hullMax; game.power = game.tuning.maxPower;
@@ -140,6 +141,39 @@ namespace Lifeline.Development
         {
             IsolateSave(); game.SetDayClock(testDay, fraction, fraction >= game.tuning.dayFraction + game.tuning.duskFraction);
         }
+        public void BuildAndUpgradeAll(GameSession game)
+        {
+            if (game == null || !game.IsInitialized || OnlineVoyage.InProgress) return;
+            IsolateSave();
+            var upgrades = (UpgradeKind[])System.Enum.GetValues(typeof(UpgradeKind));
+            if (game.upgradeLevels == null || game.upgradeLevels.Length < upgrades.Length)
+                System.Array.Resize(ref game.upgradeLevels, upgrades.Length);
+            foreach (var kind in upgrades) game.upgradeLevels[(int)kind] = game.GetMaxUpgrade(kind);
+            game.ropeLength = game.tuning.ropeLengths[Mathf.Min(game.GetUpgrade(UpgradeKind.Rope), game.tuning.ropeLengths.Length - 1)];
+            float oldMax = game.hullMax;
+            game.hullMax = game.tuning.hullLevels[Mathf.Min(game.GetUpgrade(UpgradeKind.Hull), game.tuning.hullLevels.Length - 1)]
+                * (game.infinitePower ? game.tuning.eelHullMultiplier : 1f);
+            game.hull = Mathf.Clamp(game.hull + game.hullMax - oldMax, 0, game.hullMax);
+            if (game.diver != null)
+            {
+                float oldOxygen = game.diver.oxygenMax;
+                game.diver.oxygenMax = game.GetOxygenMax();
+                game.diver.oxygen = Mathf.Min(game.diver.oxygenMax, game.diver.oxygen + game.diver.oxygenMax - oldOxygen);
+            }
+            foreach (string tool in new[] { "rod", "harpoon", "speargun", "generator", "repair-bench", "filter" }) game.UnlockEquipment(tool);
+            game.filterRepaired = game.circuitRepaired = game.engineRepaired = game.engineEverRepaired = true;
+            for (int i = 0; i < game.engineFaultFixed.Length; i++) { game.engineFaultFixed[i] = true; game.engineFaultClean[i] = 1; }
+            game.turretInstalled = game.turretOn = true;
+            game.turretTier = 2;
+            if (!game.infinitePower) game.generatorTier = 1;
+            game.efficientFuelGenerator = true;
+            if (game.world != null)
+                foreach (var pickup in game.world.pickups)
+                    if (pickup != null && pickup.GetComponent<FilterSalvage>() != null)
+                    { pickup.consumed = true; pickup.gameObject.SetActive(false); }
+            game.RefreshEquipmentVisibility();
+            game.Changed();
+        }
         public void CreateCargo(GameSession game)
         {
             if (game.world == null) return;
@@ -153,7 +187,8 @@ namespace Lifeline.Development
                 var cargo = obj.GetComponent<LootPickup>(); if (cargo == null) cargo = obj.AddComponent<LootPickup>();
                 cargo.world = game.world; cargo.isCrate = cargo.attached = true; cargo.consumed = false; cargo.amount = 0;
                 cargo.capacity = game.tuning.crateCapacity; cargo.contents.Clear(); cargo.contents.Add(ResourceKind.Wood);
-                game.world.pickups.Add(cargo); game.RegisterAttachedCargo(cargo); cargo.RefreshVisual();
+                game.world.PrepareRestoredPickup(cargo);
+                game.world.pickups.Add(cargo); game.RegisterAttachedCargo(cargo);
             }
         }
     }

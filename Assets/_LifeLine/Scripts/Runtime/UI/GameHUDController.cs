@@ -69,8 +69,8 @@ namespace Lifeline
             if (crewOverlay == null) crewOverlay = GetComponent<CrewScreenOverlay>();
             if (crewOverlay == null) crewOverlay = gameObject.AddComponent<CrewScreenOverlay>();
             crewOverlay.Initialize(this);
-            session.captain?.GetComponent<CrewPresentation>()?.SetFront(true);
-            session.diver?.GetComponent<CrewPresentation>()?.SetFront(false);
+            SessionAuthority.ApplyCrewRenderOrder(session, authority != null && authority.onlineView,
+                authority != null ? authority.localRole : CrewRole.Captain);
             initialized = true;
         }
         private void OnDestroy()

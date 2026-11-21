@@ -300,6 +300,7 @@ namespace Lifeline
         {
             CrewActor other = FindReviveTarget(actor);
             if (other == null) return false;
+            if (actor.controlsCaptured || ship != null && ship.helmOperator == actor) InterruptOperation(actor);
             int index = (int)actor.role;
             if (reviveTargets[index] != other) { reviveTargets[index] = other; reviveProgress[index] = 0; Tell(string.Format("按住交互{0}秒，扶起{1}；松开或离开会中断。", tuning.reviveSeconds.ToString("0.#"), GameNames.Role(other.role)), actor); }
             return true;

@@ -7,7 +7,7 @@ namespace Lifeline.Tests
 {
     public sealed class AquaticVisibilityPlayModeTests
     {
-        [UnityTest] public IEnumerator NightExteriorDoesNotLeakBrightLootButCentreRemainsVisible()
+        [UnityTest] public IEnumerator NightMaskOccludesDistantWaterAndLeavesCentreAndSkyVisible()
         {
             var shader = Shader.Find("LifeLine/UI/Night Visibility"); Assert.That(shader, Is.Not.Null);
             var material = new Material(shader); var target = new RenderTexture(64, 64, 0); target.Create();
@@ -15,19 +15,23 @@ namespace Lifeline.Tests
             try
             {
                 material.SetVector("_FocusUV", new Vector4(.5f, .5f, 0, 0)); material.SetVector("_ViewportPixels", new Vector4(64, 64, 0, 0));
+                material.SetFloat("_WaterlineUV", .65f);
                 material.SetFloat("_RadiusPixels", 18); material.SetFloat("_FeatherPixels", 4); material.SetFloat("_Opacity", 1);
                 // Authored tint alpha and the old .98 dark alpha must not expose silhouettes.
                 material.SetColor("_DarknessColor", new Color(.006f, .014f, .025f, .98f)); material.SetColor("_Color", new Color(1, 1, 1, .5f));
-                Color[] samples = new Color[4];
+                Color[] outside = new Color[2], centre = new Color[2], sky = new Color[2];
                 for (int i = 0; i < 2; i++)
                 {
                     RenderTexture.active = target; GL.Clear(true, true, i == 0 ? Color.white : Color.black);
                     Graphics.Blit(Texture2D.whiteTexture, target, material); RenderTexture.active = target;
                     readback.ReadPixels(new Rect(0, 0, 64, 64), 0, 0); readback.Apply();
-                    samples[i * 2] = readback.GetPixel(60, 32); samples[i * 2 + 1] = readback.GetPixel(32, 32);
+                    outside[i] = readback.GetPixel(60, 32);
+                    centre[i] = readback.GetPixel(32, 32);
+                    sky[i] = readback.GetPixel(60, 55);
                 }
-                Assert.That(Vector4.Distance(samples[0], samples[2]), Is.LessThan(.005f), "outside pixels must be independent of bright objects behind the mask");
-                Assert.That(Vector4.Distance(samples[1], samples[3]), Is.GreaterThan(.6f), "the centre must remain transparent so nearby resources are visible");
+                Assert.That(Vector4.Distance(outside[0], outside[1]), Is.LessThan(.005f), "outside pixels must be independent of bright objects behind the mask");
+                Assert.That(Vector4.Distance(centre[0], centre[1]), Is.GreaterThan(.6f), "the centre must remain transparent so nearby resources are visible");
+                Assert.That(Vector4.Distance(sky[0], sky[1]), Is.GreaterThan(.6f), "the underwater mask should end at the waterline");
             }
             finally { RenderTexture.active = previous; Object.DestroyImmediate(material); target.Release(); Object.DestroyImmediate(target); Object.DestroyImmediate(readback); }
             yield return null;

@@ -81,10 +81,27 @@ namespace Lifeline
             return selected;
         }
 
+        public bool HasLivingShadow
+        {
+            get
+            {
+                foreach (LifelineEnemy enemy in enemies)
+                    if (enemy != null && enemy.kind == EnemyKind.Shadow && enemy.IsAlive) return true;
+                return false;
+            }
+        }
+
         public void RefreshWorldForDay(int newDay)
         {
+            if (world == null) return;
+            if (HasLivingShadow)
+            {
+                shadowWorldRefreshPending = world.activeDay != newDay;
+                return;
+            }
             // Keep the same obstacles and rope contacts for anyone who stays submerged overnight.
-            if (world == null || AnyCrewUnderwater) return;
+            if (AnyCrewUnderwater) return;
+            shadowWorldRefreshPending = false;
             foreach (LifelineEnemy enemy in enemies.ToArray())
             {
                 if (enemy == null || !enemy.IsAquaticHunter) continue;
@@ -98,6 +115,7 @@ namespace Lifeline
 
         public LifelineEnemy SpawnEnemy(EnemyKind kind, Vector3 position, bool restoreExisting = false)
         {
+            if (kind == EnemyKind.Shadow && !restoreExisting && HasLivingShadow) return null;
             if (kind == EnemyKind.Shark || kind == EnemyKind.WhiteShark)
             {
                 float surface = world != null ? world.WaterSurface : -1.5f;
@@ -128,11 +146,11 @@ namespace Lifeline
         {
             enemies.RemoveAll(enemy => enemy == null);
             if (!IsNight) shadowSpawnedThisNight = false;
-            if (IsShadowSpawnAllowed && !shadowSpawnedThisNight && !shadowRepelled)
+            if (IsShadowSpawnAllowed && !shadowSpawnedThisNight && !shadowRepelled && !HasLivingShadow)
             {
                 shadowSpawnedThisNight = true;
                 SpawnEnemy(EnemyKind.Shadow, BoatAnchor + new Vector3(12, -16, 0));
-                Tell("深渊巨影正在靠近。每次横扫前都有明显蓄力，命中20次可将它逼退。");
+                Tell("深渊之影正在靠近，累计造成30点伤害可将它逼退。");
             }
             if (IsNight)
             {
@@ -171,8 +189,7 @@ namespace Lifeline
             meleeCooldowns[(int)actor.role] = Mathf.Max(tuning.meleeCooldown, presentation != null ? presentation.swingSeconds : 0);
             actor.EmitPresentationEvent(CrewVisualEvent.Melee, direction: facing);
             if (!actor.onboard) TryPushUnderwaterCargo(actor, facing, range);
-            if (!actor.onboard && !hasHarpoon) return true;
-            float damage = (hasHarpoon ? harpoonDamage : meleeDamage) * (Buffs(actor).attack > 0 ? 1 + tuning.fishAttackBonus : 1);
+            float damage = hasHarpoon ? harpoonDamage : meleeDamage;
             LifelineEnemy closest = null; float nearest = range;
             foreach (LifelineEnemy enemy in enemies)
             {
@@ -187,11 +204,12 @@ namespace Lifeline
                 if (actor.onboard && !enemy.IsAirborne && enemy.kind != EnemyKind.Shadow && enemy.transform.position.y < -2) continue;
                 closest = enemy; nearest = distance;
             }
-            if (closest != null) { closest.ReceiveHit(damage, actor); return true; }
+            if (closest != null) closest.ReceiveHit(closest.IsAirborne ? damage * AirborneWeaponMultiplier(actor) : damage, actor);
             return true;
         }
 
         public float MeleeReach => tuning.meleeRange * (hasHarpoon ? 1f : .65f);
+        internal float AirborneWeaponMultiplier(CrewActor actor) => actor != null && Buffs(actor).attack > 0 ? 1 + tuning.fishAttackBonus : 1;
 
         void TryPushUnderwaterCargo(CrewActor actor, Vector2 facing, float range)
         {
@@ -253,11 +271,12 @@ namespace Lifeline
             spear.session = this; spear.owner = actor; spear.direction = facing;
             spear.onShipMap = actor.onboard;
             maps?.MoveGameplayObject(root, spear.onShipMap);
-            spear.damage = spearDamage * (Buffs(actor).attack > 0 ? 1 + tuning.fishAttackBonus : 1);
-            if (spearMaterial != null && root.GetComponentInChildren<Renderer>() != null) root.GetComponentInChildren<Renderer>().sharedMaterial = spearMaterial;
+            spear.damage = spearDamage;
+            var spearMesh = root.GetComponentInChildren<MeshRenderer>();
+            if (spearMaterial != null && spearMesh != null) spearMesh.sharedMaterial = spearMaterial;
             spear.maximumRange=10f;
             if(root.GetComponent<SpearTetherView>()==null)root.AddComponent<SpearTetherView>().spear=spear;
-            activeSpears[index] = spear; actor.EmitPresentationEvent(CrewVisualEvent.Fire); return true;
+            activeSpears[index] = spear; actor.EmitPresentationEvent(CrewVisualEvent.Fire, direction: facing); return true;
         }
 
         public void NotifyWeaponHit(GameObject target, CrewActor actor)
@@ -334,8 +353,9 @@ namespace Lifeline
             shot.session = this; shot.owner = captain; shot.turretShot = true; shot.target = target;
             shot.onShipMap = shipMap;
             shot.ignoreShipColliders = true;
-            shot.direction = (target.transform.position - root.transform.position).normalized; shot.damage = 1;
-            if (spearMaterial != null && root.GetComponentInChildren<Renderer>() != null) root.GetComponentInChildren<Renderer>().sharedMaterial = spearMaterial;
+            shot.direction = (target.transform.position - root.transform.position).normalized; shot.damage = target.IsAirborne ? 1f : harpoonDamage;
+            var shotMesh = root.GetComponentInChildren<MeshRenderer>();
+            if (spearMaterial != null && shotMesh != null) shotMesh.sharedMaterial = spearMaterial;
         }
 
         void UpdateWeather(float dt)

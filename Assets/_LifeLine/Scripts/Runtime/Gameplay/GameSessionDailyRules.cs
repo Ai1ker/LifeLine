@@ -28,7 +28,7 @@ namespace Lifeline
         }
         public void InterruptOperation(CrewActor actor)
         {
-            if (actor == null || IsIncapacitated(actor) || !actor.onboard) return;
+            if (actor == null || IsIncapacitated(actor)) return;
             OperationInterrupted?.Invoke(actor);
             actor.controlsCaptured = false;
             if (ship != null && ship.helmOperator == actor) ship.SetHelm(null);

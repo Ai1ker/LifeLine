@@ -316,7 +316,7 @@ namespace Lifeline.Editor
             Primitive(visual, "HullBack", PrimitiveType.Cube, new Vector3(0,-2.1f,1.3f), new Vector3(24,4.2f,.2f), hullMaterial);
             Solid(root.transform, "DeckWest", new Vector3(-6.45f,-.2f,0), new Vector3(11.1f,.4f,2.2f), deckMaterial);
             Solid(root.transform, "DeckEast", new Vector3(6.45f,-.2f,0), new Vector3(11.1f,.4f,2.2f), deckMaterial);
-            var hatch = Solid(root.transform, "LadderHatch", new Vector3(0,-.2f,0), new Vector3(1.8f,.4f,2.2f), trim);
+            var hatch = Solid(root.transform, "LadderHatch", new Vector3(0,-.2f,0), new Vector3(1.8f,.4f,2.2f), deckMaterial);
             Solid(root.transform, "CabinFloor", new Vector3(0,-4.2f,0), new Vector3(24,.4f,2.2f), deckMaterial);
             Solid(root.transform, "CabinWestWall", new Vector3(-12,-2.1f,0), new Vector3(.25f,4,2.2f), hullMaterial);
             Solid(root.transform, "CabinEastWall", new Vector3(12,-2.1f,0), new Vector3(.25f,4,2.2f), hullMaterial);
