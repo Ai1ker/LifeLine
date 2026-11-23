@@ -53,7 +53,7 @@ namespace Lifeline
                 mainMenu.SetContinueAvailable(HasValidSave(out _));
             }
             if (session != null && bootOnStart) BootSession();
-            hud?.SetManualSaveAvailable(session != null && !loadFailed && !OnlineVoyage.IsGuest);
+            RefreshManualSaveButton();
         }
         void OnDestroy()
         {
@@ -68,12 +68,20 @@ namespace Lifeline
                 if (session.day <= lastAutoSavedDay || TryAutoSave(out _)) pendingAutoDay = 0;
                 else nextAutoAttempt = Time.unscaledTime + Mathf.Max(1, autoRetrySeconds);
             }
-            hud?.SetManualSaveAvailable(session != null && !loadFailed && !OnlineVoyage.IsGuest && session.phase == SessionPhase.Paused);
+            RefreshManualSaveButton();
         }
+        void RefreshManualSaveButton() =>
+            hud?.SetManualSaveAvailable(!loadFailed && !OnlineVoyage.IsGuest && session != null && session.IsInitialized &&
+                ManualSaveAllowed(session));
+
+        static bool ManualSaveAllowed(GameSession game) => game != null &&
+            (game.phase == SessionPhase.Paused || game.phase == SessionPhase.Playing &&
+                OnlineVoyage.InProgress && !OnlineVoyage.IsGuest && OnlineVoyage.Current.LocalMenuOpen);
         public bool BootSession()
         {
             bool load = continueRequested; continueRequested = false;
             if (session == null) return Fail("未找到游戏会话。", out _);
+            TutorialProgress.ForSession(session);
             if (OnlineVoyage.InProgress) return OnlineVoyage.Current.Boot(this);
             if (load)
             {
@@ -111,9 +119,7 @@ namespace Lifeline
         }
         public bool TrySave(GameSession game, SaveReason reason, out string error)
         {
-            bool onlineMenu = OnlineVoyage.InProgress && !OnlineVoyage.IsGuest && OnlineVoyage.Current.LocalMenuOpen;
-            bool playing = game != null && game.phase == SessionPhase.Playing;
-            bool allowed = reason == SaveReason.Manual ? game != null && (game.phase == SessionPhase.Paused || onlineMenu && playing) : playing;
+            bool allowed = reason == SaveReason.Manual ? ManualSaveAllowed(game) : game != null && game.phase == SessionPhase.Playing;
             if (OnlineVoyage.IsGuest || game == null || !game.IsInitialized || loadFailed || !allowed) return Fail("当前状态不能保存。", out error);
             if (reason == SaveReason.Automatic && (game.day <= lastAutoSavedDay || game.IsNight || game.IsDusk)) { error = ""; return false; }
             try

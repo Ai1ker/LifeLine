@@ -278,26 +278,26 @@ namespace Lifeline
             foreach (PickupSaveState state in saved.pickups)
             {
                 restored.Add(state.id);
-                if (onlyChanged && current.TryGetValue(state.id, out var existing) &&
-                    existing.consumed == state.consumed && existing.attached == state.attached &&
-                    existing.amount == state.amount && existing.capacity == state.capacity &&
-                    existing.resource == state.resource && existing.contents.SequenceEqual(state.contents))
+                bool found = current.TryGetValue(state.id, out var pickup);
+                if (onlyChanged && found &&
+                    pickup.consumed == state.consumed && pickup.attached == state.attached &&
+                    pickup.amount == state.amount && pickup.capacity == state.capacity &&
+                    pickup.isCrate == state.isCrate && pickup.isCabinet == state.isCabinet &&
+                    pickup.isLostCargo == state.isLostCargo && pickup.persistAcrossDays == state.persistAcrossDays &&
+                    pickup.resource == state.resource && pickup.contents.SequenceEqual(state.contents))
                 {
-                    if (existing.SavePosition != state.position)
+                    if (pickup.SavePosition != state.position)
                     {
-                        existing.transform.position = state.position;
-                        if (existing.IsSwimmingFish) world.PrepareRoomFish(existing);
+                        pickup.transform.position = state.position;
+                        if (pickup.IsSwimmingFish) world.PrepareRoomFish(pickup);
                     }
                     continue;
                 }
-                if (!current.TryGetValue(state.id, out LootPickup pickup))
+                if (!found)
                 {
                     if (!state.dynamic) throw new InvalidOperationException("存档物资ID与当前地图生成器不兼容：" + state.id);
-                    GameObject prefab = state.isCrate ? world.cratePrefab : world.lootPrefab;
-                    GameObject root = prefab != null ? Instantiate(prefab, state.position, Quaternion.identity, world.transform) : GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    root.name = "Restored cargo " + state.id; root.transform.SetParent(world.transform, true);
-                    pickup = root.GetComponent<LootPickup>(); if (pickup == null) pickup = root.AddComponent<LootPickup>();
-                    Collider collider = root.GetComponent<Collider>(); if (collider == null) collider = root.AddComponent<BoxCollider>(); collider.isTrigger = true;
+                    pickup = world.CreatePickupObject(world.transform, state.position, state.resource, state.isCrate, state.isCabinet, state.isLostCargo);
+                    pickup.name = "Restored cargo " + state.id;
                     world.pickups.Add(pickup);
                 }
                 pickup.world = world; pickup.saveId = state.id; pickup.resource = state.resource; pickup.amount = state.amount; pickup.capacity = state.capacity;

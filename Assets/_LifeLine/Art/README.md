@@ -46,3 +46,17 @@ Unity 工程路径为 `Assets/_LifeLine/Art/`。按用途分为 `Characters` 船
 - Sprite 导入清理低透明度底雾和游离角落的残留。深渊之影各动画以可见轮廓中心对齐枢轴，并按共同宽度注册，动作高度在巡游参考的 94%–109% 之间。换帧后运行 `LifeLine/Art/Register All Shadow Frames` 更新预制体和导入数据。
 - 雷雨夜雨丝由远景着色器滚动。`AreaWarningView` 使用统一的深色外圈与倒计时内圈，可在预制体换色及替换命中贴图。雷电在预警中心播 0.36 秒，出击点固定。
 - 本批内置 ImageGen 提示指定正视重复混凝土砖面、低对比岩层、带透明底的浸水现代楼体轮廓、带玻璃鳗舱的电机，以及同体型同朝向的四帧快速咬合。
+
+## 航海界面
+
+- 在 `Scenes/MainMenu.unity` 的 `MainMenuCanvas` 编辑主菜单、设置和换绑。在 `Scenes/Gameplay.unity` 的 `GameplayCanvas` 编辑暂停、设备面板、引导卷轴和分屏视口。未激活的面板可在编辑模式临时激活查看。
+- `Prefabs/UI/VoyageStatusCard.prefab` 共用于两个视口。`ActionButton.prefab` 和 `BackpackSlot.prefab` 提供实际的列表行和物品格。房间与载入界面分别位于 `OnlineRoomPanel.prefab` 和 `OnlineLoadingCanvas.prefab`。查看房间预制体时可切换 `Home`、`Create`、`Join` 或 `Room` 子页。
+- 在各 `Image` 的 `Source Image` 字段替换图片。黄铜边框、羊皮纸、图标和时钟位于 `UI/StaticSprites/Resources/LifeLineUI/Nautical/`，边框使用九宫格拉伸。场景与预制体直接引用 Sprite。
+- `LifeLine/UI/Install Authored Nautical Interface` 用于给仍是旧占位 UI 的工程做一次编辑器迁移。已经迁移的场景可直接保存并提交，日常换图和调布局从 Unity Inspector 完成。
+
+## 甲板与水下地图
+
+- 在 `Prefabs/Ship/Ship.prefab` 的 `VisualRoot/Pixel Hull` 替换船体 Sprite。甲板两侧和梯口由独立 BoxCollider 承载，船体贴图边缘对齐甲板站立面，舱内地面与舱底碰撞面也各有对齐点。
+- 水下墙体、洞穴和海床外观在 `Prefabs/World/UnderwaterArt/`。通过预制体的 MeshRenderer 材质更换贴图。普通废墟、洞穴墙、洞穴背板和海床的平铺大小与色调可分别调整。
+- 在 Gameplay 场景选择 `Underwater Panorama` 的 `Backdrop texture plane`。它引用的 `UnderwaterPanorama.mat` 可直接替换浅滩、沉没城市和深水三张全景图。蓝色色调和平铺参数也在该材质。水线上方的黄昏与夜景在 `OceanBackdrops.asset`，同一资源里的水草、珊瑚、深海岩石为房间装饰的可选 Sprite。
+- `UnderwaterSprites.asset` 可更换打捞物和地图预制体，`HideLocker.prefab` 里可直接换藏匿柜的 Sprite。每日地图会按种子继续布置房间和物资，布置时引用这些资源。

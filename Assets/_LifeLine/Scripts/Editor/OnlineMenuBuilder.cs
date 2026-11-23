@@ -111,6 +111,7 @@ namespace Lifeline.Editor
                 panel.status = Text("Status", card, "", new Vector2(.06f, .14f), new Vector2(.94f, .243f), 17, TextAnchor.MiddleLeft);
                 panel.retryButton = RoomButton("RetrySteam", card, "online.menu.retry", .06f, .04f, .44f, .132f, 17);
                 panel.backButton = RoomButton("Back", card, "online.menu.back", .69f, .04f, .94f, .132f, 17);
+                NauticalMenuAuthoring.ApplyRoom(panel);
                 overlay.gameObject.SetActive(false);
                 return PrefabUtility.SaveAsPrefabAsset(overlay.gameObject, OnlinePanelPrefabPath);
             }

@@ -77,6 +77,14 @@ namespace Lifeline
                 }
             }
         }
+        public static TutorialProgress ForSession(GameSession owner)
+        {
+            if (!owner.TryGetComponent(out TutorialProgress tutorial))
+                tutorial = owner.gameObject.AddComponent<TutorialProgress>();
+            tutorial.Initialize(owner);
+            return tutorial;
+        }
+
         public void Initialize(GameSession owner)
         {
             if (owner == null) return;

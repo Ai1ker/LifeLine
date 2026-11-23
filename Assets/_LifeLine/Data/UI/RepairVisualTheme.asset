@@ -17,12 +17,51 @@ MonoBehaviour:
   oilPatch: {fileID: 0}
   engineBody: {fileID: 0}
   pipeTile: {fileID: 0}
+  circuitSymbols:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   engineSymbols:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  background: {r: 0.06, g: 0.15, b: 0.19, a: 1}
+  - {fileID: 21300000, guid: f7b052edb7f46db4481d9223b8d66a6e, type: 3}
+  - {fileID: 21300000, guid: 80cbc15855342cb44b3bdee41dca2217, type: 3}
+  - {fileID: 21300000, guid: 756377ef107a29e48affcaa81c403d01, type: 3}
+  - {fileID: 21300000, guid: c8e1386d91d36c8498358a4fa7875ef6, type: 3}
+  dryPipes:
+  - {fileID: 21300000, guid: 48995d8b86ce3924e84b9d5db36326fd, type: 3}
+  - {fileID: 21300000, guid: 3937de2f492313243a04451db02faa73, type: 3}
+  - {fileID: 21300000, guid: bfed6872037c79a49a228fdaa6acf87e, type: 3}
+  - {fileID: 21300000, guid: 7434bd71baa92ae4196e33049e2f1a56, type: 3}
+  - {fileID: 21300000, guid: 4b4e97c4e170ab446bfc162a6d7f2d20, type: 3}
+  - {fileID: 21300000, guid: d8c6c65935371da48b00919ed4a9d602, type: 3}
+  - {fileID: 21300000, guid: 09d8bd11c5198a141ae8415b6fb92566, type: 3}
+  - {fileID: 21300000, guid: 126fd474b9bf45d46bdd4ad94b47065b, type: 3}
+  - {fileID: 21300000, guid: 0533e62aacc70544d9c55af82be3e2c6, type: 3}
+  - {fileID: 21300000, guid: bf0e0f8c3eb7faf488ea3213e1e19596, type: 3}
+  - {fileID: 21300000, guid: b66e6d3a562159040b276d736f4a4964, type: 3}
+  - {fileID: 21300000, guid: bac37f3839a49a5419d2ac4f9326e29b, type: 3}
+  - {fileID: 21300000, guid: f4abb8c511f20c04b933006f83dd93ec, type: 3}
+  - {fileID: 21300000, guid: db5f9fa2748042d49952b747448da9f6, type: 3}
+  - {fileID: 21300000, guid: e7964217b4bcb4a4dbc01ea6d00c53d5, type: 3}
+  - {fileID: 21300000, guid: d79bbde4d77ec05439120f36235ab8ef, type: 3}
+  flowingPipes:
+  - {fileID: 21300000, guid: f92af8e55a486204d9d18d1c3041d07e, type: 3}
+  - {fileID: 21300000, guid: 8d3bd033daebf054d94fdf8654887f84, type: 3}
+  - {fileID: 21300000, guid: ca0b6ba02f4c2f5498e0190e80ce772e, type: 3}
+  - {fileID: 21300000, guid: 2fe86623fac33904dabd0b00620b755d, type: 3}
+  - {fileID: 21300000, guid: a4fdaa64dc17ce14790280114c6bbfbe, type: 3}
+  - {fileID: 21300000, guid: 09ba5ce396bc747458fb8ca9d843cc53, type: 3}
+  - {fileID: 21300000, guid: 7d0d6847e91862249b42f2c2aaba77f4, type: 3}
+  - {fileID: 21300000, guid: fdecba7044a02f448aa6acba5ce197a8, type: 3}
+  - {fileID: 21300000, guid: ef6844797bcf79e4cb779055ab045166, type: 3}
+  - {fileID: 21300000, guid: b55963a5180913b4aa066e4d72899a1a, type: 3}
+  - {fileID: 21300000, guid: 74427bfc6984ea44a8fe8bc81be19166, type: 3}
+  - {fileID: 21300000, guid: a5388535e4b38d74a8072949808be433, type: 3}
+  - {fileID: 21300000, guid: 3f4feaf42b61623499f22ad7bca18d53, type: 3}
+  - {fileID: 21300000, guid: 07a518fad661d5a44bb9970fe8c70efa, type: 3}
+  - {fileID: 21300000, guid: 5245ac33b62129e4ca23076ea381c7eb, type: 3}
+  - {fileID: 21300000, guid: 941058d1089827c48b00376f816fa89e, type: 3}
+  background: {r: 0.29411766, g: 0.1882353, b: 0.14117648, a: 1}
   ink: {r: 0.85, g: 0.94, b: 0.91, a: 1}
   flowing: {r: 0.38, g: 0.88, b: 0.65, a: 1}
   pipe: {r: 0.55, g: 0.68, b: 0.71, a: 1}

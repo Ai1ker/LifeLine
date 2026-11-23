@@ -118,7 +118,7 @@ namespace Lifeline.Tests
         [Test]public void CaptainOxygenIsContextualLeftSideAndInvalidContinueIsHidden()
         {
             var hudObject=Child("HUD");var hud=hudObject.AddComponent<GameHUDController>();hud.enabled=false;hud.session=game;
-            var view=hudObject.AddComponent<OnboardingView>();view.Initialize(hud);
+            var view=hudObject.AddComponent<OnboardingView>();view.BuildMissingViews();view.Initialize(hud);
             view.RefreshView();Assert.That(view.captainOxygenRoot.activeSelf,Is.False);
             game.captain.SetOnboard(false,game.BoatAnchor+Vector3.down*3);game.captain.oxygen=25;game.captain.oxygenMax=50;
             view.RefreshView();Assert.That(view.captainOxygenRoot.activeSelf);Assert.That(view.captainOxygenText.text,Does.Contain("25 / 50s"));

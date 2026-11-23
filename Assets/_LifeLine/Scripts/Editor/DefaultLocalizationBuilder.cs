@@ -568,6 +568,7 @@ namespace Lifeline.Editor
                 new LocalizationTable.Entry("onboarding.09", "第一次夜潜\n夜间水下只能看清附近。建造并开启探照灯可恢复视野，但灯光也会扩大敌对水生生物的索敌范围。", "Your first night dive\nUnderwater visibility is limited at night. Build and activate the searchlight to see farther, but its light also increases hostile aquatic creatures’ detection range."),
                 new LocalizationTable.Entry("onboarding.10", "雷雨警告\n注意雷击落点预警并及时离开危险区域。被击倒后需要同伴持续互动 4 秒扶起；两人都倒下会失败。", "Thunderstorm warning\nWatch the strike warnings and leave marked danger zones. A teammate must hold interact for four seconds to revive a downed crewmate. Both crew down means defeat."),
                 new LocalizationTable.Entry("onboarding.captain.oxygen", "船长氧气", "Captain oxygen"),
+                new LocalizationTable.Entry("hud.nautical.day", "第 {0} 天", "DAY {0}"),
                 new LocalizationTable.Entry("filter.pickup", "海水过滤器\n按住 [{0}] 打捞上船 · 不占背包", "Seawater filter\nHold [{0}] to salvage aboard · No backpack slot"),
                 new LocalizationTable.Entry("filter.salvaged", "海水过滤器已打捞上船，需要2铁板修复后启用。", "Seawater filter salvaged aboard. Repair with 2 iron plates before use."),
                 new LocalizationTable.Entry("equipment.generator", "手摇发电机", "Hand-crank generator"),

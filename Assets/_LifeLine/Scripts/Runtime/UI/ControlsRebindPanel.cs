@@ -19,7 +19,7 @@ namespace Lifeline
         public bool IsRebinding => rebinding || (Selected != null && Selected.IsRebinding);
         private bool rebinding;
         private int lastEscapeFrame = -1, lastRebindEndedFrame = -1;
-        private readonly List<GameObject> rows = new List<GameObject>();
+        public List<Button> rowWidgets = new();
         private CrewInputReader Selected => onlineInput != null ? onlineInput : selectedRole == CrewRole.Captain ? captainInput : diverInput;
         private void Awake()
         {
@@ -56,8 +56,12 @@ namespace Lifeline
         private void Select(CrewRole role) { if (!rebinding) { selectedRole = role; BuildRows(); } }
         private void BuildRows()
         {
-            foreach (GameObject row in rows) if(row!=null){row.SetActive(false);Destroy(row);} rows.Clear();
-            if (Selected == null) return;
+            int visibleRows = 0;
+            if (Selected == null)
+            {
+                HideUnusedRows(0);
+                return;
+            }
             statusText.text = GameNames.Role(selectedRole) + " · 点击一个绑定后按新键；Esc 取消。";
             foreach (InputAction action in Selected.BindableActions)
             {
@@ -68,7 +72,8 @@ namespace Lifeline
                     int index = i; string actionName = action.name;
                     string partName=action.bindings[i].name;
                     string part = action.bindings[i].isPartOfComposite ? "/" + (LocalizationManager.Current!=null?LocalizationManager.Current.Format("input."+partName.ToLowerInvariant()):partName) : "";
-                    Button row = Instantiate(rowButtonPrefab, rowsRoot); row.gameObject.SetActive(true); rows.Add(row.gameObject);
+                    Button row = RowAt(visibleRows++);
+                    row.gameObject.SetActive(true);
                     Text label = row.GetComponentInChildren<Text>();
                     string binding = Selected.GetBindingLabel(actionName, index);
                     string actionLabel = actionName;
@@ -89,7 +94,20 @@ namespace Lifeline
                     });
                 }
             }
+            HideUnusedRows(visibleRows);
             UiLocalization.Refresh(panel);
+        }
+
+        Button RowAt(int index)
+        {
+            if (index == rowWidgets.Count) rowWidgets.Add(Instantiate(rowButtonPrefab, rowsRoot));
+            return rowWidgets[index];
+        }
+
+        void HideUnusedRows(int firstHidden)
+        {
+            for (int index = firstHidden; index < rowWidgets.Count; index++)
+                rowWidgets[index].gameObject.SetActive(false);
         }
     }
 }

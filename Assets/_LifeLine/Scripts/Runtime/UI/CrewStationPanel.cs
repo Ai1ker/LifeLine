@@ -266,7 +266,8 @@ namespace Lifeline
             var obj=repairBoardPrefab!=null?Instantiate(repairBoardPrefab.gameObject,actionsRoot):new GameObject("Repair board / replaceable",typeof(RectTransform));
             obj.transform.SetParent(actionsRoot,false);obj.SetActive(true);buttons.Add(obj);
             repairBoard=obj.GetComponent<RepairBoardView>();if(repairBoard==null)repairBoard=obj.AddComponent<RepairBoardView>();
-            repairBoard.theme=repairTheme;repairBoard.panel=this;repairBoard.session=session;repairBoard.hud=hud;repairBoard.actor=actor;
+            if (repairTheme != null) repairBoard.theme = repairTheme;
+            repairBoard.panel=this;repairBoard.session=session;repairBoard.hud=hud;repairBoard.actor=actor;
             repairBoard.Build(station);
         }
         public void RebuildRepair()=>BuildActions();
@@ -432,22 +433,23 @@ namespace Lifeline
         private void ConfigureQtePresentation()
         {
             if (qteView == null || qteView.theme == null) return;
-            bool lane = batchRecipe == null && (station == StationKind.Workbench || station == StationKind.HullRepair);
+            bool work = station == StationKind.Workbench || station == StationKind.HullRepair;
+            bool lane = work && batchRecipe == null && session.craftingManager.SlotCount(station) > 0;
             bool circle = station == StationKind.Winch || station == StationKind.Generator && !session.infinitePower;
             bool graphical = lane || circle;
             bool repair = station == StationKind.Filter || station == StationKind.Circuit || station == StationKind.Engine;
             qteView.gameObject.SetActive(graphical); qteView.SetMode(circle);
-            if (rhythmFill != null) rhythmFill.transform.parent.gameObject.SetActive(!graphical);
+            if (rhythmFill != null) rhythmFill.transform.parent.gameObject.SetActive(!graphical && !work);
             if (rhythmFill != null) rhythmFill.enabled = station != StationKind.Fishing && batchRecipe == null;
             var root = (RectTransform)qteView.transform;
             root.anchorMin = new Vector2(.05f, lane ? .44f : .30f); root.anchorMax = new Vector2(.95f, .63f);
             root.offsetMin = root.offsetMax = Vector2.zero;
-            liveText.rectTransform.anchorMin = new Vector2(.04f, repair ? .77f : graphical ? .64f : .57f);
-            liveText.rectTransform.anchorMax = new Vector2(.96f, repair ? .81f : graphical ? .75f : .73f);
+            liveText.rectTransform.anchorMin = new Vector2(.04f, repair ? .765f : graphical ? .64f : work ? .725f : .57f);
+            liveText.rectTransform.anchorMax = new Vector2(.96f, repair ? .805f : graphical ? .75f : work ? .795f : .73f);
             liveText.fontSize = repair ? 14 : 18;
             if (actionsRoot != null && actionsRoot.parent is RectTransform scroll)
             {
-                scroll.anchorMax = new Vector2(.965f, repair ? .76f : lane ? .43f : circle ? .29f : .52f);
+                scroll.anchorMax = new Vector2(.965f, repair ? .76f : lane ? .43f : circle ? .29f : work ? .72f : .52f);
                 scroll.offsetMin = scroll.offsetMax = Vector2.zero;
             }
         }

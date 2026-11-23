@@ -23,3 +23,21 @@ MonoBehaviour:
   hideSpot: {fileID: 21300000, guid: 94fb819467e7cbc4a9357af3ea8147da, type: 3}
   ruinWall: {fileID: 2100000, guid: 07d86469041c13140ad7251fe87b4e56, type: 2}
   caveWall: {fileID: 2100000, guid: 0fc7b47f0d4e0c442a724df357e6fdb9, type: 2}
+  ruinWallVisual: {fileID: 739025443386500196, guid: 3b6653be2be551c4c8eee9e31d63fc27, type: 3}
+  caveWallVisual: {fileID: 7046916819707130735, guid: af1e2d716bec52640b3ee23754446a50, type: 3}
+  seabedVisual: {fileID: 3396942575708283493, guid: 8044ac5987f9ebd4682d8e591dcc8280, type: 3}
+  caveBackdropVisual: {fileID: 6431748038367138453, guid: 9a42ba18ec5e0664c93ca93f90a1e00b, type: 3}
+  hideSpotPrefab: {fileID: 4838951354708075495, guid: 410b0f57dd71a8c4e921b2ca5cb74bc5, type: 3}
+  resourcePrefabs:
+  - {fileID: 6501206894044733933, guid: e72e73c64f5e649458a73ccd3deb0595, type: 3}
+  - {fileID: 5495533493025448634, guid: 59f622503a409764786c5a9bd499dfe6, type: 3}
+  - {fileID: 4433429961662305169, guid: 1cac335ef5b5b8e49af57fc636830e02, type: 3}
+  - {fileID: 2103527842142635549, guid: d024c748c4b07e142b2f155696c77902, type: 3}
+  - {fileID: 2435074514072004435, guid: 99c461cabf3d7224bbf5e82e72f1885c, type: 3}
+  - {fileID: 9092970458528605736, guid: c806ad8bd5626cb41a687b98364748e0, type: 3}
+  - {fileID: 1478920051108756882, guid: 45f34c85dc12d8e44adf421755d9322e, type: 3}
+  - {fileID: 4276671954853218633, guid: 09b808d8038b5784dabbac947db4ae94, type: 3}
+  - {fileID: 5670187247761762075, guid: bd130d3ff8df4954dad208420f00e1e4, type: 3}
+  - {fileID: 6367956908021197811, guid: 27862e2ce0669a04a8c8b242c18de2aa, type: 3}
+  cabinetPrefab: {fileID: 3546129180671991922, guid: d8cea5d112ba9344db8b9bba96a0e007, type: 3}
+  lostCargoPrefab: {fileID: 1891399864111223741, guid: 5079487ff389e974380fc095467dd1ef, type: 3}

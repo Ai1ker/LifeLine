@@ -9,54 +9,35 @@ namespace Lifeline
         public Sprite eelGenerator;
         public Sprite lostCargo, cabinet, hideSpot;
         public Material ruinWall, caveWall;
+        [Header("Authored visual prefabs")]
+        public MeshRenderer ruinWallVisual, caveWallVisual, seabedVisual, caveBackdropVisual;
+        public UnderwaterHideSpot hideSpotPrefab;
+        [Tooltip("Pickup prefabs indexed by ResourceKind. The SpriteRenderer is authored inside each prefab.")]
+        public LootPickup[] resourcePrefabs;
+        public LootPickup cabinetPrefab, lostCargoPrefab;
 
-        public void ApplyPickup(LootPickup pickup)
+        public LootPickup ResourcePrefab(ResourceKind kind)
         {
-            if (pickup.GetComponent<FilterSalvage>() != null) return;
-            if (pickup.isCrate && !pickup.isLostCargo) return;
-            Sprite art = pickup.isLostCargo ? lostCargo : pickup.isCabinet ? cabinet : ResourceSprite(pickup.resource);
-            if (art == null) return;
-            Transform root = pickup.visualRoot != null ? pickup.visualRoot : pickup.transform;
-            var current = root.Find("Pixel pickup");
-            if (current != null)
-            {
-                current.GetComponent<SpriteRenderer>().sprite = art;
-                return;
-            }
-            foreach (var mesh in root.GetComponentsInChildren<MeshRenderer>(true))
-                if (mesh.GetComponent<TextMesh>() == null) mesh.enabled = false;
-            if (pickup.isLostCargo)
-            {
-                var original = root.Find("Pixel Sprite")?.GetComponent<SpriteRenderer>();
-                if (original != null) original.enabled = false;
-            }
-            Vector2 size = pickup.IsSwimmingFish ? new Vector2(.55f, .38f) : pickup.resource == ResourceKind.Eel ? new Vector2(1.35f, .9f) :
-                pickup.isLostCargo || pickup.isCabinet ? new Vector2(.85f, .9f) : new Vector2(.58f, .53f);
-            PlaceSprite(root, "Pixel pickup", art, new Vector3(0, 0, -.48f), size, pickup.gameObject.layer);
+            int index = (int)kind;
+            return resourcePrefabs != null && index >= 0 && index < resourcePrefabs.Length ? resourcePrefabs[index] : null;
         }
 
-        Sprite ResourceSprite(ResourceKind kind)
+        public static SpriteRenderer PlaceSprite(Transform parent, string title, Sprite sprite, Vector3 position, Vector2 size, int layer,
+            SpriteRenderer prefab = null)
         {
-            return kind switch
+            SpriteRenderer renderer;
+            if (prefab != null) renderer = Instantiate(prefab, parent, false);
+            else
             {
-                ResourceKind.Wood => wood,
-                ResourceKind.Metal => metal,
-                ResourceKind.Fiber => fiber,
-                ResourceKind.Fish => fish,
-                ResourceKind.Fuel => fuel,
-                ResourceKind.Eel => eelGenerator,
-                _ => null
-            };
-        }
-
-        public static SpriteRenderer PlaceSprite(Transform parent, string title, Sprite sprite, Vector3 position, Vector2 size, int layer)
-        {
-            var visual = new GameObject(title) { layer = layer };
-            visual.transform.SetParent(parent, false);
-            visual.transform.localPosition = position;
+                var visual = new GameObject(title);
+                visual.transform.SetParent(parent, false);
+                renderer = visual.AddComponent<SpriteRenderer>();
+            }
+            renderer.name = title;
+            renderer.gameObject.layer = layer;
+            renderer.transform.localPosition = position;
             Vector3 bounds = sprite.bounds.size;
-            visual.transform.localScale = Vector3.one * Mathf.Min(size.x / bounds.x, size.y / bounds.y);
-            var renderer = visual.AddComponent<SpriteRenderer>();
+            renderer.transform.localScale = Vector3.one * Mathf.Min(size.x / bounds.x, size.y / bounds.y);
             renderer.sprite = sprite;
             return renderer;
         }

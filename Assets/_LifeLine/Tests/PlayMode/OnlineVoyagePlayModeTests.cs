@@ -116,6 +116,7 @@ namespace Lifeline.Tests
                 yield return Until(() => game.diver.Position.x < hostXAtDisconnect - .05f && game.elapsed > clockAtDisconnect);
                 Press(keyboard);
                 hud.SetPause(true);
+                yield return Until(() => hud.saveButton.interactable);
                 Assert.That(save.TrySave(game, SaveReason.Manual, out string saveError), Is.True, saveError);
                 hud.SetPause(false);
                 Assert.That(game.phase, Is.EqualTo(SessionPhase.Playing));
@@ -195,7 +196,9 @@ namespace Lifeline.Tests
                 Assert.That(rig.captainCamera.enabled && !rig.diverCamera.enabled, Is.True);
                 var guestSave = Object.FindAnyObjectByType<GameSaveManager>();
                 Assert.That(guestSave.HasValidSave(out _), Is.False);
-                Assert.That(Object.FindAnyObjectByType<GameHUDController>().saveButton.gameObject.activeSelf, Is.False);
+                hud = Object.FindAnyObjectByType<GameHUDController>();
+                Assert.That(hud.saveButton.gameObject.activeSelf, Is.False);
+                VerifyNauticalHudRoles(hud, game, rig);
             }
             finally
             {
@@ -213,6 +216,49 @@ namespace Lifeline.Tests
                 string slotDirectory = Path.GetDirectoryName(hostSave);
                 if (Directory.Exists(slotDirectory)) Directory.Delete(slotDirectory);
             }
+        }
+
+        static void VerifyNauticalHudRoles(GameHUDController hud, GameSession game, GameCameraRig rig)
+        {
+            var view = hud.nauticalView;
+            Assert.That(view, Is.Not.Null);
+            var primary = view.primary;
+            var secondary = view.secondary;
+            string OxygenValue(NauticalStatusCard card) => card.primaryOxygen.amount.text;
+            game.captain.oxygen = 23f;
+            game.diver.oxygen = 41f;
+            view.Refresh();
+            Assert.That(OxygenValue(primary), Does.StartWith("23 /"));
+            Assert.That(view.secondaryViewport.gameObject.activeSelf, Is.False);
+
+            hud.authority.SetOnlineView(true, CrewRole.Diver);
+            view.Refresh();
+            Assert.That(OxygenValue(primary), Does.StartWith("41 /"));
+            Assert.That(view.secondaryViewport.gameObject.activeSelf, Is.False);
+
+            bool original = rig.splitScreenOnShip;
+            hud.authority.SetOnlineView(false, CrewRole.Captain);
+            rig.SetShipSplitPreference(true, false);
+            game.AddResource(ResourceKind.Wood, 4);
+            view.Refresh();
+            Assert.That(view.secondaryViewport.gameObject.activeSelf, Is.True);
+            Assert.That(view.primaryViewport.anchorMax.x, Is.EqualTo(.5f));
+            Assert.That(view.secondaryViewport.anchorMin.x, Is.EqualTo(.5f));
+            Assert.That(OxygenValue(primary), Does.StartWith("23 /"));
+            Assert.That(OxygenValue(secondary), Does.StartWith("41 /"));
+            foreach (var card in new[] { primary, secondary })
+            {
+                Assert.That(card.resources.Length, Is.EqualTo(9));
+                Assert.That(Array.Exists(card.resources, slot => slot.kind == ResourceKind.Eel), Is.False);
+                Assert.That(Array.Find(card.resources, slot => slot.kind == ResourceKind.Wood).amount.text,
+                    Is.EqualTo(game.GetResource(ResourceKind.Wood).ToString()));
+            }
+            rig.SetShipSplitPreference(false, false);
+            view.Refresh();
+            Assert.That(view.secondaryViewport.gameObject.activeSelf, Is.False);
+            Assert.That(primary.secondaryOxygen.amount.text, Does.StartWith("41 /"));
+            rig.SetShipSplitPreference(original, false);
+            hud.authority.SetOnlineView(true, CrewRole.Captain);
         }
 
         static UnityEngine.UI.Text ConnectionStatus() =>

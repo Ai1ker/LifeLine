@@ -39,12 +39,11 @@ MonoBehaviour:
   kelp: {fileID: 21300000, guid: 318dd4276e338ad449c32be5f564273a, type: 3}
   coral: {fileID: 21300000, guid: d0615fd25c5cca442945354fcd361480, type: 3}
   seagrass: {fileID: 21300000, guid: 592541894afa0be43a4a04aa8da0f624, type: 3}
-  streetLamp: {fileID: 21300000, guid: 90b572a8f2aaa174eb16310be9cc6789, type: 3}
-  cityRuin: {fileID: 21300000, guid: 3b1c86a0f8d38594aaf519c67b130ca5, type: 3}
-  steelGirder: {fileID: 21300000, guid: d75fdc46f0dcc0f4d8955ef251e65da4, type: 3}
   arch: {fileID: 21300000, guid: 758ac0a366214a148ace5f667d02d7b2, type: 3}
   rock: {fileID: 21300000, guid: 51c03fbfdbe4bc3438f6258678096483, type: 3}
   bubbles: {fileID: 21300000, guid: 9790b3ff104f4f549af8cd037aac81c8, type: 3}
+  plantVisual: {fileID: 3703947718593618183, guid: 2188c77153e490e42a487ef488570787, type: 3}
+  distantRockVisual: {fileID: 553486711538468627, guid: 33aae9573730c9f439f92640a5efda0c, type: 3}
   regionBlendMetres: 8
   panoramaWidth: 55
   waveSpeed: 1.15

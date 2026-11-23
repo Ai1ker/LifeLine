@@ -27,7 +27,9 @@ namespace Lifeline
                     if(material==null){material=generated=new Material(Shader.Find("Universal Render Pipeline/Unlit"));material.color=new Color(.1f,.65f,.48f);}reed.GetComponent<Renderer>().sharedMaterial=material;
                 }
             }
-            if(label==null){label=new GameObject("Hide label").AddComponent<TextMesh>();label.transform.SetParent(transform,false);label.transform.localPosition=new Vector3(0,.7f,-1.5f);label.anchor=TextAnchor.MiddleCenter;label.fontSize=40;label.characterSize=.08f;label.font=RuntimeUIFont.GetOrCreateFont();label.GetComponent<Renderer>().sharedMaterial=label.font.material;}
+            if(label==null){label=new GameObject("Hide label").AddComponent<TextMesh>();label.transform.SetParent(transform,false);label.transform.localPosition=new Vector3(0,.7f,-1.5f);label.anchor=TextAnchor.MiddleCenter;label.fontSize=40;label.characterSize=.08f;}
+            label.font=RuntimeUIFont.GetOrCreateFont();
+            label.GetComponent<Renderer>().sharedMaterial=label.font.material;
         }
         void Update()
         {

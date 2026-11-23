@@ -225,8 +225,8 @@ namespace Lifeline
                     generatedCave = true;
                     layouts.Add(cave);
                     BuildMaze(cave, 3);
-                    Solid("Cave connector ceiling", new Vector3(mainRight + .5f, exitY + doorWidth * .5f + wallThickness * .5f, 0), new Vector3(1 + wallThickness, wallThickness, wallDepth), 0);
-                    Solid("Cave connector floor", new Vector3(mainRight + .5f, exitY - doorWidth * .5f - wallThickness * .5f, 0), new Vector3(1 + wallThickness, wallThickness, wallDepth), 0);
+                    Solid("Cave connector ceiling", new Vector3(mainRight + .5f, exitY + doorWidth * .5f + wallThickness * .5f, 0), new Vector3(1 + wallThickness, wallThickness, wallDepth), 0, cave: true);
+                    Solid("Cave connector floor", new Vector3(mainRight + .5f, exitY - doorWidth * .5f - wallThickness * .5f, 0), new Vector3(1 + wallThickness, wallThickness, wallDepth), 0, cave: true);
                     ConnectRuins(deep, cave, "Branch cave passage");
                     rewardMaze = cave;
                     generatedEel = true;
@@ -422,11 +422,15 @@ namespace Lifeline
         {
             var roomRoot = Child(solidRoot, maze.name);
             var background = Child(roomRoot, "VisualRoot");
+            var backdropCenter = new Vector3(maze.topLeft.x + maze.columns * maze.cellSize * .5f, maze.topLeft.y - maze.rows * maze.cellSize * .5f, 2.4f);
+            var backdropSize = new Vector3(maze.columns * maze.cellSize, maze.rows * maze.cellSize, .25f);
+            if (tier == 3 && pixelArt != null && pixelArt.caveBackdropVisual != null)
+                PlaceSurface(pixelArt.caveBackdropVisual, background, "Cave wall backdrop", backdropCenter, backdropSize);
             if (oceanArt != null && oceanArt.backdropShader != null)
                 oceanArt.DressRoom(background, maze, this);
-            else
+            else if (tier != 3 || pixelArt == null || pixelArt.caveBackdropVisual == null)
             {
-                var backdrop = Visual(background, "Distant silhouette", new Vector3(maze.topLeft.x + maze.columns * maze.cellSize * .5f, maze.topLeft.y - maze.rows * maze.cellSize * .5f, 2.4f), new Vector3(maze.columns * maze.cellSize, maze.rows * maze.cellSize, .25f), tier == 3 ? 0 : 1);
+                var backdrop = Visual(background, "Distant silhouette", backdropCenter, backdropSize, tier == 3 ? 0 : 1);
                 if (tier == 3) backdrop.GetComponent<Renderer>().sharedMaterial = CaveMaterial(false);
             }
             for (int row = 0; row <= maze.rows; row++)
@@ -664,7 +668,7 @@ namespace Lifeline
         {
             if (!open)
             {
-                Solid("Wall", center, horizontal ? new Vector3(length + wallThickness, wallThickness, wallDepth) : new Vector3(wallThickness, length + wallThickness, wallDepth), tier == 3 ? 0 : 2, parent);
+                Solid("Wall", center, horizontal ? new Vector3(length + wallThickness, wallThickness, wallDepth) : new Vector3(wallThickness, length + wallThickness, wallDepth), tier == 3 ? 0 : 2, parent, tier == 3);
                 return;
             }
             float opening = Mathf.Min(doorWidth, length - .12f);
@@ -672,7 +676,7 @@ namespace Lifeline
             float offset = opening * .5f + piece * .5f;
             for (int side = -1; side <= 1; side += 2)
                 Solid("Portal jamb", center + (horizontal ? Vector3.right : Vector3.up) * (offset * side),
-                    horizontal ? new Vector3(piece + wallThickness, wallThickness, wallDepth) : new Vector3(wallThickness, piece + wallThickness, wallDepth), 2, parent);
+                    horizontal ? new Vector3(piece + wallThickness, wallThickness, wallDepth) : new Vector3(wallThickness, piece + wallThickness, wallDepth), 2, parent, tier == 3);
         }
 
         void BuildSea()
@@ -760,26 +764,55 @@ namespace Lifeline
             return false;
         }
 
-        LootPickup SpawnPickup(Transform parent, Vector3 position, ResourceKind kind, bool crate, bool cabinet, int mazeIndex, int cell)
+        public GameObject PickupPrefabFor(ResourceKind kind, bool crate, bool cabinet, bool lostCargo)
         {
-            GameObject prefab = crate ? cratePrefab : lootPrefab;
-            GameObject go = prefab != null ? Instantiate(prefab, position, Quaternion.identity, parent) : new GameObject();
-            go.name = crate ? "Empty cargo crate" : cabinet ? "Salvage cabinet" : kind.ToString();
-            go.transform.SetParent(parent, true); go.transform.position = position; go.layer = pickupLayer;
+            if (lostCargo && pixelArt != null && pixelArt.lostCargoPrefab != null) return pixelArt.lostCargoPrefab.gameObject;
+            if (crate) return cratePrefab;
+            if (cabinet && pixelArt != null && pixelArt.cabinetPrefab != null) return pixelArt.cabinetPrefab.gameObject;
+            var resource = !cabinet && pixelArt != null ? pixelArt.ResourcePrefab(kind) : null;
+            return resource != null ? resource.gameObject : lootPrefab;
+        }
+
+        public LootPickup CreatePickupObject(Transform parent, Vector3 position, ResourceKind kind, bool crate, bool cabinet, bool lostCargo = false)
+        {
+            GameObject prefab = PickupPrefabFor(kind, crate, cabinet, lostCargo);
+            GameObject go = prefab != null ? Instantiate(prefab, position, Quaternion.identity, parent) :
+                lostCargo ? GameObject.CreatePrimitive(PrimitiveType.Cube) : new GameObject();
+            if (prefab == null && lostCargo) go.transform.localScale = new Vector3(.6f, .45f, .5f);
+            go.transform.SetParent(parent, true);
+            go.transform.position = position;
+            go.layer = pickupLayer;
             var pickup = go.GetComponent<LootPickup>();
             if (pickup == null) pickup = go.AddComponent<LootPickup>();
-            pickup.world = this; pickup.resource = kind; pickup.amount = 1;
+            pickup.world = this;
+            pickup.resource = kind;
+            pickup.isCrate = crate;
+            pickup.isCabinet = cabinet;
+            pickup.isLostCargo = lostCargo;
+            var collider = go.GetComponent<Collider>();
+            if (collider == null)
+            {
+                var box = go.AddComponent<BoxCollider>();
+                box.size = crate ? new Vector3(1.05f, .65f, .8f) : Vector3.one * .5f;
+                collider = box;
+            }
+            collider.isTrigger = true;
+            return pickup;
+        }
+
+        LootPickup SpawnPickup(Transform parent, Vector3 position, ResourceKind kind, bool crate, bool cabinet, int mazeIndex, int cell)
+        {
+            var pickup = CreatePickupObject(parent, position, kind, crate, cabinet);
+            var go = pickup.gameObject;
+            go.name = crate ? "Empty cargo crate" : cabinet ? "Salvage cabinet" : kind.ToString();
+            pickup.amount = 1;
             pickup.saveId = generatedSeed + ":" + activeDay + ":pickup:" + mazeIndex + ":" + cell + ":"
                 + (crate ? "crate" : cabinet ? "cabinet" : "loose") + ":" + pickupSequence++;
-            pickup.isCrate = crate; pickup.isCabinet = cabinet;
             pickup.contents = new List<ResourceKind>(); pickup.attached = false; pickup.consumed = false;
             pickup.capacity = tuning != null ? tuning.crateCapacity : 3;
             pickup.collectSeconds = tuning != null ? tuning.collectSeconds : .72f;
             pickup.cabinetSeconds = tuning != null ? tuning.cabinetSeconds : 1.5f;
             pickup.interactionDistance = collectionRadius; pickup.mazeIndex = mazeIndex; pickup.mazeCell = cell;
-            var collider = go.GetComponent<Collider>();
-            if (collider == null) { var box = go.AddComponent<BoxCollider>(); box.size = crate ? new Vector3(1.05f, .65f, .8f) : Vector3.one * .5f; collider = box; }
-            collider.isTrigger = true;
             // A prefab can bring its own authored VisualRoot, animator and materials.
             if (go.transform.Find("VisualRoot") == null)
             {
@@ -1063,17 +1096,30 @@ namespace Lifeline
             pickupSequence = 0;labelFrames=new[]{-1,-1};labelTargets=new Transform[2];
         }
 
-        BoxCollider Solid(string title, Vector3 center, Vector3 size, int material, Transform parent = null)
+        BoxCollider Solid(string title, Vector3 center, Vector3 size, int material, Transform parent = null, bool cave = false)
         {
             var root = new GameObject(title); root.layer = geometryLayer;
             root.transform.SetParent(parent != null ? parent : solidRoot, true); root.transform.position = center;
             var collider = root.AddComponent<BoxCollider>(); collider.size = size;
-            var view = Visual(root.transform, "VisualRoot", center, size, material);
-            if (parent != null && parent.name.Contains("BRANCH CAVE"))
-                view.GetComponent<Renderer>().sharedMaterial = pixelArt != null && pixelArt.caveWall != null ? pixelArt.caveWall : CaveMaterial(true);
-            else if (parent != null && pixelArt != null && pixelArt.ruinWall != null)
-                view.GetComponent<Renderer>().sharedMaterial = pixelArt.ruinWall;
+            MeshRenderer visualPrefab = pixelArt == null ? null : cave ? pixelArt.caveWallVisual :
+                parent == null ? pixelArt.seabedVisual : pixelArt.ruinWallVisual;
+            if (visualPrefab != null) PlaceSurface(visualPrefab, root.transform, "VisualRoot", center, size);
+            else
+            {
+                var view = Visual(root.transform, "VisualRoot", center, size, material);
+                if (cave) view.GetComponent<Renderer>().sharedMaterial = pixelArt != null && pixelArt.caveWall != null ? pixelArt.caveWall : CaveMaterial(true);
+                else if (parent != null && pixelArt != null && pixelArt.ruinWall != null) view.GetComponent<Renderer>().sharedMaterial = pixelArt.ruinWall;
+            }
             generatedWalls.Add(collider); return collider;
+        }
+
+        void PlaceSurface(MeshRenderer prefab, Transform parent, string title, Vector3 center, Vector3 size)
+        {
+            var view = Instantiate(prefab, parent, false);
+            view.name = title;
+            view.gameObject.layer = geometryLayer;
+            view.transform.position = center;
+            view.transform.localScale = Vector3.Scale(view.transform.localScale, size);
         }
         GameObject Visual(Transform parent, string title, Vector3 position, Vector3 size, int material)
         {

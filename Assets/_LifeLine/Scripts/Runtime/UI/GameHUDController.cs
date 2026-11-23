@@ -15,6 +15,7 @@ namespace Lifeline
         public Text questChapterText;
         public OnboardingView onboarding;
         public CrewScreenOverlay crewOverlay;
+        public NauticalHudView nauticalView;
         public Image hullFill, powerFill, oxygenFill;
         public CrewStationPanel captainPanel, diverPanel;
         public Button pauseButton, controlsButton, resumeButton, restartButton, menuButton;
@@ -36,7 +37,7 @@ namespace Lifeline
         private bool initialized;
         string shownNotice;
         float noticeExpires;
-        Text onlineStatus;
+        public Text onlineStatus;
 
         private void Start() => Initialize();
         public void Initialize()
@@ -64,12 +65,9 @@ namespace Lifeline
             endingMenuButton?.onClick.AddListener(ReturnMenu);
             if (pausePanel != null) pausePanel.SetActive(false);
             if (endingPanel != null) endingPanel.SetActive(false);
-            if (onboarding == null) onboarding = GetComponent<OnboardingView>();
-            if (onboarding == null) onboarding = gameObject.AddComponent<OnboardingView>();
-            onboarding.Initialize(this);
-            if (crewOverlay == null) crewOverlay = GetComponent<CrewScreenOverlay>();
-            if (crewOverlay == null) crewOverlay = gameObject.AddComponent<CrewScreenOverlay>();
-            crewOverlay.Initialize(this);
+            onboarding?.Initialize(this);
+            crewOverlay?.Initialize(this);
+            nauticalView?.Refresh();
             SessionAuthority.ApplyCrewRenderOrder(session, authority != null && authority.onlineView,
                 authority != null ? authority.localRole : CrewRole.Captain);
             initialized = true;
@@ -99,47 +97,39 @@ namespace Lifeline
             }
             if (Time.unscaledTime < nextHudUpdate) return;
             nextHudUpdate = Time.unscaledTime + .1f;
-            var bank = new StringBuilder();
-            foreach (ResourceKind resource in System.Enum.GetValues(typeof(ResourceKind)))
-                bank.Append(GameNames.Resource(resource)).Append(' ').Append(session.GetResource(resource)).Append("   ");
-            bankText.text = bank.ToString();
-            shipText.text = "船体 " + session.hull.ToString("0") + "/" + session.hullMax.ToString("0") + "   电力 " + session.power.ToString("0") + "%   航线 " + Mathf.Clamp01(session.ship.Position.x / session.tuning.routeDistance).ToString("P0");
+            if (nauticalView != null) nauticalView.Refresh();
+            else RefreshLegacyStatus();
             crewOverlay?.RefreshBackpack();
             questText.text = session.QuestText;
             if (questChapterText != null) questChapterText.text = string.Format("主线 · 第{0}章", session.QuestChapter);
             RefreshNotice();
             RefreshOnlineStatus();
-            clockText.text = "DAY " + session.day + " · " + (session.IsNight ? "夜晚" : session.IsDusk ? "黄昏" : "白昼") + "  " + (session.elapsed % session.tuning.daySeconds).ToString("0") + "s";
-            hullFill.fillAmount = session.hullMax > 0 ? session.hull / session.hullMax : 0;
-            powerFill.fillAmount = session.power / Mathf.Max(1, session.tuning.maxPower);
-            if(oxygenFill!=null && session.diver!=null)oxygenFill.fillAmount=session.diver.oxygenMax>0?session.diver.oxygen/session.diver.oxygenMax:0;
+        }
+        void RefreshLegacyStatus()
+        {
+            if (bankText != null)
+            {
+                var bank = new StringBuilder();
+                foreach (ResourceKind resource in Enum.GetValues(typeof(ResourceKind)))
+                    if (resource != ResourceKind.Eel)
+                        bank.Append(GameNames.Resource(resource)).Append(' ').Append(session.GetResource(resource)).Append("   ");
+                bankText.text = bank.ToString();
+            }
+            if (shipText != null && session.ship != null)
+                shipText.text = "船体 " + session.hull.ToString("0") + "/" + session.hullMax.ToString("0") + "   电力 " + session.power.ToString("0") + "%   航线 " + Mathf.Clamp01(session.ship.Position.x / session.tuning.routeDistance).ToString("P0");
+            if (clockText != null) clockText.text = "DAY " + session.day + " · " + (session.IsNight ? "夜晚" : session.IsDusk ? "黄昏" : "白昼");
+            if (hullFill != null) hullFill.fillAmount = session.hullMax > 0 ? session.hull / session.hullMax : 0;
+            if (powerFill != null) powerFill.fillAmount = session.power / Mathf.Max(1, session.tuning.maxPower);
+            var swimmer = authority != null && authority.onlineView && authority.localRole == CrewRole.Captain ? session.captain : session.diver;
+            if (oxygenFill != null && swimmer != null) oxygenFill.fillAmount = swimmer.oxygenMax > 0 ? swimmer.oxygen / swimmer.oxygenMax : 0;
         }
         void RefreshOnlineStatus()
         {
+            if (onlineStatus == null) return;
             if (!OnlineVoyage.InProgress)
             {
-                if (onlineStatus != null) onlineStatus.gameObject.SetActive(false);
+                onlineStatus.gameObject.SetActive(false);
                 return;
-            }
-            if (onlineStatus == null)
-            {
-                var canvas = GetComponentInParent<Canvas>();
-                if (canvas == null) return;
-                var root = new GameObject("Online connection status", typeof(RectTransform));
-                var rect = (RectTransform)root.transform;
-                rect.SetParent(canvas.rootCanvas.transform, false);
-                rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.right;
-                rect.anchoredPosition = new Vector2(-18, 14);
-                rect.sizeDelta = new Vector2(400, 52);
-                onlineStatus = root.AddComponent<Text>();
-                onlineStatus.font = RuntimeUIFont.GetOrCreateFont();
-                onlineStatus.fontSize = 19;
-                onlineStatus.alignment = TextAnchor.LowerRight;
-                onlineStatus.raycastTarget = false;
-                onlineStatus.horizontalOverflow = HorizontalWrapMode.Overflow;
-                var outline = root.AddComponent<Outline>();
-                outline.effectColor = new Color(.02f, .05f, .09f, .95f);
-                outline.effectDistance = new Vector2(1, -1);
             }
             var voyage = OnlineVoyage.Current;
             string milliseconds = voyage.RoundTripTimeMilliseconds?.ToString("0") ?? "—";

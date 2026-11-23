@@ -37,6 +37,7 @@ namespace Lifeline.Editor
             if (hud == null || hud.session == null) return;
             if (hud.onboarding == null) hud.onboarding = hud.GetComponent<OnboardingView>();
             if (hud.onboarding == null) hud.onboarding = hud.gameObject.AddComponent<OnboardingView>();
+            if (hud.nauticalView == null) hud.onboarding.BuildMissingViews();
             hud.onboarding.Initialize(hud);
             EditorUtility.SetDirty(hud); EditorUtility.SetDirty(hud.onboarding);
             var tutorial = hud.session.GetComponent<TutorialProgress>(); if (tutorial != null) EditorUtility.SetDirty(tutorial);

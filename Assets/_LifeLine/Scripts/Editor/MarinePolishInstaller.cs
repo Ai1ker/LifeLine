@@ -28,14 +28,6 @@ namespace Lifeline.Editor
             scenery.cityCoast = LoadSprite(SurfaceBackdrops, "FloodedCityCoast").texture;
             EditorUtility.SetDirty(scenery);
 
-            EditPrefab("Ship/Ship", root =>
-            {
-                var hatch = root.transform.Find("LadderHatch").GetComponent<Renderer>();
-                var deck = root.transform.Find("DeckWest").GetComponent<Renderer>();
-                if (hatch.sharedMaterial == deck.sharedMaterial) return false;
-                hatch.sharedMaterial = deck.sharedMaterial;
-                return true;
-            });
             EditPrefab("Enemies/Shadow", root =>
             {
                 var view = root.GetComponent<PixelEnemyView>();

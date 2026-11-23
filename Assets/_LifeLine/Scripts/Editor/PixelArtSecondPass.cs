@@ -245,9 +245,10 @@ namespace Lifeline.Editor
             {
                 if (scene.isDirty) throw new InvalidOperationException("Save Gameplay before binding the backdrop.");
                 var game = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<GameSession>(true)).Single();
-                if (game.world.oceanArt != null && game.GetComponent<PixelOceanBackdrop>() != null) return;
+                var backdrop = game.GetComponent<PixelOceanBackdrop>();
+                if (game.world.oceanArt != null && backdrop != null && backdrop.surface != null && backdrop.underwater != null) return;
                 if (game.world.oceanArt == null) game.world.oceanArt = art;
-                if (game.GetComponent<PixelOceanBackdrop>() == null) game.gameObject.AddComponent<PixelOceanBackdrop>();
+                MarineSceneArtInstaller.InstallBackdropObjects(game, game.world.oceanArt);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene)) throw new IOException("Could not save the ocean backdrop setup.");
             }

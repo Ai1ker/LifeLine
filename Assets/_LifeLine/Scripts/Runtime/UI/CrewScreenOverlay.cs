@@ -10,18 +10,16 @@ namespace Lifeline
     {
         public Color captainPromptColor = new Color(1f, .85f, .48f);
         public Color diverPromptColor = new Color(.63f, 1f, .93f);
-        public Color bagColor = new Color(.07f, .23f, .30f, .95f);
         public float promptHeight = 1.15f;
         public float nameHeight = 1.1f;
         GameHUDController hud;
-        RectTransform screen, footer, bag, onlineBag;
-        Text bagTitle;
-        readonly Text[] prompts = new Text[2];
-        readonly Text[] names = new Text[2];
-        readonly Text[] ropeLabels = new Text[2];
-        readonly Text[] craftNotices = new Text[2];
-        Text captainBag;
-        readonly List<Text> slots = new();
+        public RectTransform screen, footer, bag, onlineBag;
+        public Text bagTitle, captainBag;
+        public Text[] prompts = new Text[2], names = new Text[2], ropeLabels = new Text[2], craftNotices = new Text[2];
+        public List<Text> slots = new();
+        public RectTransform inventorySlotPrefab;
+        public Color occupiedSlotColor = Color.white;
+        public Color emptySlotColor = new Color32(222, 201, 180, 255);
         bool online, bagOpen;
         int arrangedCapacity = -1;
         public bool BackpackOpen => online && bagOpen;
@@ -29,41 +27,6 @@ namespace Lifeline
         public void Initialize(GameHUDController owner)
         {
             hud = owner;
-            screen = Rect("Crew prompts and backpack", owner.transform, Vector2.zero, Vector2.one);
-            footer = owner.diverText != null ? owner.diverText.transform.parent as RectTransform : null;
-            if (owner.captainText != null) owner.captainText.gameObject.SetActive(false);
-            if (owner.diverText != null) owner.diverText.gameObject.SetActive(false);
-            if (owner.messageText != null && footer != null && owner.messageText.transform.parent == footer)
-            {
-                var notice = owner.messageText.rectTransform;
-                notice.SetParent(screen, false);
-                Stretch(notice, new Vector2(.30f, .765f), new Vector2(.99f, .81f));
-                notice.gameObject.SetActive(false);
-            }
-            for (int i = 0; i < prompts.Length; i++)
-            {
-                prompts[i] = Label("Interaction " + (CrewRole)i, screen, 21);
-                prompts[i].color = i == 0 ? captainPromptColor : diverPromptColor;
-                prompts[i].gameObject.SetActive(false);
-                names[i] = Label("Steam name " + (CrewRole)i, screen, 21);
-                names[i].gameObject.AddComponent<LocalizationLiteralText>();
-                names[i].gameObject.SetActive(false);
-                ropeLabels[i] = Label("Rope length " + (CrewRole)i, screen, 18);
-                ropeLabels[i].gameObject.SetActive(false);
-                craftNotices[i] = Label("Craft failure " + (CrewRole)i, screen, 22);
-                craftNotices[i].color = new Color(1f, .64f, .55f);
-                craftNotices[i].gameObject.SetActive(false);
-            }
-            captainBag = Label("Captain dive backpack", screen, 16);
-            captainBag.gameObject.SetActive(false);
-            onlineBag = Rect("Online backpack panel", screen, new Vector2(.55f, .04f), new Vector2(.985f, .25f));
-            var panel = onlineBag.gameObject.AddComponent<Image>();
-            panel.color = bagColor;
-            panel.raycastTarget = false;
-            bag = Rect("Diver backpack", footer != null ? footer : screen, new Vector2(.012f, .05f), new Vector2(.988f, .96f));
-            bagTitle = Label("Backpack used slots", bag, 19);
-            bagTitle.alignment = TextAnchor.MiddleLeft;
-            Stretch(bagTitle.rectTransform, new Vector2(.01f, .74f), new Vector2(.99f, 1));
             Configure(false);
         }
 
@@ -71,8 +34,8 @@ namespace Lifeline
         {
             online = useOnlineLayout;
             if (footer != null) footer.gameObject.SetActive(!online);
+            if (bag == null) return;
             bag.SetParent(online ? onlineBag : footer != null ? footer : screen, false);
-            Stretch(bag, new Vector2(.012f, .05f), new Vector2(.988f, .96f));
             arrangedCapacity = -1;
             RefreshBackpack();
         }
@@ -86,6 +49,7 @@ namespace Lifeline
 
         public void RefreshBackpack()
         {
+            if (bag == null || onlineBag == null || bagTitle == null) return;
             var actor = hud.session.diver;
             bool guestWaiting = OnlineVoyage.IsGuest && OnlineVoyage.WaitingForCrew;
             bool show = actor != null && (!online || hud.authority.localRole == CrewRole.Diver && bagOpen && !guestWaiting);
@@ -101,7 +65,7 @@ namespace Lifeline
                 string item = filled ? GameNames.Resource(actor.backpack[index]) : "空";
                 slots[index].text = (index + 1) + "  " + UiLocalization.Text(item);
                 slots[index].rectTransform.parent.GetComponent<Image>().color = filled
-                    ? new Color(.12f, .39f, .45f, .9f) : new Color(.12f, .28f, .33f, .8f);
+                    ? occupiedSlotColor : emptySlotColor;
             }
         }
 
@@ -112,14 +76,8 @@ namespace Lifeline
             int rows = Mathf.Max(1, Mathf.CeilToInt(capacity / (float)columns));
             while (slots.Count < capacity)
             {
-                var tile = Rect("Inventory slot " + (slots.Count + 1), bag, Vector2.zero, Vector2.one);
-                tile.gameObject.AddComponent<Image>().raycastTarget = false;
-                var text = Label("Item", tile, 17);
-                text.resizeTextForBestFit = true;
-                text.resizeTextMinSize = 10;
-                text.resizeTextMaxSize = 17;
-                Stretch(text.rectTransform, new Vector2(.04f, 0), new Vector2(.96f, 1));
-                slots.Add(text);
+                var tile = Instantiate(inventorySlotPrefab, bag);
+                slots.Add(tile.GetComponentInChildren<Text>(true));
             }
             for (int index = 0; index < slots.Count; index++)
             {
@@ -135,7 +93,7 @@ namespace Lifeline
 
         void LateUpdate()
         {
-            if (hud == null || hud.authority?.cameraRig == null) return;
+            if (screen == null || hud == null || hud.authority?.cameraRig == null) return;
             var game = hud.session;
             var rig = hud.authority.cameraRig;
             bool active = game.phase == SessionPhase.Playing &&
@@ -297,27 +255,6 @@ namespace Lifeline
         }
 
         static string Format(string text, params object[] args) => string.Format(UiLocalization.Text(text), args);
-        static Text Label(string name, RectTransform parent, int size)
-        {
-            var rect = Rect(name, parent, Vector2.one * .5f, Vector2.one * .5f);
-            rect.sizeDelta = new Vector2(360f, 68f);
-            var text = rect.gameObject.AddComponent<Text>();
-            text.font = RuntimeUIFont.GetOrCreateFont();
-            text.fontSize = size;
-            text.color = Color.white;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.supportRichText = false;
-            text.raycastTarget = false;
-            rect.gameObject.AddComponent<Outline>().effectColor = new Color(.02f, .08f, .12f, .98f);
-            return text;
-        }
-        static RectTransform Rect(string name, Transform parent, Vector2 min, Vector2 max)
-        {
-            var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            Stretch(rect, min, max);
-            return rect;
-        }
         static void Stretch(RectTransform rect, Vector2 min, Vector2 max)
         {
             rect.anchorMin = min;

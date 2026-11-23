@@ -25,12 +25,9 @@ namespace Lifeline
             hideSpots.Clear();
             foreach (var state in saved)
             {
-                var obj = new GameObject("Saved hiding spot / building " + state.mazeIndex + " / room " + state.mazeCell);
-                obj.transform.SetParent(generatedRoot != null ? generatedRoot : transform, false);
-                obj.transform.position = state.position;
-                var hide = obj.AddComponent<UnderwaterHideSpot>();
-                hide.world = this; hide.mazeIndex = state.mazeIndex; hide.mazeCell = state.mazeCell; hide.range = state.range;
-                hideSpots.Add(hide);
+                var hide = PlaceHideSpot("Saved hiding spot / building " + state.mazeIndex + " / room " + state.mazeCell,
+                    state.position, state.mazeIndex, state.mazeCell);
+                hide.range = state.range;
             }
         }
 

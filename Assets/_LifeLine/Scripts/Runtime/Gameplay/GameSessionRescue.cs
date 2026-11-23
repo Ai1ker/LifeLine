@@ -66,21 +66,27 @@ namespace Lifeline
             diver.SetHidden(false);
             diverFainted = true; diverHidden = false;
             if (diver.body != null) diver.body.linearVelocity = Vector3.zero;
-            int dropCount = diver.backpack.Count / 2;
-            if (dropCount > 0 && world != null)
-            {
-                GameObject bagObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                bagObject.name = "LostDiverBag_ExactContents";
-                bagObject.transform.position = diver.Position; bagObject.transform.localScale = new Vector3(.6f, .45f, .5f);
-                Collider collider = bagObject.GetComponent<Collider>(); if (collider != null) collider.isTrigger = true;
-                LootPickup bag = bagObject.AddComponent<LootPickup>();
-                bag.world = world; bag.capacity = Mathf.Max(tuning.crateCapacity, dropCount);
-                bag.isCrate = true; bag.isCabinet = false; bag.amount = 0;
-                for (int i = 0; i < dropCount; i++) { int last = diver.backpack.Count - 1; bag.contents.Add(diver.backpack[last]); diver.backpack.RemoveAt(last); }
-                bag.persistAcrossDays = true; bag.isLostCargo = true;
-                bag.transform.SetParent(world.transform, true); world.pickups.Add(bag); world.PrepareRestoredPickup(bag);
-            }
+            DropLostCrewCargo(diver, "LostDiverBag_ExactContents");
             Tell(reason + "，潜水员昏厥。水下队友可扶起，也可用绞盘接回。"); Changed();
+        }
+
+        void DropLostCrewCargo(CrewActor actor, string name)
+        {
+            int dropCount = actor.backpack.Count / 2;
+            if (dropCount == 0 || world == null) return;
+            LootPickup bag = world.CreatePickupObject(world.transform, actor.Position, ResourceKind.Wood, true, false, true);
+            bag.name = name;
+            bag.amount = 0;
+            bag.capacity = Mathf.Max(tuning.crateCapacity, dropCount);
+            bag.persistAcrossDays = true;
+            for (int i = 0; i < dropCount; i++)
+            {
+                int last = actor.backpack.Count - 1;
+                bag.contents.Add(actor.backpack[last]);
+                actor.backpack.RemoveAt(last);
+            }
+            world.pickups.Add(bag);
+            world.PrepareRestoredPickup(bag);
         }
 
         public bool RegisterSharkBite()

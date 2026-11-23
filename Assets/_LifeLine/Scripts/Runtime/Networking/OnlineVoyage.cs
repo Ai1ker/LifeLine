@@ -54,7 +54,14 @@ namespace Lifeline
             var root = new GameObject("Online voyage coordinator");
             DontDestroyOnLoad(root);
             Current = root.AddComponent<OnlineVoyage>();
-            root.AddComponent<OnlineLoadingView>().voyage = Current;
+        }
+
+        OnlineLoadingView loadingView;
+        public void AttachLoadingView(OnlineLoadingView prefab)
+        {
+            if (prefab == null || loadingView != null) return;
+            loadingView = Instantiate(prefab, transform, false);
+            loadingView.voyage = this;
         }
 
         public bool TryGetLoadingProgress(out float progress, out string stage)

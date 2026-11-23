@@ -22,6 +22,8 @@ namespace Lifeline
         public Color underwaterHighlights = new Color(.29f, .54f, .83f);
         public Sprite cloud, haze, foam, ripple;
         public Sprite kelp, coral, seagrass, arch, rock, bubbles;
+        [Tooltip("Authored SpriteRenderer templates for the seeded room decorations.")]
+        public SpriteRenderer plantVisual, distantRockVisual;
         [Min(1)] public float regionBlendMetres = 8f;
         [Min(3)] public float panoramaWidth = 55f;
         [Min(0)] public float waveSpeed = 1.15f, cloudSpeed = .27f;
@@ -52,7 +54,8 @@ namespace Lifeline
                 float offset = (float)(random.NextDouble() - .5) * maze.cellSize * .5f;
                 var decoration = PixelWorldArt.PlaceSprite(parent, art.name, art,
                     new Vector3(center.x + offset, center.y, distantRock ? 7.1f : 2.2f) - parent.position,
-                    new Vector2(size * (distantRock ? 1.85f : 1.45f), size), world.geometryLayer);
+                    new Vector2(size * (distantRock ? 1.85f : 1.45f), size), world.geometryLayer,
+                    plant ? plantVisual : distantRockVisual);
                 var position = decoration.transform.localPosition;
                 position.y -= maze.cellSize * .5f - decoration.bounds.extents.y - .11f;
                 decoration.transform.localPosition = position;
@@ -61,8 +64,9 @@ namespace Lifeline
                     Mathf.Lerp(.86f, .52f, Mathf.InverseLerp(12f, 50f, depth)));
                 if (plant)
                 {
-                    var sway = decoration.gameObject.AddComponent<PixelPlantSway>();
-                    sway.phase = (float)random.NextDouble() * 6.28f;
+                    var sway = decoration.GetComponent<PixelPlantSway>();
+                    if (sway == null) sway = decoration.gameObject.AddComponent<PixelPlantSway>();
+                    sway.Initialize((float)random.NextDouble() * 6.28f);
                 }
             }
         }

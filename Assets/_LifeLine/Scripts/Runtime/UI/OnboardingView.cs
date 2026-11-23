@@ -13,8 +13,8 @@ namespace Lifeline
         public Text instructionText, noticeText, captainOxygenText;
         public Image captainOxygenFill;
         [Header("Placeholder layout / replace with authored UI")]
-        public bool buildMissingViews = true;
         public bool hideLessonsWhileUsingDevices = true;
+        public bool showContextualCaptainOxygen = true;
         public Color panelColor = new Color(.04f, .14f, .20f, .68f);
         public Color textColor = new Color(.91f, .98f, 1f);
         public Sprite panelSprite;
@@ -27,13 +27,11 @@ namespace Lifeline
         {
             hud = owner;
             if (hud == null || hud.session == null) return;
-            progress = hud.session.GetComponent<TutorialProgress>();
-            if (progress == null) progress = hud.session.gameObject.AddComponent<TutorialProgress>();
-            progress.Initialize(hud.session);
-            if (buildMissingViews) BuildMissingViews();
+            progress = TutorialProgress.ForSession(hud.session);
             RefreshView();
         }
         void Update() { RefreshView(); }
+#if UNITY_EDITOR
         public void BuildMissingViews()
         {
             if (instructionPanel == null) instructionPanel = Panel("Onboarding / replaceable lesson", instructionMin, instructionMax);
@@ -51,6 +49,7 @@ namespace Lifeline
                 captainOxygenFill.raycastTarget = false;
             }
         }
+#endif
         public void RefreshView()
         {
             if (hud == null || hud.session == null) return;
@@ -75,7 +74,7 @@ namespace Lifeline
             if (noticePanel != null) noticePanel.SetActive(notice);
             if (notice && noticeText != null) noticeText.text = UiLocalization.Text(progress.NoticeSource);
             var captain = session.captain;
-            bool showOxygen = playing && captain != null && !captain.onboard;
+            bool showOxygen = showContextualCaptainOxygen && playing && captain != null && !captain.onboard;
             if (captainOxygenRoot != null) captainOxygenRoot.SetActive(showOxygen);
             if (showOxygen)
             {
@@ -87,6 +86,7 @@ namespace Lifeline
                 }
             }
         }
+#if UNITY_EDITOR
         GameObject Panel(string name, Vector2 min, Vector2 max)
         {
             var rect = Rect(name, transform, min, max);
@@ -96,10 +96,11 @@ namespace Lifeline
         Text Label(Transform parent, string name, Vector2 min, Vector2 max)
         {
             var text = Rect(name, parent, min, max).gameObject.AddComponent<Text>();
-            text.font = RuntimeUIFont.GetOrCreateFont(); text.fontSize = fontSize; text.color = textColor;
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); text.fontSize = fontSize; text.color = textColor;
             text.alignment = TextAnchor.UpperLeft; text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow; text.raycastTarget = false; return text;
         }
+#endif
         static RectTransform Rect(string name, Transform parent, Vector2 min, Vector2 max)
         {
             var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();

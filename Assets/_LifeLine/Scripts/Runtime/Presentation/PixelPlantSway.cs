@@ -8,8 +8,9 @@ namespace Lifeline
         Vector3 basePosition;
         float footOffset;
 
-        void Awake()
+        public void Initialize(float phaseOffset)
         {
+            phase = phaseOffset;
             basePosition = transform.localPosition;
             var sprite = GetComponent<SpriteRenderer>();
             if (sprite != null) footOffset = sprite.bounds.extents.y;

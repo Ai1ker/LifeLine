@@ -186,7 +186,7 @@ namespace Lifeline.Editor
             EditPrefab("Ship/Ship", root =>
             {
                 var visual = root.transform.Find("VisualRoot");
-                if (visual.Find("Pixel Hull") != null) return false;
+                if (visual.Find("Pixel Hull") != null) return MarineSceneArtInstaller.AlignDeckArt(root);
                 var back = visual.Find("HullBack");
                 if (back != null) HideMeshes(back);
                 foreach (string name in new[] { "CabinWestWall", "CabinEastWall", "CabinFloor" })
@@ -196,6 +196,7 @@ namespace Lifeline.Editor
                 }
                 var render = PixelWorldArt.PlaceSprite(visual, "Pixel Hull", hull, new Vector3(0, -2.64f, 1.18f), new Vector2(24, 4.5f), root.layer);
                 render.transform.localScale = new Vector3(24f / hull.bounds.size.x, 4.5f / hull.bounds.size.y, 1);
+                MarineSceneArtInstaller.AlignDeckArt(root);
                 return true;
             });
         }

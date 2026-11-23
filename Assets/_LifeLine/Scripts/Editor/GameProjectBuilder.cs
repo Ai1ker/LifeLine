@@ -37,6 +37,7 @@ namespace Lifeline.Editor
             EnsureLayer(14, "WaterShipProxy");
             var library = PrefabLibraryBuilder.Build();
             actionPrefab = library.actionButton;
+            NauticalUiMigration.ApplyCommonAssets();
             if (overwriteGeneratedScenes)
             {
                 string backup = Root + "/Documentation/SceneBackups/" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_ffff");
@@ -94,6 +95,7 @@ namespace Lifeline.Editor
             controller.controls = CreateControls(canvas, library.actionButton);
             controller.settings = CreateSettings(canvas, controller.controls);
             InstallOnlineMenu(controller, card);
+            NauticalMenuAuthoring.Apply(controller);
             new GameObject("Save flow").AddComponent<GameSaveManager>().mainMenu = controller;
             CreateLocalization();
             EditorSceneManager.SaveScene(scene, MenuScene);
@@ -158,6 +160,7 @@ namespace Lifeline.Editor
             }
             visibility.session = session; visibility.cameraRig = rig; visibility.diver = session.diver;
             visibility.maskImage = mask; visibility.maskMaterial = nightMaterial;
+            VoyageHudAuthoring.Install(hud);
             CreateLocalization();
             Physics.SyncTransforms();
             EditorSceneManager.MarkSceneDirty(scene);

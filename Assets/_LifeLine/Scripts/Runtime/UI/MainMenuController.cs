@@ -16,6 +16,7 @@ namespace Lifeline
         public Button continueButton;
         public Button onlineCoopButton;
         public OnlineRoomPanel onlineRoomPanel;
+        public OnlineLoadingView onlineLoadingViewPrefab;
         public CanvasGroup menuCard;
         public Text saveStatusText;
         public event Action ContinueRequested;
@@ -26,6 +27,7 @@ namespace Lifeline
         private void Start()
         {
             Time.timeScale = 1f;
+            OnlineVoyage.Current?.AttachLoadingView(onlineLoadingViewPrefab);
             if (captainInput != null) captainInput.Initialize(CrewRole.Captain, inputAsset);
             if (diverInput != null) diverInput.Initialize(CrewRole.Diver, inputAsset);
             if (controls != null) { controls.captainInput = captainInput; controls.diverInput = diverInput; }

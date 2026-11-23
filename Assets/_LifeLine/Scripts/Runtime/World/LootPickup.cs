@@ -140,7 +140,6 @@ namespace Lifeline
 
         public void RefreshVisual()
         {
-            if (world != null && world.pixelArt != null) world.pixelArt.ApplyPickup(this);
             if (isCrate && attached && !consumed && world != null && world.session != null)
             {
                 var view = GetComponent<DiverLifelineView>();

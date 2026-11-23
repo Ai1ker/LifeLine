@@ -53,14 +53,30 @@ namespace Lifeline
                 }
                 foreach (int cell in hideCells)
                 {
-                    var obj = new GameObject("Random hiding spot / building " + mazeIndex + " / room " + cell);
-                    obj.transform.SetParent(generatedRoot, false);
-                    obj.transform.position = maze.Center(cell) + buildingHideOffset;
-                    var hide = obj.AddComponent<UnderwaterHideSpot>();
-                    hide.world = this; hide.mazeIndex = mazeIndex; hide.mazeCell = cell;
-                    hideSpots.Add(hide);
+                    PlaceHideSpot("Random hiding spot / building " + mazeIndex + " / room " + cell,
+                        maze.Center(cell) + buildingHideOffset, mazeIndex, cell);
                 }
             }
+        }
+
+        UnderwaterHideSpot PlaceHideSpot(string title, Vector3 position, int mazeIndex, int cell)
+        {
+            var parent = generatedRoot != null ? generatedRoot : transform;
+            UnderwaterHideSpot hide;
+            if (pixelArt != null && pixelArt.hideSpotPrefab != null)
+                hide = Instantiate(pixelArt.hideSpotPrefab, position, Quaternion.identity, parent);
+            else
+            {
+                var root = Child(parent, title);
+                root.position = position;
+                hide = root.gameObject.AddComponent<UnderwaterHideSpot>();
+            }
+            hide.name = title;
+            hide.world = this;
+            hide.mazeIndex = mazeIndex;
+            hide.mazeCell = cell;
+            hideSpots.Add(hide);
+            return hide;
         }
 
         List<int> BuildingFeatureCandidates(MazeLayout maze)

@@ -2698,3 +2698,7 @@ MonoBehaviour:
     zh: "\u5EF6\u8FDF {0} ms"
     en: Latency {0} ms
     fragment: 1
+  - key: hud.nautical.day
+    zh: "\u7B2C {0} \u5929"
+    en: DAY {0}
+    fragment: 1

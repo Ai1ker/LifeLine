@@ -60,15 +60,7 @@ namespace Lifeline
             if(actor==null||actor.onboard||IsFainted(actor))return;
             if(actor==diver){FaintDiver(reason);return;}
             actor.SetHidden(false);actor.fainted=true;
-            int dropCount=actor.backpack.Count/2;
-            if(dropCount>0&&world!=null)
-            {
-                var obj=GameObject.CreatePrimitive(PrimitiveType.Cube);obj.name="Lost captain bag";
-                obj.transform.SetParent(world.transform,true);obj.transform.position=actor.Position;obj.transform.localScale=new Vector3(.6f,.45f,.5f);obj.GetComponent<Collider>().isTrigger=true;
-                var bag=obj.AddComponent<LootPickup>();bag.world=world;bag.isCrate=true;bag.amount=0;bag.capacity=Mathf.Max(tuning.crateCapacity,dropCount);
-                for(int i=0;i<dropCount;i++){int last=actor.backpack.Count-1;bag.contents.Add(actor.backpack[last]);actor.backpack.RemoveAt(last);}
-                bag.persistAcrossDays=true;bag.isLostCargo=true;bag.transform.SetParent(world.transform,true);world.pickups.Add(bag);world.PrepareRestoredPickup(bag);
-            }
+            DropLostCrewCargo(actor, "Lost captain bag");
             captainBoardHeld=false;captainBoardProgress=0;
             if(actor.body!=null)actor.body.linearVelocity=Vector3.zero;
             Tell(GameNames.Role(actor.role)+"昏厥。水下队友可扶起，也可用绞盘接回。");Changed();
