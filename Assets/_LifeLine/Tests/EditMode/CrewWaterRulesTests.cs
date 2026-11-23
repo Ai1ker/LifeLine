@@ -85,15 +85,34 @@ namespace Lifeline.Tests
             Assert.That(game.captain.onboard);game.BeginDive(game.captain);game.BeginDive(game.diver);
             Assert.That(game.WinchTargetCount,Is.EqualTo(2));Assert.That(game.WinchEfficiency,Is.EqualTo(.5f));
         }
-        [Test] public void BothBirdTypesDamageOnlyHullEvenBesideBothCrew()
+        [TestCase(.2f)]
+        [TestCase(.7f)]
+        [TestCase(.9f)]
+        public void BothBirdTypesDamageOnlyHullEvenBesideBothCrew(float dayFraction)
         {
-            game.SetDayClock(2,.9f);foreach(var kind in new[]{EnemyKind.Bird,EnemyKind.ArmoredBird})
+            game.SetDayClock(2,dayFraction);foreach(var kind in new[]{EnemyKind.Bird,EnemyKind.ArmoredBird})
             {
                 var enemy=game.SpawnEnemy(kind,game.captain.Position);enemy.state=EnemyState.Telegraph;enemy.stateTime=.6f;enemy.birdTargetsCrew=false;
                 float hull=game.hull;typeof(LifelineEnemy).GetMethod("TickBird",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(enemy,new object[]{.01f});
                 Assert.That(game.hull,Is.EqualTo(hull-tuning.birdHullDamage));Assert.That(game.captain.downed,Is.False);Assert.That(game.diver.downed,Is.False);
             }
         }
+
+        [Test]
+        public void HarpoonNeedsTwoHitsToDefeatAnArmoredBird()
+        {
+            game.hasHarpoon = true;
+            game.captainBuffs.attack = tuning.fishBuffSeconds;
+            game.captain.RestorePose(true, game.captain.Position, Vector3.zero, Vector2.right);
+            var armored = game.SpawnEnemy(EnemyKind.ArmoredBird, game.captain.Position + Vector3.right * 2);
+            Assert.That(game.MeleeAttack(game.captain), Is.True);
+            Assert.That(armored.health, Is.EqualTo(1f));
+            Assert.That(armored.IsAlive, Is.True);
+            game.meleeCooldowns[(int)CrewRole.Captain] = 0;
+            Assert.That(game.MeleeAttack(game.captain), Is.True);
+            Assert.That(armored.IsAlive, Is.False);
+        }
+
         [Test] public void NewWaterAndHiddenStateRoundTripsAndCaptainChannelDoesNotResume()
         {
             var world=World(true);game.BeginDive(game.captain);game.BeginDive(game.diver);

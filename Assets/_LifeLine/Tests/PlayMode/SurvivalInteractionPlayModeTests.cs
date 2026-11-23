@@ -50,6 +50,38 @@ namespace Lifeline.Tests
             Assert.That(Vector3.Angle(Vector3.up, edge), Is.EqualTo(67.5f).Within(.1f));
             Assert.That(edge.magnitude, Is.EqualTo(game.MeleeReach).Within(.001f));
         }
+        [UnityTest]
+        public IEnumerator BaitMarkerAppearsAtTheActivePositionAndHidesWhenBaitExpires()
+        {
+            var art = ScriptableObject.CreateInstance<PixelWorldArt>();
+            try
+            {
+                art.sharkBaitMarkerPrefab = Child("SharkBaitMarker");
+                game.world.pixelArt = art;
+                game.AddResource(ResourceKind.Bait, 2);
+                game.diver.RestorePose(false, game.BoatAnchor + Vector3.down * 5, Vector3.zero, Vector2.right);
+                Assert.That(game.ThrowBait(game.diver), Is.True);
+
+                yield return null;
+                var marker = game.world.transform.GetChild(0);
+                Assert.That(marker.name, Is.EqualTo("SharkBaitMarker(Clone)"));
+                Assert.That(marker.position, Is.EqualTo(game.baitPosition));
+                Assert.That(marker.gameObject.activeSelf, Is.True);
+                Assert.That(game.world.pickups, Is.Empty);
+
+                game.diver.RestorePose(false, game.BoatAnchor + Vector3.down * 7, Vector3.zero, Vector2.left);
+                Assert.That(game.ThrowBait(game.diver), Is.True);
+                yield return null;
+                Assert.That(game.world.transform.childCount, Is.EqualTo(1));
+                Assert.That(marker.position, Is.EqualTo(game.baitPosition));
+
+                game.StepSimulation(tuning.baitSeconds);
+                yield return null;
+                Assert.That(marker.gameObject.activeSelf, Is.False);
+            }
+            finally { Object.DestroyImmediate(art); }
+        }
+
         Text Label(string name,Transform parent)
         {var obj=new GameObject(name,typeof(RectTransform),typeof(CanvasRenderer),typeof(Text));obj.transform.SetParent(parent,false);return obj.GetComponent<Text>();}
         [UnityTest] public IEnumerator SwitchingWorkbenchAndRepairStationNeverReusesTheirJobsOrQte()

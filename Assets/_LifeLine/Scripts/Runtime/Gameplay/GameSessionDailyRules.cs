@@ -13,11 +13,29 @@ namespace Lifeline
             tuning.lightningWarning - Mathf.Max(0, day - 2) * tuning.lightningWarningDayReduction);
         public float BirdInterval => Mathf.Max(tuning.birdMinimumInterval,
             tuning.birdInterval - Mathf.Max(0, day - 3) * tuning.birdIntervalDayReduction);
+        public float BirdSpawnRate
+        {
+            get
+            {
+                if (IsNight)
+                    return LightEffective && GetUpgrade(UpgradeKind.Searchlight) >= 2 ? tuning.upgradedLightBirdRate : 1f;
+                return IsDusk ? tuning.duskBirdRate : tuning.daylightBirdRate;
+            }
+        }
+
         // Mutually exclusive extra-one / extra-two outcomes. Day 1 uses the base probabilities.
         public Vector2 BirdExtraChances => new Vector2(
             Mathf.Min(tuning.birdExtraOneCap, tuning.birdExtraOneChance + Mathf.Max(0, day - 1) * tuning.birdExtraDailyChance),
             Mathf.Min(tuning.birdExtraTwoCap, tuning.birdExtraTwoChance + Mathf.Max(0, day - 1) * tuning.birdExtraDailyChance));
         public int BirdWaveCount(float roll) => roll < BirdExtraChances.y ? 3 : roll < BirdExtraChances.x + BirdExtraChances.y ? 2 : 1;
+        public float GetBirdInterruptChance(EnemyKind kind)
+        {
+            bool armored = kind == EnemyKind.ArmoredBird;
+            float baseChance = armored ? tuning.armoredBirdInterruptChance : tuning.birdInterruptChance;
+            float cap = armored ? tuning.armoredBirdInterruptCap : tuning.birdInterruptCap;
+            return Mathf.Min(cap, baseChance + Mathf.Max(0, day - 1) * tuning.birdInterruptDailyChance);
+        }
+
         public void SpawnBirdWave(float roll)
         {
             int count = BirdWaveCount(roll);

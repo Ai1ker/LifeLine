@@ -13,6 +13,8 @@ namespace Lifeline.Editor
         const string UnderwaterPrefabs = WorldPrefabs + "/UnderwaterArt";
         const string Folder = UnderwaterPrefabs + "/Pickups";
         const string SpriteNode = "Pickup Sprite";
+        const string SharkBaitSpritePath = Root + "/Art/Items/StaticSprites/SharkBaitFish.png";
+        const string SharkBaitPrefabPath = UnderwaterPrefabs + "/SharkBaitMarker.prefab";
 
         public static void Install(WorldGenerator world, PixelWorldArt art)
         {
@@ -34,11 +36,44 @@ namespace Lifeline.Editor
                 art.cabinetPrefab = AuthorPrefab(basePickup, "SalvageCabinet", art.cabinet, new Vector2(.85f, .9f), ResourceKind.Wood, cabinet: true);
             if (art.lostCargoPrefab == null)
                 art.lostCargoPrefab = AuthorPrefab(basePickup, "LostCargo", art.lostCargo, new Vector2(.85f, .9f), ResourceKind.Wood, lostCargo: true);
+            InstallBaitMarker(art, world.pickupLayer);
 
             world.pixelArt = art;
             PrefabUtility.RecordPrefabInstancePropertyModifications(world);
             EditorUtility.SetDirty(art);
             foreach (var pickup in world.GetComponentsInChildren<LootPickup>(true)) BindBakedVisual(world, pickup);
+        }
+
+        public static void InstallBaitMarker(PixelWorldArt art, int waterLayer)
+        {
+            if (art.sharkBaitMarkerPrefab != null) return;
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SharkBaitPrefabPath);
+            if (prefab == null)
+            {
+                var importer = AssetImporter.GetAtPath(SharkBaitSpritePath) as TextureImporter;
+                if (importer == null) throw new InvalidOperationException("Missing shark bait fish artwork.");
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.filterMode = FilterMode.Point;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.mipmapEnabled = false;
+                importer.alphaIsTransparency = true;
+                importer.SaveAndReimport();
+
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(SharkBaitSpritePath);
+                if (sprite == null) throw new InvalidOperationException("Shark bait fish art could not be imported as a sprite.");
+                var root = new GameObject("SharkBaitMarker") { layer = waterLayer };
+                try
+                {
+                    var renderer = PixelWorldArt.PlaceSprite(root.transform, "Baitfish", sprite,
+                        new Vector3(0, 0, -1.05f), new Vector2(.86f, .38f), waterLayer);
+                    renderer.sortingOrder = 2;
+                    prefab = PrefabUtility.SaveAsPrefabAsset(root, SharkBaitPrefabPath);
+                }
+                finally { Object.DestroyImmediate(root); }
+            }
+            art.sharkBaitMarkerPrefab = prefab;
+            EditorUtility.SetDirty(art);
         }
 
         static Sprite ResourceSprite(ResourceKind kind, PixelWorldArt art) => kind switch

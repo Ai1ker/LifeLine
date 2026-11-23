@@ -76,7 +76,7 @@ namespace Lifeline
                         hasHit = true;
                         if (!turretShot && enemy.kind != EnemyKind.ArmoredBird)
                             GameAudio.At(session, AudioCue.SpearHitFlesh, hit.point, onShipMap);
-                        enemy.ReceiveHit(!turretShot && enemy.IsAirborne ? damage * session.AirborneWeaponMultiplier(owner) : damage, owner);
+                        enemy.ReceiveHit(!turretShot && enemy.IsAirborne ? session.birdSpeargunDamage : damage, owner);
                     }
                     transform.position = hit.point;
                     if (turretShot) Destroy(gameObject);

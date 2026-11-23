@@ -12,6 +12,8 @@ namespace Lifeline
         [Header("Authored visual prefabs")]
         public MeshRenderer ruinWallVisual, caveWallVisual, seabedVisual, caveBackdropVisual;
         public UnderwaterHideSpot hideSpotPrefab;
+        [Tooltip("Visual-only prefab shown at the active shark bait position.")]
+        public GameObject sharkBaitMarkerPrefab;
         [Tooltip("Pickup prefabs indexed by ResourceKind. The SpriteRenderer is authored inside each prefab.")]
         public LootPickup[] resourcePrefabs;
         public LootPickup cabinetPrefab, lostCargoPrefab;

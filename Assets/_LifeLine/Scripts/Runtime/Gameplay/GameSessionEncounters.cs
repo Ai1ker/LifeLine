@@ -158,15 +158,11 @@ namespace Lifeline
                 SpawnEnemy(EnemyKind.Shadow, BoatAnchor + new Vector3(12, -16, 0));
                 Tell("深渊之影正在靠近，累计造成30点伤害可将它逼退。");
             }
-            if (IsNight)
+            birdCountdown -= dt * BirdSpawnRate;
+            if (birdCountdown <= 0)
             {
-                float rate = LightEffective && GetUpgrade(UpgradeKind.Searchlight) >= 2 ? tuning.upgradedLightBirdRate : 1;
-                birdCountdown -= dt * rate;
-                if (birdCountdown <= 0)
-                {
-                    birdCountdown += BirdInterval;
-                    SpawnBirdWave(UnityEngine.Random.value);
-                }
+                birdCountdown += BirdInterval;
+                SpawnBirdWave(UnityEngine.Random.value);
             }
             UpdateTurret(dt);
         }
@@ -195,7 +191,6 @@ namespace Lifeline
             meleeCooldowns[(int)actor.role] = Mathf.Max(tuning.meleeCooldown, presentation != null ? presentation.swingSeconds : 0);
             actor.EmitPresentationEvent(CrewVisualEvent.Melee, direction: facing);
             if (!actor.onboard) TryPushUnderwaterCargo(actor, facing, range);
-            float damage = hasHarpoon ? harpoonDamage : meleeDamage;
             LifelineEnemy closest = null; float nearest = range;
             foreach (LifelineEnemy enemy in enemies)
             {
@@ -214,13 +209,21 @@ namespace Lifeline
             {
                 GameAudio.At(this, closest.kind == EnemyKind.ArmoredBird ? AudioCue.CrewMeleeMetal :
                     AudioCue.CrewMeleeFlesh, closest.transform.position, closest.IsAirborne);
-                closest.ReceiveHit(closest.IsAirborne ? damage * AirborneWeaponMultiplier(actor) : damage, actor);
+                float damage = BaseMeleeDamage(closest);
+                if (closest.IsAirborne && !hasHarpoon && Buffs(actor).attack > 0)
+                    damage *= 1 + tuning.fishAttackBonus;
+                closest.ReceiveHit(damage, actor);
             }
             return true;
         }
 
         public float MeleeReach => tuning.meleeRange * (hasHarpoon ? 1f : .65f);
-        internal float AirborneWeaponMultiplier(CrewActor actor) => actor != null && Buffs(actor).attack > 0 ? 1 + tuning.fishAttackBonus : 1;
+
+        float BaseMeleeDamage(LifelineEnemy enemy)
+        {
+            if (!hasHarpoon) return meleeDamage;
+            return enemy.IsAirborne ? birdHarpoonDamage : harpoonDamage;
+        }
 
         void TryPushUnderwaterCargo(CrewActor actor, Vector2 facing, float range)
         {
@@ -295,7 +298,7 @@ namespace Lifeline
         {
             if (target == null || actor == null) return;
             LifelineEnemy enemy = target.GetComponentInParent<LifelineEnemy>();
-            if (enemy != null) enemy.ReceiveHit(hasHarpoon ? harpoonDamage : meleeDamage, actor);
+            if (enemy != null) enemy.ReceiveHit(BaseMeleeDamage(enemy), actor);
         }
 
         public bool BuildTurret()

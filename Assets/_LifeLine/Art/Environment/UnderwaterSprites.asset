@@ -28,6 +28,7 @@ MonoBehaviour:
   seabedVisual: {fileID: 3396942575708283493, guid: 8044ac5987f9ebd4682d8e591dcc8280, type: 3}
   caveBackdropVisual: {fileID: 6431748038367138453, guid: 9a42ba18ec5e0664c93ca93f90a1e00b, type: 3}
   hideSpotPrefab: {fileID: 4838951354708075495, guid: 410b0f57dd71a8c4e921b2ca5cb74bc5, type: 3}
+  sharkBaitMarkerPrefab: {fileID: 1223749632176394365, guid: 09cb080fd34dcff47ba3dbf656e50b47, type: 3}
   resourcePrefabs:
   - {fileID: 6501206894044733933, guid: e72e73c64f5e649458a73ccd3deb0595, type: 3}
   - {fileID: 5495533493025448634, guid: 59f622503a409764786c5a9bd499dfe6, type: 3}

@@ -186,6 +186,8 @@ namespace Lifeline
         public float meleeDamage = 1f;
         public float harpoonDamage = 2f;
         public float spearDamage = 2f;
+        [Min(0f)] public float birdHarpoonDamage = 1f;
+        [Min(0f)] public float birdSpeargunDamage = 2f;
         public float hullContactDamage = 4f;
         public float lightningHullDamage = 5f;
         public float lightningRadius = 2.2f;

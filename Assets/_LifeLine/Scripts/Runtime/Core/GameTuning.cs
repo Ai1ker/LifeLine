@@ -34,7 +34,9 @@ namespace Lifeline
         public float birdMinimumInterval = 10f, birdIntervalDayReduction = 1f;
         public float birdExtraOneChance = .2f, birdExtraTwoChance = .1f, birdExtraDailyChance = .01f;
         public float birdExtraOneCap = .5f, birdExtraTwoCap = .25f;
-        public float birdInterruptChance = .25f, armoredBirdInterruptChance = .5f;
+        [Range(0, 1)] public float birdInterruptChance = .25f, armoredBirdInterruptChance = .5f;
+        [Range(0, 1)] public float birdInterruptDailyChance = .01f;
+        [Range(0, 1)] public float birdInterruptCap = .4f, armoredBirdInterruptCap = .7f;
         [Tooltip("Base / T1 / T2 / T3 / T4 / T5 rope length in metres. T3 retains electric recovery; T4 adds 20% recovery efficiency.")]
         public float[] ropeLengths = { 38f, 54f, 74f, 100f, 150f, 200f };
 
@@ -160,6 +162,8 @@ namespace Lifeline
         public float turretShotInterval = 1.5f;
         public float birdHullDamage = 2f;
         public float birdInterval = 15f;
+        [Range(0, 1)] public float daylightBirdRate = .6f;
+        [Range(0, 1)] public float duskBirdRate = .8f;
         [Range(0, 1)] public float upgradedLightBirdRate = .6f;
         public float meleeCooldown = .6f;
         public float meleeRange = 3f;

@@ -120,6 +120,26 @@ namespace Lifeline
         public int forceFilterDay=-1;
         public Color nightOceanColor=new Color(.025f,.075f,.14f),duskOceanColor=new Color(.07f,.19f,.27f);
         Material[] fallbackMaterials;
+        GameObject sharkBaitMarker;
+
+        void LateUpdate()
+        {
+            // The same bait state drives gameplay, saved games and online replicas.
+            if (session == null || session.phase == SessionPhase.Menu || session.baitTime <= 0)
+            {
+                if (sharkBaitMarker != null && sharkBaitMarker.activeSelf) sharkBaitMarker.SetActive(false);
+                return;
+            }
+
+            if (sharkBaitMarker == null)
+            {
+                if (pixelArt == null || pixelArt.sharkBaitMarkerPrefab == null) return;
+                sharkBaitMarker = Instantiate(pixelArt.sharkBaitMarkerPrefab, transform);
+            }
+
+            sharkBaitMarker.transform.position = session.baitPosition;
+            if (!sharkBaitMarker.activeSelf) sharkBaitMarker.SetActive(true);
+        }
 
         [ContextMenu("Generate configured seed")]
         public void GenerateConfiguredSeed() => Generate(seed);

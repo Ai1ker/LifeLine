@@ -50,6 +50,9 @@ MonoBehaviour:
   birdExtraTwoCap: 0.25
   birdInterruptChance: 0.25
   armoredBirdInterruptChance: 0.5
+  birdInterruptDailyChance: 0.01
+  birdInterruptCap: 0.4
+  armoredBirdInterruptCap: 0.7
   ropeLengths:
   - 38
   - 54
@@ -183,6 +186,8 @@ MonoBehaviour:
   turretShotInterval: 1.5
   birdHullDamage: 2
   birdInterval: 15
+  daylightBirdRate: 0.6
+  duskBirdRate: 0.8
   upgradedLightBirdRate: 0.6
   meleeCooldown: 0.6
   meleeRange: 3

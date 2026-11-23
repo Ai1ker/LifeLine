@@ -83,7 +83,7 @@ namespace Lifeline
             if(!IsAirborne){crewCollision=GetComponent<AquaticCrewCollision>();if(crewCollision==null)crewCollision=gameObject.AddComponent<AquaticCrewCollision>();crewCollision.Initialize(this);}
             else
             {
-                birdTargetsCrew=UnityEngine.Random.value<(kind==EnemyKind.ArmoredBird?owner.tuning.armoredBirdInterruptChance:owner.tuning.birdInterruptChance);
+                birdTargetsCrew = UnityEngine.Random.value < owner.GetBirdInterruptChance(kind);
                 birdTargetRole=UnityEngine.Random.value<.5f?CrewRole.Captain:CrewRole.Diver;
             }
             SphereCollider sphere = hitCollider as SphereCollider; if (sphere != null) sphere.radius = hitRadius;
@@ -247,7 +247,6 @@ namespace Lifeline
 
         void TickBird(float dt)
         {
-            if (!session.IsNight) { Move(transform.position + Vector3.up * 20, birdSpeed * dt); if (transform.position.y > session.ShipPoint(Vector3.up * 14).y) Destroy(gameObject); return; }
             CrewActor target=birdTargetRole==CrewRole.Captain?session.captain:session.diver;
             bool valid=target!=null&&target.onboard&&!session.IsIncapacitated(target)&&session.ship.transform.InverseTransformPoint(target.Position).y>=target.deckY;
             if(birdTargetsCrew&&!valid){target=target==session.captain?session.diver:session.captain;valid=target!=null&&target.onboard&&!session.IsIncapacitated(target)&&session.ship.transform.InverseTransformPoint(target.Position).y>=target.deckY; if(valid)birdTargetRole=target.role;}

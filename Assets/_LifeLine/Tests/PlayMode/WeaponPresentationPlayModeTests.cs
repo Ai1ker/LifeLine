@@ -6,6 +6,57 @@ namespace Lifeline.Tests
 {
     public sealed class WeaponPresentationPlayModeTests
     {
+        [UnityTest]
+        public IEnumerator SpeargunHitsArmoredBirdForTwoRegardlessOfOtherDamage()
+        {
+            var previous = GameSession.Current;
+            var random = Random.state;
+            float previousScale = Time.timeScale;
+            Time.timeScale = 1;
+            var root = new GameObject("Speargun bird hit fixture");
+            var tuning = ScriptableObject.CreateInstance<GameTuning>();
+            LifelineSpear spear = null;
+            try
+            {
+                var game = root.AddComponent<GameSession>();
+                game.autoStart = false;
+                game.enabled = false;
+                game.tuning = tuning;
+                game.phase = SessionPhase.Playing;
+                game.hasSpeargun = true;
+                game.spearDamage = 1f;
+                game.captainBuffs.attack = tuning.fishBuffSeconds;
+                var crew = new GameObject("Captain");
+                crew.transform.SetParent(root.transform);
+                crew.transform.position = new Vector3(300, 300, 0);
+                var captain = crew.AddComponent<CrewActor>();
+                captain.enabled = false;
+                captain.session = game;
+                game.captain = captain;
+                var bird = game.SpawnEnemy(EnemyKind.ArmoredBird, captain.Position + Vector3.right * 3);
+                bird.transform.SetParent(root.transform);
+                bird.enabled = false;
+                Physics.SyncTransforms();
+
+                Assert.That(bird.health, Is.EqualTo(2f));
+                Assert.That(game.FireSpear(captain), Is.True);
+                spear = game.activeSpears[(int)CrewRole.Captain];
+                for (float deadline = Time.time + 2; Time.time < deadline && !spear.hasHit;) yield return null;
+                Assert.That(spear.hasHit, Is.True);
+                Assert.That(bird.health, Is.Zero);
+                Assert.That(bird.IsAlive, Is.False);
+            }
+            finally
+            {
+                if (spear != null) Object.DestroyImmediate(spear.gameObject);
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(tuning);
+                GameSession.RestoreCurrentAfterValidation(previous);
+                Random.state = random;
+                Time.timeScale = previousScale;
+            }
+        }
+
         [UnityTest] public IEnumerator SpearStopsAtTenMetresShowsTetherAndCanBeRecalledEarly()
         {
             var previous=GameSession.Current;float scale=Time.timeScale;Time.timeScale=1;

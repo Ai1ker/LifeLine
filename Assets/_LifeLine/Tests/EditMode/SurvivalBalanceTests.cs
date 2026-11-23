@@ -31,6 +31,41 @@ namespace Lifeline.Tests
             game.day=1;Assert.That(game.BirdWaveCount(.05f),Is.EqualTo(3));Assert.That(game.BirdWaveCount(.15f),Is.EqualTo(2));Assert.That(game.BirdWaveCount(.8f),Is.EqualTo(1));
             game.SpawnBirdWave(.05f);Assert.That(game.enemies.Select(e=>e.transform.position).Distinct().Count(),Is.EqualTo(3));
         }
+
+        [TestCase(1, .25f, .5f)]
+        [TestCase(2, .26f, .51f)]
+        [TestCase(16, .4f, .65f)]
+        [TestCase(21, .4f, .7f)]
+        [TestCase(100, .4f, .7f)]
+        public void BirdInterruptChancesIncreaseFromDayTwoAndCapIndependently(int day, float regular, float armored)
+        {
+            game.day = day;
+            Assert.That(game.GetBirdInterruptChance(EnemyKind.Bird), Is.EqualTo(regular).Within(.0001f));
+            Assert.That(game.GetBirdInterruptChance(EnemyKind.ArmoredBird), Is.EqualTo(armored).Within(.0001f));
+        }
+
+        [TestCase(.2f, .6f, .6f)]
+        [TestCase(.7f, .8f, .8f)]
+        [TestCase(.9f, 1f, .6f)]
+        public void BirdsSpawnInEachPhaseAndSearchlightSlowsOnlyNight(float dayFraction, float rate, float litRate)
+        {
+            game.SetDayClock(1, dayFraction);
+            game.birdCountdown = 2 * rate;
+            game.StepSimulation(1);
+            Assert.That(game.birdCountdown, Is.EqualTo(rate).Within(.001f));
+            Assert.That(game.enemies, Is.Empty);
+            game.StepSimulation(1.01f);
+            Assert.That(game.enemies.Count, Is.InRange(1, 3));
+
+            game.circuitRepaired = true;
+            game.searchlightOn = true;
+            game.upgradeLevels[(int)UpgradeKind.Searchlight] = 2;
+            game.power = 50;
+            float before = game.birdCountdown;
+            game.StepSimulation(1);
+            Assert.That(game.birdCountdown, Is.EqualTo(before - litRate).Within(.001f));
+        }
+
         [Test] public void RouteConsumesOnePercentPerMetreAndFuelUpgradePreservesCrankAndEelMeaning()
         {
             Assert.That(tuning.routeDistance,Is.EqualTo(200));Assert.That(game.ship.eastLimit,Is.EqualTo(200));
