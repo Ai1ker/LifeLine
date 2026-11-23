@@ -208,9 +208,13 @@ namespace Lifeline
         bool initialized;
         int previousDay;
 
-        public float DayProgress => tuning != null ? Mathf.Repeat(elapsed, Mathf.Max(1, tuning.daySeconds)) / Mathf.Max(1, tuning.daySeconds) : 0;
-        public bool IsNight => tuning != null && DayProgress >= tuning.dayFraction + tuning.duskFraction;
-        public bool IsDusk => tuning != null && DayProgress >= tuning.dayFraction && !IsNight;
+        float CycleSeconds => Mathf.Max(1, tuning.daySeconds);
+        float SecondsIntoDay => Mathf.Repeat(elapsed, CycleSeconds);
+        float DuskStartsAt => CycleSeconds * tuning.dayFraction;
+        float NightStartsAt => DuskStartsAt + CycleSeconds * tuning.duskFraction;
+        public float DayProgress => tuning != null ? SecondsIntoDay / CycleSeconds : 0;
+        public bool IsNight => tuning != null && SecondsIntoDay >= NightStartsAt;
+        public bool IsDusk => tuning != null && SecondsIntoDay >= DuskStartsAt && !IsNight;
         public Vector3 ShipToWaterPoint(Vector3 position) => maps != null ? maps.ShipToWaterPoint(position) : position;
         public Vector3 WaterToShipPoint(Vector3 position) => maps != null ? maps.WaterToShipPoint(position) : position;
         public Vector3 WaterShipPoint(Vector3 local) => ShipToWaterPoint(ShipPoint(local));

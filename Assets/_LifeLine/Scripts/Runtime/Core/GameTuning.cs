@@ -57,9 +57,12 @@ namespace Lifeline
         public float[] oxygenLevels = { 50f, 90f, 135f, 175f, 250f };
 
         [Header("昼夜 / Day-night")]
-        public float daySeconds = 200f;
-        [Range(0, 1)] public float dayFraction = .703f;
-        [Range(0, 1)] public float duskFraction = .117f;
+        public float daySeconds = DefaultCycleSeconds;
+        [Range(0, 1)] public float dayFraction = DefaultDaylightFraction;
+        [Range(0, 1)] public float duskFraction = DefaultDuskFraction;
+        public const float DefaultCycleSeconds = 180f + 45f + 55f;
+        public const float DefaultDaylightFraction = 180f / DefaultCycleSeconds;
+        public const float DefaultDuskFraction = 45f / DefaultCycleSeconds;
         public float lightningIntervalMin = 12f;
         public float lightningIntervalMax = 18f;
         public float lightningWarning = 2f;

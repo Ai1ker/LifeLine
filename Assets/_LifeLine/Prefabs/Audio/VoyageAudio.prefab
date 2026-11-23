@@ -2420,7 +2420,7 @@ AudioSource:
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
-  Priority: 128
+  Priority: 32
   DopplerLevel: 0
   MinDistance: 1
   MaxDistance: 500
@@ -3449,29 +3449,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.BgmManager
   tracks:
   - context: 0
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 21ba24c426f97b04d964dd923b9afa84, type: 3}
     volume: 0.68
   - context: 1
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 3dfa69e22916b414c99c9123477dae37, type: 3}
     volume: 0.68
   - context: 2
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 58068a8fbaec0784aab498689ccf1cb6, type: 3}
     volume: 0.68
-  - context: 3
-    clip: {fileID: 0}
+  - context: 7
+    clip: {fileID: 8300000, guid: bd27242e6e342554ca9a5c33c432fdb2, type: 3}
     volume: 0.68
-  - context: 4
-    clip: {fileID: 0}
+  - context: 9
+    clip: {fileID: 8300000, guid: 1898a25284b65e641993e18db23e81b8, type: 3}
     volume: 0.68
-  - context: 5
-    clip: {fileID: 0}
+  - context: 10
+    clip: {fileID: 8300000, guid: 220f735cbb4d9484ab86c87786f5ffa3, type: 3}
     volume: 0.68
-  - context: 6
-    clip: {fileID: 0}
+  - context: 8
+    clip: {fileID: 8300000, guid: c80872e806d1ed24f9a917e0fab56a68, type: 3}
+    volume: 0.68
+  - context: 2
+    clip: {fileID: 8300000, guid: 348d21458c46d3849b191b035649460a, type: 3}
     volume: 0.68
   first: {fileID: 6387800328606979312}
   second: {fileID: 1056902164148204498}
   fadeSeconds: 1.25
+  loopCrossfadeSeconds: 0.35
 --- !u!1 &6269723497988114977
 GameObject:
   m_ObjectHideFlags: 0
@@ -4039,7 +4043,7 @@ AudioSource:
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
-  Priority: 128
+  Priority: 32
   DopplerLevel: 0
   MinDistance: 1
   MaxDistance: 500
@@ -5690,6 +5694,7 @@ MonoBehaviour:
   hud: {fileID: 0}
   saveManager: {fileID: 0}
   reelSoundSpeed: 0.08
+  sprintBreathInterval: 4
   hullAlertThreshold: 0.24
   powerAlertThreshold: 0.1
   oxygenAlertThreshold: 0.2

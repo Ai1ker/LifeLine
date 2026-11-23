@@ -15,7 +15,11 @@ namespace Lifeline
         readonly bool[] oxygenAlert = new bool[2];
         readonly float[] stepPitch = new float[2];
         readonly bool[] wasWalking = new bool[2];
-        int lastDay, chapter, helmDirection, currentBgm = -1;
+        int lastDay, chapter, helmDirection;
+        bool musicSelected;
+        BgmContext? currentBgm;
+        int? currentNightSeed;
+        MainMenuController menu;
         float nextBirdCall, nextThunder;
         float lastSprintBreath = float.NegativeInfinity;
         SessionPhase phase;
@@ -25,7 +29,11 @@ namespace Lifeline
 
         void Start()
         {
-            if (session == null) { SelectMusic(BgmContext.Menu); return; }
+            if (session == null)
+            {
+                menu = FindAnyObjectByType<MainMenuController>();
+                return;
+            }
             session.SessionReady += VoyageReady;
             if (session.captain != null) session.captain.PresentationEvent += OnCrewSound;
             if (session.diver != null) session.diver.PresentationEvent += OnCrewSound;
@@ -62,7 +70,9 @@ namespace Lifeline
 
         void LateUpdate()
         {
-            if (session != null && session.IsInitialized) UpdateVoyage();
+            if (menu != null)
+                SelectMusic(menu.onlineRoomPanel != null && menu.onlineRoomPanel.IsOpen ? BgmContext.OnlineRoom : BgmContext.Menu);
+            else if (session != null && session.IsInitialized) UpdateVoyage();
             UpdateLoops();
         }
 
@@ -75,10 +85,15 @@ namespace Lifeline
             bool localOnline = OnlineVoyage.InProgress;
             var focus = localOnline && OnlineVoyage.Current.LocalRole == CrewRole.Diver ? game.diver : game.captain;
             bool underwater = focus != null && !focus.onboard;
-            bool cave = underwater && InCave(focus);
-            SelectMusic(game.phase == SessionPhase.Won || game.phase == SessionPhase.Lost ? (BgmContext?)null :
-                game.rescueVoyage ? BgmContext.Rescue : cave ? BgmContext.Cave : underwater ? BgmContext.Underwater :
-                storm ? BgmContext.Storm : night ? BgmContext.Night : BgmContext.Day);
+            if (game.phase == SessionPhase.Won || game.phase == SessionPhase.Lost) SelectMusic(null);
+            else if (night) SelectMusic(BgmContext.Night, unchecked(game.worldSeed * 397 ^ game.day * 104729 ^ 0x56f23ac9));
+            else if (game.IsDusk) SelectMusic(BgmContext.Dusk);
+            else
+            {
+                float x = game.ship != null ? game.ship.Position.x : 0;
+                SelectMusic(x < game.tuning.shallowBoundary ? BgmContext.ShallowsDay :
+                    x < game.tuning.deepBoundary ? BgmContext.CityDay : BgmContext.DeepDay);
+            }
 
             if (tutorial == null) tutorial = game.GetComponent<TutorialProgress>();
             UpdateAlerts(night, live);
@@ -112,13 +127,15 @@ namespace Lifeline
             EnemyLoops();
         }
 
-        void SelectMusic(BgmContext? context)
+        void SelectMusic(BgmContext? context, int? nightSeed = null)
         {
-            int next = context.HasValue ? (int)context.Value : -1;
-            if (bgm == null || currentBgm == next) return;
-            currentBgm = next;
-            if (context.HasValue) bgm.Play(context.Value);
-            else bgm.Stop();
+            var manager = BgmManager.Current != null ? BgmManager.Current : bgm;
+            if (manager == null || (musicSelected && currentBgm == context && currentNightSeed == nightSeed)) return;
+            musicSelected = true;
+            currentBgm = context;
+            currentNightSeed = nightSeed;
+            if (context.HasValue) manager.Play(context.Value, nightSeed);
+            else manager.Stop();
         }
 
         void UpdateAlerts(bool night, bool live)

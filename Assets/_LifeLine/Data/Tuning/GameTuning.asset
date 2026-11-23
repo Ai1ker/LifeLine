@@ -80,9 +80,9 @@ MonoBehaviour:
   - 135
   - 175
   - 250
-  daySeconds: 200
-  dayFraction: 0.703
-  duskFraction: 0.117
+  daySeconds: 280
+  dayFraction: 0.64285713
+  duskFraction: 0.16071428
   lightningIntervalMin: 12
   lightningIntervalMax: 18
   lightningWarning: 2
@@ -154,8 +154,12 @@ MonoBehaviour:
   extraCaveGuardChance: 0.75
   underwaterFishChance: 0.12
   minimumFishPerArea: 1
+  roomFishSwimSpeed: 0.48
+  roomFishCatchDistance: 1.35
+  roomFishCatchSeconds: 0.85
   shadowWindup: 1.76
   shadowHitsRequired: 30
+  shadowSizeMultiplier: 2
   shadowBasicReach: 0.18
   shadowBasicInterval: 1.5
   shadowBasicDuration: 0.36
