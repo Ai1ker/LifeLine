@@ -229,6 +229,7 @@ namespace Lifeline
                 Move(targetPoint, speed * dt);
                 if ((Vector3.Distance(transform.position, diver.Position) <= AttackRange || crewCollision != null && crewCollision.Touches(diver)))
                 {
+                    Sound(kind == EnemyKind.Piranha ? AudioCue.EnemyPiranhaBite : AudioCue.EnemySharkBite);
                     if (kind == EnemyKind.Piranha) diver.ReceiveDamage(session.tuning.piranhaDamage);
                     else if (diver == session.diver) session.RegisterSharkBite(); else diver.ReceiveDamage(session.tuning.sharkDamage);
                     GiveUp();
@@ -255,6 +256,7 @@ namespace Lifeline
             {
                 if (stateTime >= BirdStrikeWindup)
                 {
+                    Sound(AudioCue.EnemyBirdPeck);
                     if(birdTargetsCrew&&valid)
                     {
                         if(Vector3.Distance(transform.position,target.Position)<=birdAttackDistance)session.InterruptOperation(target);
@@ -297,6 +299,7 @@ namespace Lifeline
                     shadowBasicClock = tuning.shadowBasicDuration;
                     shadowBasicCooldown = tuning.shadowBasicInterval;
                     ChangeState(EnemyState.Pursuit);
+                    Sound(AudioCue.EnemyShadowBite);
                     diver.ReceiveDamage(tuning.shadowBasicDamage);
                     return;
                 }
@@ -321,6 +324,11 @@ namespace Lifeline
                 {
                     float x=Random.Range(i==0?-10f:1f,i==0?-1f:10f);
                     Vector3 point=session.ShipToWaterPoint(session.ShipPoint(new Vector3(x,.9f,0)));
+                    if (i == 0)
+                    {
+                        Sound(AudioCue.EnemyShadowProjectile);
+                        GameAudio.At(session, AudioCue.EnemyShadowWarning, session.WaterToShipPoint(point), true);
+                    }
                     session.QueueAreaStrike(AreaStrikeKind.WaterShot,point,true,session.tuning.lightningRadius,session.tuning.shadowWaterShotWarning,session.tuning.shadowWaterShotDamage);
                 }
             }
@@ -344,6 +352,7 @@ namespace Lifeline
         {
             if (!IsAlive || session == null || session.phase != SessionPhase.Playing || damage <= 0) return;
             damageFlash = .2f;
+            if (kind == EnemyKind.ArmoredBird) Sound(AudioCue.EnemyBirdArmorHit);
             if (kind == EnemyKind.Shadow)
             {
                 shadowHitCount = Mathf.Min(session.tuning.shadowHitsRequired, shadowHitCount + Mathf.Max(1, Mathf.RoundToInt(damage)));
@@ -365,12 +374,21 @@ namespace Lifeline
                     attackCooldown = Mathf.Max(attackCooldown, session.tuning.sharkHitRetreatSeconds);
                     reacquireTime = session.tuning.sharkHitRetreatSeconds;
                     ChangeState(EnemyState.Retreat);
+                    if (IsShark) Sound(AudioCue.EnemySharkFlee);
                 }
             }
         }
 
         void Defeat()
         {
+            Sound(kind switch
+            {
+                EnemyKind.Shadow => AudioCue.EnemyShadowExit,
+                EnemyKind.Bird => AudioCue.EnemyBirdRepel,
+                EnemyKind.ArmoredBird => AudioCue.EnemyBirdDeath,
+                EnemyKind.Piranha => AudioCue.EnemyPiranhaDeath,
+                _ => AudioCue.EnemySharkDeath
+            });
             state = EnemyState.Defeated;
             if (hitCollider != null) hitCollider.enabled = false;
             if(crewCollision!=null&&crewCollision.solid!=null)crewCollision.solid.enabled=false;
@@ -403,6 +421,23 @@ namespace Lifeline
             transform.position = next;
         }
 
-        void ChangeState(EnemyState next) { state = next; stateTime = 0; }
+        void ChangeState(EnemyState next)
+        {
+            if (next != state)
+            {
+                if (IsShark)
+                {
+                    if (next == EnemyState.Detecting) Sound(AudioCue.EnemySharkDetect);
+                    else if (next == EnemyState.Telegraph) Sound(AudioCue.EnemySharkWindup);
+                    else if (next == EnemyState.Lunge) Sound(AudioCue.EnemySharkLunge);
+                }
+                if (IsAirborne && next == EnemyState.Telegraph) Sound(AudioCue.EnemyBirdDive);
+                if (kind == EnemyKind.Shadow && next == EnemyState.Lunge) Sound(AudioCue.EnemyShadowLunge);
+            }
+            state = next;
+            stateTime = 0;
+        }
+
+        void Sound(AudioCue cue) => GameAudio.At(session, cue, transform.position, IsAirborne);
     }
 }

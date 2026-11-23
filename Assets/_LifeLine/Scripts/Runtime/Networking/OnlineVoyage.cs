@@ -346,6 +346,7 @@ namespace Lifeline
                 var frame = game.CaptureOnlineFrame(hud, baseline, includeWorld);
                 frame.waitingForCrew = waiting;
                 frame.station = Panel(remote.role)?.CaptureOnlineStation();
+                frame.audio = GameAudio.CaptureRecent(game, baseline);
                 link.BroadcastWorldState(OnlineFrameCodec.Encode(frame), !baseline && !includeWorld);
             }
             catch (Exception error)
@@ -368,6 +369,7 @@ namespace Lifeline
                     game.ApplyOnlineFrame(frame, hud);
                     waiting = frame.waitingForCrew;
                     Panel(local.role)?.ApplyOnlineStation(frame.station);
+                    GameAudio.PlayRecent(game, frame.audio);
                 }
             }
             catch (Exception error)

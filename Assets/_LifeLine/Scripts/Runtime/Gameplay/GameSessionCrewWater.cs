@@ -60,6 +60,7 @@ namespace Lifeline
             if(actor==null||actor.onboard||IsFainted(actor))return;
             if(actor==diver){FaintDiver(reason);return;}
             actor.SetHidden(false);actor.fainted=true;
+            GameAudio.At(actor, AudioCue.CrewDowned);
             DropLostCrewCargo(actor, "Lost captain bag");
             captainBoardHeld=false;captainBoardProgress=0;
             if(actor.body!=null)actor.body.linearVelocity=Vector3.zero;
@@ -93,6 +94,7 @@ namespace Lifeline
             if(actor==null||actor.onboard)return;
             if(actor==diver){BankDiver();return;}
             bool needsRevive=IsIncapacitated(actor);
+            if (actor.backpack.Count > 0) GameAudio.Global(this, AudioCue.BankDeposit);
             foreach(var item in actor.backpack)AddResource(item,1);actor.backpack.Clear();
             actor.SetHidden(false);actor.fainted=false;if(!needsRevive)actor.health=actor.maxHealth;
             actor.SetOnboard(true,ShipPoint(captainSpawnLocal));actor.SetDowned(needsRevive);

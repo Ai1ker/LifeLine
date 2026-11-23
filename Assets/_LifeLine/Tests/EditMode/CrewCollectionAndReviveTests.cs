@@ -65,13 +65,24 @@ namespace Lifeline.Tests
         {
             WorldGenerator world = World(); Assert.That(game.BeginDive(game.captain));
             var pickup = Child("Loose wood").AddComponent<LootPickup>(); pickup.world = world; pickup.resource = ResourceKind.Wood;
+            pickup.saveId = "captain-wood";
             pickup.amount = 6; pickup.collectSeconds = .1f; pickup.transform.position = game.captain.Position; world.pickups.Add(pickup);
             game.HandleCommand(game.captain, new CrewCommand { interact = true, interactHeld = true });
             Assert.That(game.captainBoardHeld, Is.False, "nearby collectable must win over the self-boarding E hold");
-            typeof(LootPickup).GetField("startedAt", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(pickup, Time.time - 1);
+            var startedAt = typeof(LootPickup).GetField("startedAt", BindingFlags.Instance | BindingFlags.NonPublic);
+            startedAt.SetValue(pickup, Time.time - .04f);
+            game.HandleCommand(game.captain, new CrewCommand { interactHeld = true });
+            var frame = OnlineFrameCodec.Decode(OnlineFrameCodec.Encode(game.CaptureOnlineFrame(null, false, false)));
+            Assert.That(frame.captainCollection.targetId, Is.EqualTo(pickup.saveId));
+            Assert.That(frame.captainCollection.fraction, Is.EqualTo(.4f).Within(.002f));
+            Assert.That(frame.diverCollection.targetId, Is.Null.Or.Empty);
+            Assert.That(game.CaptureOnlineFrame(null, true, true).captainCollection.targetId, Is.Null.Or.Empty);
+
+            startedAt.SetValue(pickup, Time.time - 1);
             game.HandleCommand(game.captain, new CrewCommand { interactHeld = true });
             Assert.That(game.captain.backpack, Has.Count.EqualTo(3)); Assert.That(pickup.amount, Is.EqualTo(3));
             Assert.That(game.captain.onboard, Is.False); Assert.That(game.captainBoardHeld, Is.False);
+            Assert.That(game.CaptureOnlineFrame(null, false, false).captainCollection.targetId, Is.Null.Or.Empty);
         }
 
         [Test] public void HidingUsesInteractByDefaultAndCanBeSeparated()

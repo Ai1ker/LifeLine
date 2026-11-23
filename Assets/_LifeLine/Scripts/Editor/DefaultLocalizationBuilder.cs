@@ -82,6 +82,9 @@ namespace Lifeline.Editor
             var entries = new List<LocalizationTable.Entry>
             {
                 new LocalizationTable.Entry("route.shallows", "浅滩", "Shallows"),
+                new LocalizationTable.Entry("audio.master", "主音量", "Master Volume") { fragment = false },
+                new LocalizationTable.Entry("audio.effects", "音效音量", "Sound Effects") { fragment = false },
+                new LocalizationTable.Entry("audio.music", "音乐音量", "Music Volume") { fragment = false },
                 new LocalizationTable.Entry("route.city", "城区", "Flooded City"),
                 new LocalizationTable.Entry("route.deep", "深水区", "Deep Sea"),
                 new LocalizationTable.Entry("route.position", "船位", "Ship Position"),

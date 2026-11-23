@@ -139,6 +139,12 @@ namespace Lifeline
             LifelineEnemy enemy = root.GetComponent<LifelineEnemy>();
             if (enemy == null) enemy = root.AddComponent<LifelineEnemy>();
             enemy.Initialize(this, kind);
+            if (!restoreExisting && enemy.IsAirborne)
+            {
+                var scream = Mathf.Abs(enemy.GetEntityId().GetHashCode() % 3);
+                GameAudio.At(this, scream == 0 ? AudioCue.EnemyBirdScream : scream == 1 ? AudioCue.EnemyBirdScream02 :
+                    AudioCue.EnemyBirdScream03, position, true);
+            }
             RegisterEnemy(enemy); return enemy;
         }
 
@@ -204,7 +210,12 @@ namespace Lifeline
                 if (actor.onboard && !enemy.IsAirborne && enemy.kind != EnemyKind.Shadow && enemy.transform.position.y < -2) continue;
                 closest = enemy; nearest = distance;
             }
-            if (closest != null) closest.ReceiveHit(closest.IsAirborne ? damage * AirborneWeaponMultiplier(actor) : damage, actor);
+            if (closest != null)
+            {
+                GameAudio.At(this, closest.kind == EnemyKind.ArmoredBird ? AudioCue.CrewMeleeMetal :
+                    AudioCue.CrewMeleeFlesh, closest.transform.position, closest.IsAirborne);
+                closest.ReceiveHit(closest.IsAirborne ? damage * AirborneWeaponMultiplier(actor) : damage, actor);
+            }
             return true;
         }
 
@@ -251,6 +262,7 @@ namespace Lifeline
                 }
             }
             target.transform.position = destination;
+            GameAudio.At(this, AudioCue.CargoShove, destination, false);
             target.blockedPull = 0;
             Changed();
         }
@@ -289,7 +301,8 @@ namespace Lifeline
         public bool BuildTurret()
         {
             if (phase != SessionPhase.Playing || turretInstalled || !circuitRepaired) return false;
-            if (!Spend(turretBuildCost)) return false;
+            if (!Spend(turretBuildCost)) { GameAudio.Global(this, AudioCue.UpgradeFail); return false; }
+            GameAudio.Global(this, AudioCue.TurretBuild);
             turretInstalled = true; turretTier = 1; turretOn = true; turretPowerClock = turretShotClock = 0;
             RefreshEquipmentVisibility();
             Tell("甲板炮塔已安装。每3秒消耗1%电力，自动驱鸟并对抗深渊巨影。"); Changed(); return true;
@@ -316,11 +329,14 @@ namespace Lifeline
             var targets = SelectTurretTargets();
             if(targets.Count==0)return;
             turretShotClock=0;
+            GameAudio.At(this, AudioCue.TurretRotateLoop, ShipPoint(new Vector3(11, 1.5f, 0)), true);
             foreach(var target in targets) FireTurret(target);
         }
         public bool UpgradeTurret()
         {
-            if(!turretInstalled || turretTier>=2 || !Spend(turretUpgradeCost))return false;
+            if(!turretInstalled || turretTier>=2)return false;
+            if(!Spend(turretUpgradeCost)) { GameAudio.Global(this, AudioCue.UpgradeFail); return false; }
+            GameAudio.Global(this, AudioCue.UpgradeSuccess);
             turretTier=2;Tell("炮塔T2：可同时攻击两个不同目标。");Changed();return true;
         }
         public List<LifelineEnemy> SelectTurretTargets()
@@ -346,6 +362,7 @@ namespace Lifeline
             bool shipMap = target.IsAirborne;
             root.name = "TurretProjectile";
             root.transform.position = shipMap ? ShipPoint(new Vector3(11, 1.5f, 0)) : WaterShipPoint(new Vector3(11, 1.5f, 0));
+            GameAudio.At(this, AudioCue.TurretFire, root.transform.position, shipMap);
             maps?.MoveGameplayObject(root, shipMap);
             if (spearPrefab == null) root.transform.localScale = Vector3.one * .18f;
             Collider shotCollider = root.GetComponent<Collider>(); if (shotCollider != null) shotCollider.isTrigger = true;

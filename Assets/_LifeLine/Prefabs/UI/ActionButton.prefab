@@ -93,6 +93,7 @@ GameObject:
   - component: {fileID: 7849998491298780544}
   - component: {fileID: 258462017077868940}
   - component: {fileID: 2387317346737434251}
+  - component: {fileID: 7311503473214664108}
   m_Layer: 0
   m_Name: ActionButton
   m_TagString: Untagged
@@ -242,3 +243,18 @@ MonoBehaviour:
   - Microsoft YaHei
   - Noto Sans CJK SC
   - Arial
+--- !u!114 &7311503473214664108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8653243563996567578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cdfd84a2c4b5940a84bfd33f1f39c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.AudioUiFeedback
+  click: 126
+  denied: 127
+  hover: 1

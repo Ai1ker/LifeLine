@@ -1,0 +1,156 @@
+﻿file,title,dir,gain,peak_before,rms_before,peak_after,rms_after
+sfx_craft_note_w.wav,W 键（C5）,SFX/Station,0.8948,0.38,0.1203,0.34,0.1077
+sfx_craft_note_a.wav,A 键（D5）,SFX/Station,0.8948,0.38,0.1186,0.34,0.1061
+sfx_craft_note_s.wav,S 键（E5）,SFX/Station,0.8948,0.38,0.1199,0.34,0.1073
+sfx_craft_note_d.wav,D 键（G5）,SFX/Station,0.8948,0.38,0.1195,0.34,0.1069
+sfx_craft_note_q.wav,Q 键（A5）,SFX/Station,0.8948,0.38,0.1333,0.34,0.1193
+sfx_craft_note_e.wav,E 键（C6）,SFX/Station,0.8948,0.38,0.1296,0.34,0.116
+sfx_craft_hit.wav,节奏命中,SFX/Station,0.7728,0.44,0.109,0.34,0.0843
+sfx_craft_miss.wav,节奏失误,SFX/Station,0.8501,0.4,0.0859,0.34,0.073
+sfx_craft_complete.wav,制作完成,SFX/Station,0.7556,0.45,0.0979,0.34,0.074
+sfx_craft_deny.wav,材料不足,SFX/Station,0.6833,0.42,0.1756,0.287,0.12
+sfx_batch_add.wav,批量 +1,SFX/Station,1.0001,0.34,0.1114,0.34,0.1114
+sfx_batch_remove.wav,批量 −1,SFX/Station,1.0001,0.34,0.1054,0.34,0.1054
+sfx_batch_confirm.wav,批量确认,SFX/Station,0.8501,0.4,0.097,0.34,0.0825
+sfx_qte_press.wav,校准键按下,SFX/Station,0.9445,0.36,0.0636,0.34,0.0601
+sfx_winch_loop.wav,绞盘手摇循环,SFX/Station,0.9519,0.3572,0.0279,0.34,0.0266
+sfx_winch_success.wav,绞盘成功,SFX/Station,0.368,0.924,0.0476,0.34,0.0175
+sfx_winch_fail.wav,绞盘失败,SFX/Station,0.34,1.0,0.0566,0.34,0.0193
+sfx_cargo_strain_loop.wav,绳索紧绷循环,SFX/World,1.3078,0.26,0.0136,0.34,0.0178
+sfx_rope_snap.wav,货箱绳断裂,SFX/World,0.34,1.0,0.0751,0.34,0.0255
+sfx_rope_attach.wav,挂绳,SFX/World,0.368,0.924,0.0476,0.34,0.0175
+sfx_cargo_shove.wav,水下推箱,SFX/World,0.4064,0.8366,0.0532,0.34,0.0216
+sfx_crate_pack.wav,装箱,SFX/World,0.9582,0.3548,0.0417,0.34,0.0399
+sfx_crew_step_deck.wav,甲板 / 舱内脚步,SFX/Crew,1.6999,0.2,0.0098,0.34,0.0167
+sfx_crew_ladder_loop.wav,爬梯循环,SFX/Crew,1.2142,0.28,0.029,0.34,0.0352
+sfx_crew_swim_loop.wav,游泳循环,SFX/Crew,1.1333,0.3,0.0309,0.34,0.035
+sfx_crew_sprint_breath.wav,冲刺呼吸,SFX/Crew,3.3998,0.1,0.0145,0.34,0.0492
+sfx_crew_dive_splash.wav,入水,SFX/Crew,0.576,0.5903,0.0737,0.34,0.0425
+sfx_crew_board.wav,上船,SFX/Crew,0.8015,0.4242,0.0554,0.34,0.0444
+sfx_crew_hurt.wav,受击,SFX/Crew,0.9714,0.35,0.0625,0.34,0.0607
+sfx_crew_downed.wav,倒地 / 昏厥,SFX/Crew,0.9715,0.35,0.0807,0.34,0.0784
+sfx_crew_revived.wav,船上扶起,SFX/Crew,1.1333,0.3,0.0127,0.34,0.0144
+sfx_crew_revive_water.wav,水下扶起,SFX/Crew,0.8499,0.4,0.0583,0.34,0.0496
+sfx_crew_revive_loop.wav,4 秒扶起循环,SFX/Crew,1.5457,0.22,0.0084,0.34,0.013
+sfx_crew_melee_swing.wav,近战挥击,SFX/Crew,0.34,1.0,0.1885,0.34,0.0641
+sfx_crew_melee_flesh.wav,近战命中肉体,SFX/Crew,1.6365,0.2078,0.0129,0.34,0.0211
+sfx_crew_melee_metal.wav,近战命中金属,SFX/Crew,0.3089,1.1006,0.1094,0.34,0.0338
+sfx_spear_fire.wav,射矛出膛,SFX/Crew,0.4546,0.748,0.0923,0.34,0.0419
+sfx_spear_hit_flesh.wav,矛命中肉体,SFX/Crew,0.3793,0.8963,0.058,0.34,0.022
+sfx_spear_hit_metal.wav,矛命中金属,SFX/Crew,0.5262,0.6461,0.0291,0.34,0.0153
+sfx_spear_recall.wav,鱼枪召回,SFX/Crew,1.2969,0.2622,0.0168,0.34,0.0217
+sfx_crew_hide_enter.wav,进入藏匿,SFX/Crew,1.0096,0.3368,0.0207,0.34,0.0209
+sfx_crew_hide_exit.wav,离开藏匿,SFX/Crew,0.903,0.3765,0.0297,0.34,0.0268
+sfx_crew_winched_loop.wav,被绞盘拖拽循环,SFX/Crew,1.1334,0.3,0.0453,0.34,0.0514
+sfx_station_panel_open.wav,工位面板开,SFX/Station,1.2143,0.28,0.0274,0.34,0.0333
+sfx_station_panel_close.wav,工位面板关,SFX/Station,1.2142,0.28,0.032,0.34,0.0388
+sfx_equipment_unlock.wav,设备解锁 / 建成,SFX/Station,0.3257,1.0439,0.1561,0.34,0.0508
+sfx_upgrade_success.wav,升级成功,SFX/Station,1.0626,0.32,0.023,0.34,0.0245
+sfx_upgrade_fail.wav,升级失败,SFX/Station,1.1334,0.3,0.0218,0.34,0.0247
+sfx_wheel_loop.wav,舵轮循环,SFX/Station,1.4167,0.24,0.0162,0.34,0.0229
+sfx_wheel_reverse.wav,换向咔哒,SFX/Station,1.3076,0.26,0.0452,0.34,0.0591
+sfx_light_on.wav,探照灯开,SFX/Station,0.3569,0.9526,0.0435,0.34,0.0155
+sfx_light_off.wav,探照灯关,SFX/Station,0.3613,0.941,0.0897,0.34,0.0324
+sfx_light_hum_loop.wav,探照灯嗡鸣,SFX/Station,1.5457,0.22,0.0493,0.34,0.0763
+sfx_fishing_cast.wav,抛竿,SFX/Station,1.1334,0.3,0.0201,0.34,0.0227
+sfx_fishing_bite.wav,鱼讯,SFX/Station,1.1334,0.3,0.0202,0.34,0.0228
+sfx_fishing_reel_loop.wav,收线循环,SFX/Station,1.3076,0.26,0.044,0.34,0.0576
+sfx_fish_common.wav,普通鱼上钩,SFX/Station,0.9714,0.35,0.0764,0.34,0.0742
+sfx_fish_rare.wav,品质鱼上钩,SFX/Station,0.9714,0.35,0.0496,0.34,0.0482
+sfx_fish_escape.wav,鱼逃脱,SFX/Station,1.0626,0.32,0.0645,0.34,0.0685
+sfx_repair_hammer.wav,修船敲击,SFX/Station,1.0,0.34,0.0325,0.34,0.0325
+sfx_filter_wire.wav,过滤器接线,SFX/Station,1.1334,0.3,0.0207,0.34,0.0235
+sfx_filter_pressurize.wav,过滤器加压,SFX/Station,1.1334,0.3,0.0585,0.34,0.0663
+sfx_oil_scrub_loop.wav,擦油污循环,SFX/Station,1.5457,0.22,0.0274,0.34,0.0423
+sfx_symbol_reveal.wav,符号显现,SFX/Station,1.1334,0.3,0.0795,0.34,0.0901
+sfx_wrong_part.wav,选错故障件,SFX/Station,1.2143,0.28,0.0365,0.34,0.0443
+sfx_engine_start.wav,引擎启动,SFX/Station,0.8499,0.4,0.0554,0.34,0.0471
+sfx_hand_crank_loop.wav,手摇发电循环,SFX/Station,1.4167,0.24,0.0178,0.34,0.0252
+sfx_fuel_add.wav,加燃料,SFX/Station,1.5457,0.22,0.0202,0.34,0.0312
+sfx_eel_discharge.wav,装电鳗放电,SFX/Station,0.7556,0.45,0.0407,0.34,0.0307
+sfx_repair_wire_connect.wav,接线成功,SFX/Station,1.2142,0.28,0.0266,0.34,0.0323
+sfx_repair_complete.wav,维修完成 / 通电,SFX/Station,1.0626,0.32,0.0367,0.34,0.039
+sfx_turret_build.wav,炮塔建造,SFX/Station,1.2143,0.28,0.0162,0.34,0.0197
+sfx_turret_rotate_loop.wav,炮塔转向,SFX/Station,1.3602,0.25,0.022,0.34,0.03
+sfx_turret_fire.wav,炮塔开火,SFX/Station,0.7555,0.45,0.0925,0.34,0.0699
+sfx_repair_fail.wav,维修操作失败,SFX/Station,1.1334,0.3,0.0152,0.34,0.0173
+sfx_enemy_shark_detect.wav,鲨鱼索敌,SFX/Enemy,0.9715,0.35,0.0409,0.34,0.0398
+sfx_enemy_shark_windup.wav,鲨鱼蓄力,SFX/Enemy,1.1334,0.3,0.016,0.34,0.0181
+sfx_enemy_shark_lunge.wav,鲨鱼突进,SFX/Enemy,0.9715,0.35,0.0888,0.34,0.0863
+sfx_enemy_shark_bite.wav,鲨鱼咬中,SFX/Enemy,0.9715,0.35,0.0819,0.34,0.0795
+sfx_enemy_shark_flee.wav,鲨鱼受击逃跑,SFX/Enemy,1.2484,0.2723,0.0672,0.34,0.0839
+sfx_enemy_shark_death.wav,鲨鱼死亡,SFX/Enemy,0.9714,0.35,0.105,0.34,0.102
+sfx_enemy_bird_flap_loop.wav,海鸟振翅,SFX/Enemy,1.1475,0.2963,0.0406,0.34,0.0466
+sfx_enemy_bird_flap_loop_02.wav,海鸟振翅 变体2,SFX/Enemy,1.1333,0.3,0.0406,0.34,0.046
+sfx_enemy_bird_flap_loop_03.wav,海鸟振翅 变体3,SFX/Enemy,1.1461,0.2967,0.0511,0.34,0.0586
+sfx_enemy_bird_scream.wav,海鸟尖叫,SFX/Enemy,1.0,0.34,0.0812,0.34,0.0812
+sfx_enemy_bird_dive.wav,海鸟俯冲,SFX/Enemy,1.0303,0.33,0.0489,0.34,0.0504
+sfx_enemy_bird_peck.wav,海鸟啄击,SFX/Enemy,1.1333,0.3,0.03,0.34,0.034
+sfx_enemy_bird_repel.wav,海鸟被驱离,SFX/Enemy,1.0626,0.32,0.0628,0.34,0.0667
+sfx_enemy_bird_armor_hit.wav,装甲鸟金属碰撞,SFX/Enemy,1.0626,0.32,0.044,0.34,0.0468
+sfx_enemy_bird_death.wav,海鸟死亡,SFX/Enemy,0.9714,0.35,0.0412,0.34,0.04
+sfx_enemy_piranha_swarm_loop.wav,食人鱼群游,SFX/Enemy,1.0303,0.33,0.0625,0.34,0.0644
+sfx_enemy_piranha_bite.wav,食人鱼咬击,SFX/Enemy,0.9714,0.35,0.0355,0.34,0.0345
+sfx_enemy_piranha_death.wav,食人鱼死亡,SFX/Enemy,0.9715,0.35,0.0574,0.34,0.0558
+sfx_enemy_shadow_pressure_loop.wav,深渊之影压迫,SFX/Enemy,1.5454,0.22,0.072,0.34,0.1113
+sfx_enemy_shadow_bite.wav,影撕咬,SFX/Enemy,0.7699,0.35,0.1559,0.2694,0.12
+sfx_enemy_shadow_lunge.wav,影突进,SFX/Enemy,0.8673,0.35,0.1384,0.3036,0.12
+sfx_enemy_shadow_projectile.wav,水弹发射,SFX/Enemy,0.9999,0.34,0.0928,0.34,0.0928
+sfx_enemy_shadow_warning.wav,水弹落点预警,SFX/Enemy,1.0303,0.33,0.0285,0.34,0.0294
+sfx_enemy_shadow_hit.wav,水弹命中,SFX/Enemy,0.8947,0.38,0.1268,0.34,0.1134
+sfx_enemy_bird_scream_02.wav,海鸟尖叫 变体2,SFX/Enemy,1.0,0.34,0.0748,0.34,0.0748
+sfx_enemy_bird_scream_03.wav,海鸟尖叫 变体3,SFX/Enemy,0.9999,0.34,0.0791,0.34,0.0791
+sfx_cabinet_open.wav,柜子开启,SFX/World,0.6778,0.5016,0.0175,0.34,0.0119
+sfx_hatch_open.wav,陷阱门开,SFX/World,1.2969,0.2622,0.0168,0.34,0.0217
+sfx_hatch_close.wav,陷阱门关,SFX/World,1.2969,0.2622,0.0168,0.34,0.0217
+sfx_cargo_land.wav,货箱落地,SFX/World,0.903,0.3765,0.0297,0.34,0.0268
+sfx_hull_breach_loop.wav,船体裂口循环,SFX/World,0.3655,0.9303,0.0681,0.34,0.0249
+sfx_flooding_loop.wav,进水循环,SFX/World,0.7962,0.427,0.022,0.34,0.0175
+sfx_low_power_alert.wav,低电提示,SFX/World,1.0,0.34,0.0713,0.34,0.0713
+sfx_engine_damage_alert.wav,引擎损坏警报,SFX/World,0.5658,0.6009,0.1024,0.34,0.0579
+sfx_night_fall.wav,入夜提示,SFX/World,0.5658,0.6009,0.1024,0.34,0.0579
+sfx_day_refresh.wav,日切换刷新,SFX/World,0.5658,0.6009,0.1024,0.34,0.0579
+sfx_lightning_warning.wav,雷击倒计时,SFX/World,1.0302,0.33,0.0468,0.34,0.0482
+sfx_lightning_strike.wav,落雷,SFX/World,0.7555,0.45,0.0987,0.34,0.0746
+sfx_thunder_near.wav,近雷,SFX/World,0.7556,0.45,0.0342,0.34,0.0259
+sfx_thunder_far.wav,远雷,SFX/World,0.8948,0.38,0.0267,0.34,0.0239
+sfx_ui_click.wav,UI 点击,SFX/UI,1.36,0.25,0.0211,0.34,0.0287
+sfx_ui_hover.wav,UI 悬停,SFX/UI,2.8327,0.12,0.0085,0.34,0.0242
+sfx_ui_back.wav,返回,SFX/UI,1.889,0.18,0.0153,0.34,0.0289
+sfx_ui_deny.wav,禁用 / 队列满,SFX/UI,1.3078,0.26,0.0669,0.34,0.0875
+sfx_ui_toggle.wav,开关切换,SFX/UI,1.5457,0.22,0.012,0.34,0.0185
+sfx_ui_slider.wav,滑杆,SFX/UI,2.2663,0.15,0.0125,0.34,0.0284
+sfx_ui_tab.wav,页签切换,SFX/UI,1.6999,0.2,0.036,0.34,0.0611
+sfx_save_manual.wav,手动存档,SFX/UI,1.2143,0.28,0.0115,0.34,0.014
+sfx_save_auto.wav,自动存档,SFX/UI,1.6999,0.2,0.0109,0.34,0.0185
+sfx_save_fail.wav,存档失败,SFX/UI,1.3078,0.26,0.0676,0.34,0.0884
+sfx_online_join.wav,联机加入,SFX/UI,1.3078,0.26,0.0669,0.34,0.0875
+sfx_online_fail.wav,联机连接失败,SFX/UI,1.3076,0.26,0.0672,0.34,0.0879
+sfx_radio_static_loop.wav,电台杂音,SFX/Station,1.2143,0.28,0.0455,0.34,0.0552
+sfx_quest_stage.wav,主线阶段推进,SFX/Station,1.3078,0.26,0.0205,0.34,0.0268
+sfx_radio_antenna_done.wav,天线完成,SFX/Station,1.3078,0.26,0.0408,0.34,0.0534
+sfx_radio_receiver_stage.wav,接收器阶段,SFX/Station,1.3078,0.26,0.0119,0.34,0.0155
+sfx_radio_amplifier_stage.wav,放大器阶段,SFX/Station,1.3078,0.26,0.0221,0.34,0.0289
+sfx_departure_horn.wav,启程汽笛,SFX/Station,0.8958,0.3796,0.0879,0.34,0.0788
+sfx_beacon_loop.wav,救援信标,SFX/Station,1.2143,0.28,0.0235,0.34,0.0285
+sfx_tutorial_step.wav,引导步骤推进,SFX/UI,0.5658,0.6009,0.1024,0.34,0.0579
+sfx_tutorial_notice.wav,首次事件提醒,SFX/UI,0.5658,0.6009,0.1024,0.34,0.0579
+sfx_tutorial_complete.wav,引导完成,SFX/UI,1.0,0.34,0.0571,0.34,0.0571
+sfx_end_win.wav,胜利,Music,0.4933,0.8108,0.1053,0.4,0.0519
+sfx_end_fail.wav,失败,Music,0.4231,0.9453,0.1425,0.4,0.0603
+amb_ocean_ship_loop.wav,海面 + 船体底噪,SFX/Ambience,1.0911,0.22,0.0168,0.24,0.0183
+amb_underwater_loop.wav,水下底噪,SFX/Ambience,1.1999,0.2,0.0249,0.24,0.0299
+amb_rain_loop.wav,雨声,SFX/Ambience,1.0909,0.22,0.0245,0.24,0.0267
+amb_cave_loop.wav,洞穴回响,SFX/Ambience,1.0911,0.22,0.0187,0.24,0.0204
+amb_night_wind_loop.wav,夜风,SFX/Ambience,1.2001,0.2,0.0444,0.24,0.0533
+amb_distant_birds.wav,远处海鸟 / 鲸鸣,SFX/Ambience,0.8571,0.28,0.0433,0.24,0.0371
+sfx_alert_oxygen_low.wav,低氧警报,SFX/UI,1.3078,0.26,0.0364,0.34,0.0476
+sfx_alert_hull_low.wav,船体告急,SFX/UI,0.9715,0.35,0.061,0.34,0.0593
+sfx_alert_power_low.wav,电力告急,SFX/UI,1.0,0.34,0.0713,0.34,0.0713
+sfx_pickup_generic.wav,拾取通用,SFX/World,1.2142,0.28,0.0462,0.34,0.056
+sfx_pickup_wood.wav,木材拾取,SFX/World,1.2142,0.28,0.0424,0.34,0.0515
+sfx_pickup_metal.wav,金属拾取,SFX/World,1.2142,0.28,0.0409,0.34,0.0496
+sfx_pickup_fiber.wav,纤维拾取,SFX/World,1.4165,0.24,0.0308,0.34,0.0436
+sfx_pickup_fish.wav,鱼获拾取,SFX/World,1.1333,0.3,0.0158,0.34,0.0179
+sfx_bank_deposit.wav,入库,SFX/World,1.2142,0.28,0.0309,0.34,0.0375
+sfx_crew_step_deck_02.wav,脚步 变体 2,SFX/Crew,1.6999,0.2,0.0098,0.34,0.0167

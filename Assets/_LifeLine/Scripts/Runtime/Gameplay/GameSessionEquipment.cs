@@ -42,6 +42,7 @@ namespace Lifeline
         {
             if (string.IsNullOrEmpty(toolId) || HasEquipment(toolId)) return false;
             if (!SetEquipmentState(toolId, true)) return false;
+            GameAudio.Global(this, AudioCue.EquipmentUnlock);
             RefreshEquipmentVisibility(); Changed(); return true;
         }
 

@@ -116,7 +116,9 @@ namespace Lifeline
         {
             if(selectedWire<0)return;
             if(selectedWire!=destination){session.Tell("端子不匹配。");return;}
-            hud.circuitConnected[destination]=true;selectedWire=-1;session.Changed();Build(StationKind.Circuit);
+            hud.circuitConnected[destination]=true;selectedWire=-1;
+            GameAudio.Global(session, AudioCue.RepairWireConnect, actor);
+            session.Changed();Build(StationKind.Circuit);
         }
         public void Scrub(int index,float seconds){panel.selectedFault=index;panel.ScrubEngineAt(index,seconds);}
         static RectTransform Rect(string name,Transform parent,Vector2 min,Vector2 max)

@@ -926,9 +926,10 @@ namespace Lifeline
         public bool TryHide(CrewActor actor)
         {
             if(actor==null||actor.onboard||session==null||session.IsIncapacitated(actor))return false;
-            if(session.IsHidden(actor)){actor.SetHidden(false);session.Tell(GameNames.Role(actor.role)+"离开藏匿处。");session.Changed();return true;}
+            if(session.IsHidden(actor)){actor.SetHidden(false);GameAudio.At(actor, AudioCue.CrewHideExit);session.Tell(GameNames.Role(actor.role)+"离开藏匿处。");session.Changed();return true;}
             if(!IsAtHideSpot(actor))return false;
             actor.SetHidden(true);
+            GameAudio.At(actor, AudioCue.CrewHideEnter);
             if (actor.role == CrewRole.Diver) session.GetComponent<TutorialProgress>()?.Observe(TutorialAction.Hide);
             session.Tell(GameNames.Role(actor.role)+"进入藏匿处。", actor);session.Changed();return true;
         }

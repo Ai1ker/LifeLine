@@ -493,13 +493,14 @@ namespace Lifeline
         {
             if (phase != SessionPhase.Playing || GetUpgrade(kind) >= GetMaxUpgrade(kind)) return false;
             if (upgradeLevels.Length < Enum.GetValues(typeof(UpgradeKind)).Length) Array.Resize(ref upgradeLevels, Enum.GetValues(typeof(UpgradeKind)).Length);
-            if (!Spend(GetUpgradeCost(kind))) { Tell("升级材料不足。先打捞并制作铁板与木板。"); return false; }
+            if (!Spend(GetUpgradeCost(kind))) { GameAudio.Global(this, AudioCue.UpgradeFail); Tell("升级材料不足。先打捞并制作铁板与木板。"); return false; }
             float oldMax = hullMax;
             upgradeLevels[(int)kind]++;
             if (kind == UpgradeKind.Rope) ropeLength = tuning.ropeLengths[Mathf.Min(GetUpgrade(kind), tuning.ropeLengths.Length - 1)];
             if (kind == UpgradeKind.Hull) { hullMax = tuning.hullLevels[Mathf.Min(GetUpgrade(kind), tuning.hullLevels.Length - 1)] * (infinitePower ? tuning.eelHullMultiplier : 1); hull += hullMax - oldMax; }
             if (kind == UpgradeKind.Oxygen && diver != null) { float delta = GetOxygenMax() - diver.oxygenMax; diver.oxygenMax = GetOxygenMax(); diver.oxygen += Mathf.Max(0, delta); }
             RefreshEquipmentVisibility();
+            GameAudio.Global(this, kind == UpgradeKind.Searchlight && GetUpgrade(kind) == 1 ? AudioCue.EquipmentUnlock : AudioCue.UpgradeSuccess);
             Tell("升级完成：" + kind + " T" + GetUpgrade(kind)); Changed(); return true;
         }
 

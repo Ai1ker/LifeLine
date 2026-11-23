@@ -47,6 +47,13 @@ namespace Lifeline
         private int engineVersion = -1;
         private int lastJobCount = -1;
         private int lastVisibleRecipeCount = -1;
+        float scrubSoundUntil, lastSoundCue = -1;
+        int lastSoundJob;
+        static readonly AudioCue[] NoteSounds = { AudioCue.CraftNoteW, AudioCue.CraftNoteA, AudioCue.CraftNoteS,
+            AudioCue.CraftNoteD, AudioCue.CraftNoteQ, AudioCue.CraftNoteE };
+        public bool ScrubbingAudioActive => Time.unscaledTime < scrubSoundUntil;
+        public bool FishingAudioReeling => station == StationKind.Fishing && actor != null && IsHeld("Interact") &&
+            (ReplicaPanel ? HasMotion && replicaMotion.fishing && replicaMotion.fishHooked : fishingActive && fishingTime >= fishWait);
         private float fishWait;
         private HoldActionButton heldButton;
         private bool repairStarted;
@@ -68,10 +75,14 @@ namespace Lifeline
             repairStarted = session.repairAuthorized[(int)kind];
             if (kind == StationKind.Winch && !ReplicaPanel) session.SetWinchActive(true,actor);
             if (kind == StationKind.Engine) engineVersion = session.engineRepairVersion;
+            GameAudio.ForLocalPanel(actor, AudioCue.StationPanelOpen);
             BuildActions();
         }
         public void Close()
         {
+            if (IsOpen) GameAudio.ForLocalPanel(actor, AudioCue.StationPanelClose);
+            scrubSoundUntil = 0;
+            lastSoundJob = 0; lastSoundCue = -1;
             if (actor != null) { actor.controlsCaptured = false; session?.craftingManager?.ClearInteractionContext(actor); }
             if (session != null && IsOpen && station == StationKind.Winch && !ReplicaPanel) session.SetWinchActive(false);
             if (panel != null) panel.SetActive(false);
@@ -123,7 +134,7 @@ namespace Lifeline
                     int direction = 0;
                     while (direction < 5 && (notes & (1 << direction)) == 0) direction++;
                     session.craftingManager.CraftQteAtStation(job.id, direction, station,
-                        InputRewind(command) * session.craftingManager.GetInteractionRate(job));
+                        InputRewind(command) * session.craftingManager.GetInteractionRate(job), actor);
                 }
             }
             else if (station == StationKind.Engine && repairStarted && command.move.sqrMagnitude>.2f && previousMove.sqrMagnitude<.2f)
@@ -276,9 +287,20 @@ namespace Lifeline
         public void RebuildRepair()=>BuildActions();
         public void ScrubEngineAt(int index,float seconds)
         {
-            if (ReplicaPanel) { HoldOnlineEngineScrub(index); return; }
+            if (ReplicaPanel)
+            {
+                if (index >= 0 && index < session.engineFaultClean.Length && session.engineFaultClean[index] < 1)
+                    scrubSoundUntil = Time.unscaledTime + .14f;
+                HoldOnlineEngineScrub(index);
+                return;
+            }
             if(session==null||session.phase!=SessionPhase.Playing||!IsOpen||station!=StationKind.Engine||!repairStarted||index<0||index>=session.engineFaultClean.Length)return;
-            selectedFault=index;session.engineFaultClean[index]=Mathf.Clamp01(session.engineFaultClean[index]+seconds*session.GetDeviceInteractionEfficiency(actor)/Mathf.Max(.1f,scrubSecondsPerFault));
+            selectedFault=index;
+            float previous = session.engineFaultClean[index];
+            if (previous >= 1) return;
+            scrubSoundUntil = Time.unscaledTime + .14f;
+            session.engineFaultClean[index]=Mathf.Clamp01(previous+seconds*session.GetDeviceInteractionEfficiency(actor)/Mathf.Max(.1f,scrubSecondsPerFault));
+            if (session.engineFaultClean[index] >= 1) GameAudio.Global(session, AudioCue.SymbolReveal, actor);
         }
 
         private void ScrubSelected(float delta)
@@ -307,11 +329,17 @@ namespace Lifeline
             ActionAndRefresh(() => session.TryCraft(recipe.id, actor));
         }
 
-        void AdjustBatch(int direction) => batchQuantity = Mathf.Clamp(batchQuantity + direction, 1, CraftingManager.MaximumBatch);
+        void AdjustBatch(int direction)
+        {
+            int previous = batchQuantity;
+            batchQuantity = Mathf.Clamp(batchQuantity + direction, 1, CraftingManager.MaximumBatch);
+            if (batchQuantity != previous) GameAudio.Global(session, direction > 0 ? AudioCue.BatchAdd : AudioCue.BatchRemove, actor);
+        }
 
         void ConfirmBatch()
         {
             if (batchRecipe == null || !session.craftingManager.TryCraft(batchRecipe.id, actor, batchQuantity)) return;
+            GameAudio.Global(session, AudioCue.BatchConfirm, actor);
             batchRecipe = null;
             BuildActions();
         }
@@ -340,12 +368,15 @@ namespace Lifeline
             fishingQuality = UnityEngine.Random.value < chance;
             fishingActive = true; fishWait = UnityEngine.Random.Range(fishWaitSeconds.x, fishWaitSeconds.y) / session.GetDeviceInteractionEfficiency(actor);
             fishingTime = 0; fishingProgress = .35f; fishingZone = .5f; fishingVelocity = 0;
+            GameAudio.At(actor, AudioCue.FishingCast);
         }
         private void UpdateFishing(float dt)
         {
             if (!fishingActive) return;
+            float previousTime = fishingTime;
             fishingTime += dt;
             if (fishingTime < fishWait) { liveText.text = "浮标等待鱼讯…"; return; }
+            if (previousTime < fishWait) GameAudio.Global(session, AudioCue.FishingBite, actor);
             fishZoneHalfWidth = fishingQuality ? fishHalfWidths.y : fishHalfWidths.x;
             fishingVelocity += (IsHeld("Interact") ? fishRiseAcceleration : -fishFallAcceleration) * dt;
             fishingVelocity = Mathf.Clamp(fishingVelocity, -fishMaxVelocity, fishMaxVelocity);
@@ -356,7 +387,11 @@ namespace Lifeline
             ShowFishingRange(fishingZone, fishZoneHalfWidth, fishingFish);
             liveText.text = FishingText(fishingProgress);
             if (fishingProgress >= 1) { fishingActive = false; session.TryCatchFish(fishingQuality, actor); }
-            else if (fishingProgress <= 0 || fishingTime - fishWait > fishTimeoutSeconds) { fishingActive = false; liveText.text = "鱼儿逃脱，重新抛竿。"; }
+            else if (fishingProgress <= 0 || fishingTime - fishWait > fishTimeoutSeconds)
+            {
+                fishingActive = false; liveText.text = "鱼儿逃脱，重新抛竿。";
+                GameAudio.Global(session, AudioCue.FishEscape, actor);
+            }
         }
         float FishPosition(float time) => Mathf.Clamp01(.5f +
             Mathf.Sin(time * (fishingQuality ? fishMoveSpeeds.y : fishMoveSpeeds.x)) * .3f + Mathf.Sin(time * 3.42f) * .12f);
@@ -394,6 +429,11 @@ namespace Lifeline
                 int note = sampled ? replicaMotion.note : job.noteDirection;
                 float feedback = sampled ? Mathf.Max(0f, replicaMotion.feedbackTime - OnlineSampleAge) : job.feedbackTime;
                 float offset = cue - clock;
+                if (offset <= .04f && offset >= -.22f && (lastSoundJob != job.id || lastSoundCue != cue))
+                {
+                    lastSoundJob = job.id; lastSoundCue = cue;
+                    GameAudio.ForLocalPanel(actor, NoteSounds[Mathf.Clamp(note, 0, NoteSounds.Length - 1)], .68f);
+                }
                 rhythmFill.fillAmount = Mathf.Clamp01(1 - offset);
                 SetRhythmRange(.5f, session.GetCraftQteWindow(job) * 2 / session.tuning.craftCueInterval, .5f - offset / session.tuning.craftCueInterval);
                 if (qteView != null) qteView.ShowLane(actor.input, note, clock, cue,

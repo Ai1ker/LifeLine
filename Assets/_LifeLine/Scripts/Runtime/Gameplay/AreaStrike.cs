@@ -27,6 +27,7 @@ namespace Lifeline
         public AreaStrike QueueAreaStrike(AreaStrikeKind kind,Vector3 point,bool shipMap,float radius,float delay,float hullDamage)
         {
             var strike=new AreaStrike{kind=kind,point=point,onShipMap=shipMap,radius=radius,duration=delay,remaining=delay,hullDamage=hullDamage};
+            if (kind == AreaStrikeKind.Lightning) GameAudio.At(this, AudioCue.LightningWarning, shipMap ? WaterToShipPoint(point) : point, shipMap);
             areaStrikes.Add(strike); EnsureWarning(strike);return strike;
         }
         void EnsureWarning(AreaStrike strike)
@@ -53,6 +54,20 @@ namespace Lifeline
         }
         public void ResolveAreaStrike(AreaStrike strike)
         {
+            Vector3 soundPoint = strike.onShipMap ? WaterToShipPoint(strike.point) : strike.point;
+            switch (strike.kind)
+            {
+                case AreaStrikeKind.Lightning:
+                    GameAudio.At(this, AudioCue.LightningStrike, soundPoint, strike.onShipMap);
+                    GameAudio.At(this, AudioCue.ThunderNear, soundPoint, strike.onShipMap);
+                    break;
+                case AreaStrikeKind.ShadowBite:
+                    GameAudio.At(this, AudioCue.EnemyShadowBite, soundPoint, strike.onShipMap);
+                    break;
+                case AreaStrikeKind.WaterShot:
+                    GameAudio.At(this, AudioCue.EnemyShadowHit, soundPoint, strike.onShipMap);
+                    break;
+            }
             foreach(var actor in new[]{captain,diver})
             {
                 if(actor==null||IsIncapacitated(actor)||IsHidden(actor)||actor.onboard!=strike.onShipMap)continue;

@@ -65,6 +65,7 @@ namespace Lifeline
             if (diver == null || diver.onboard || diverFainted) return;
             diver.SetHidden(false);
             diverFainted = true; diverHidden = false;
+            GameAudio.At(diver, AudioCue.CrewDowned);
             if (diver.body != null) diver.body.linearVelocity = Vector3.zero;
             DropLostCrewCargo(diver, "LostDiverBag_ExactContents");
             Tell(reason + "，潜水员昏厥。水下队友可扶起，也可用绞盘接回。"); Changed();
@@ -91,7 +92,9 @@ namespace Lifeline
 
         public bool RegisterSharkBite()
         {
-            return ReceiveDiverHit("鲨鱼咬伤", true, tuning.sharkDamage);
+            bool hit = ReceiveDiverHit("鲨鱼咬伤", true, tuning.sharkDamage);
+            if (hit) GameAudio.At(diver, AudioCue.CrewHurt);
+            return hit;
         }
 
         public bool ReceiveDiverHit(string reason, bool dropResource = true, float hitAmount = 1f)
@@ -204,6 +207,8 @@ namespace Lifeline
             if (string.IsNullOrEmpty(winchTargetKind)) return false;
             winchAttemptedThisCycle = true;
             bool good = CircularQteDistance(normalizedAngle, WinchQteCenter) <= WinchQteWidth * .5f;
+            GameAudio.Global(this, AudioCue.QtePress, winchOperatorRole == CrewRole.Captain ? captain : diver);
+            GameAudio.Global(this, good ? AudioCue.WinchSuccess : AudioCue.WinchFail);
             winchCueCooldown = winchMinimumInputInterval;
             winchFeedback = good ? "校准成功 +" + (tuning.winchGoodDistance * WinchEfficiency).ToString("0.00") + "m" : "校准失败 −" + (tuning.winchBadDistance / Mathf.Max(1, WinchTargetCount)).ToString("0.00") + "m";
             winchFeedbackTime = 1.2f;
@@ -240,6 +245,7 @@ namespace Lifeline
                     if (cargo.blockedPull >= tuning.cargoRopeBreakStallDistance)
                     {
                         cargo.attached = false;
+                        GameAudio.At(this, AudioCue.RopeSnap, cargo.transform.position, false);
                         cargo.blockedPull = 0;
                         route.ResetRoute();
                         cargo.RefreshVisual();
@@ -278,6 +284,7 @@ namespace Lifeline
             bool needsRevive = IsIncapacitated(diver);
             foreach (ResourceKind item in diver.backpack) AddResource(item, 1);
             int delivered = diver.backpack.Count; diver.backpack.Clear();
+            if (delivered > 0) GameAudio.Global(this, AudioCue.BankDeposit);
             diver.SetHidden(false);diver.fainted=false;
             diver.SetOnboard(true, ShipPoint(bankArrivalLocal));
             if (diverRope != null) diverRope.ResetRoute();
@@ -348,6 +355,7 @@ namespace Lifeline
                 reviveProgress[i] += dt;
                 if (reviveProgress[i] >= tuning.reviveSeconds)
                 {
+                    if (!target.onboard && !target.downed) GameAudio.At(target, AudioCue.CrewReviveWater);
                     target.Revive();
                     target.fainted = false;
                     if (target == diver) { diverBites = 0; diverFainted = false; }

@@ -58,6 +58,7 @@ namespace Lifeline
         public bool TryInteract(CrewActor actor)
         {
             if (!InRange(actor)) return false;
+            GameAudio.At(actor.session, open ? AudioCue.HatchClose : AudioCue.HatchOpen, transform.position, false);
             SetOpen(!open); return true;
         }
         public void SetOpen(bool value)

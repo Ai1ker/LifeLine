@@ -112,6 +112,8 @@ namespace Lifeline
                 winchFeedbackTime = winchFeedbackTime,
                 boarding = captainBoardHeld,
                 boardingProgress = captainBoardProgress,
+                captainCollection = baseline ? default : CaptureCollection(captain),
+                diverCollection = baseline ? default : CaptureCollection(diver),
                 reviveProgress = reviveProgress,
                 reviving = new[] { reviveTargets[0] != null, reviveTargets[1] != null },
                 helmsman = ship.helmOperator != null ? (int)ship.helmOperator.role : -1
@@ -145,6 +147,7 @@ namespace Lifeline
         public void ResetOnlineReplicaCombat()
         {
             hasReplicaMotion = false;
+            Array.Clear(replicaCollections, 0, replicaCollections.Length);
             replicaEnemies.Clear();
             replicaSpears.Clear();
             replicaCombatInitialized = false;
@@ -201,6 +204,8 @@ namespace Lifeline
             reviveTargets[0] = frame.reviving?[0] == true ? diver : null;
             reviveTargets[1] = frame.reviving?[1] == true ? captain : null;
             phase = frame.phase;
+            ApplyCollection(CrewRole.Captain, frame.captainCollection);
+            ApplyCollection(CrewRole.Diver, frame.diverCollection);
             RefreshEquipmentVisibility();
             UpdateQuest();
             Changed();

@@ -18,7 +18,11 @@ namespace Lifeline
             if (distance == 0) return true;
             if (!engineRepaired) return false;
             float cost = distance / Mathf.Max(.01f, tuning.routeDistance) * tuning.routePowerCost;
-            if (!infinitePower && power + .00001f < cost) return false;
+            if (!infinitePower && power + .00001f < cost)
+            {
+                GameAudio.Global(this, AudioCue.LowPowerAlert, ship != null ? ship.helmOperator : null, 3f);
+                return false;
+            }
             float startPower = power;
             if (!infinitePower) power = Mathf.Max(0, power - cost);
             if (engineRepaired && !infinitePower && (power < tuning.lowPowerThreshold || startPower < tuning.lowPowerThreshold))
@@ -39,6 +43,8 @@ namespace Lifeline
         {
             if (phase != SessionPhase.Playing || !generatorInstalled || infinitePower || power >= tuning.maxPower || elapsed - lastCrankAt < GetGeneratorStrokeInterval(actor) - .00001f) return false;
             lastCrankAt = elapsed;
+            GameAudio.Global(this, AudioCue.QtePress, actor);
+            GameAudio.Global(this, AudioCue.HandCrankLoop, actor);
             if (success) { power = Mathf.Min(tuning.maxPower, power + tuning.handPowerPerStroke); Tell("手摇发电 +" + tuning.handPowerPerStroke.ToString("0.#") + "%"); }
             else Tell("节奏错过，没有产生电力。");
             Changed(); return success;
@@ -49,10 +55,12 @@ namespace Lifeline
             if (phase != SessionPhase.Playing || !generatorInstalled || infinitePower || generatorTier > 1 || efficientFuelGenerator) return false;
             if (generatorTier == 1)
             {
-                if (!Spend(generatorEfficiencyCost)) return false;
+                if (!Spend(generatorEfficiencyCost)) { GameAudio.Global(this, AudioCue.UpgradeFail); return false; }
+                GameAudio.Global(this, AudioCue.UpgradeSuccess);
                 efficientFuelGenerator = true; Changed(); return true;
             }
-            if (!Spend(generatorUpgradeCost)) return false;
+            if (!Spend(generatorUpgradeCost)) { GameAudio.Global(this, AudioCue.UpgradeFail); return false; }
+            GameAudio.Global(this, AudioCue.UpgradeSuccess);
             generatorTier = 1; Tell("燃油机已安装，可消耗燃油为整船发电。"); Changed(); return true;
         }
 
@@ -61,6 +69,7 @@ namespace Lifeline
         public bool BurnFuel()
         {
             if (phase != SessionPhase.Playing || !generatorInstalled || generatorTier < 1 || infinitePower || power >= tuning.maxPower || !Spend(new[] { new ResourceAmount(ResourceKind.Fuel, 1) })) return false;
+            GameAudio.Global(this, AudioCue.FuelAdd);
             power = Mathf.Min(tuning.maxPower, power + FuelPower); Tell("燃油发电 +" + FuelPower.ToString("0") + "%"); Changed(); return true;
         }
 
@@ -68,6 +77,7 @@ namespace Lifeline
         {
             if (phase != SessionPhase.Playing || infinitePower || !Spend(new[] { new ResourceAmount(ResourceKind.Eel, 1) })) return false;
             generatorTier = 2; infinitePower = true; power = tuning.maxPower;
+            GameAudio.Global(this, AudioCue.EelDischarge);
             generatorInstalled = true; RefreshEquipmentVisibility();
             float previous = hullMax; hullMax *= tuning.eelHullMultiplier; hull += hullMax - previous;
             Tell("电鳗成为整船无限电源：船体上限提升30%，航速提升20%。"); Changed(); return true;
@@ -85,7 +95,9 @@ namespace Lifeline
         {
             if (!IsStationUnlocked(StationKind.Searchlight)) return false;
             if (!circuitRepaired) { Tell("修复电路后才能启用探照灯。"); return false; }
-            searchlightOn = !searchlightOn; Tell(searchlightOn ? "探照灯开启，照亮船下水域。" : "探照灯关闭。"); Changed(); return true;
+            searchlightOn = !searchlightOn;
+            GameAudio.Global(this, searchlightOn ? AudioCue.LightOn : AudioCue.LightOff);
+            Tell(searchlightOn ? "探照灯开启，照亮船下水域。" : "探照灯关闭。"); Changed(); return true;
         }
 
         public bool TryRepairDevice(StationKind kind)
@@ -98,7 +110,7 @@ namespace Lifeline
             if (!repairAuthorized[index])
             {
                 ResourceAmount[] cost = kind == StationKind.Filter ? filterRepairCost : kind == StationKind.Circuit ? circuitRepairCost : engineEverRepaired ? new ResourceAmount[0] : new[] { new ResourceAmount(ResourceKind.Plate, tuning.firstEngineRepairPlates) };
-                if (!Spend(cost)) { Tell("修理材料不足。引擎首次需要2块铁板，之后损坏可免费重修。"); return false; }
+                if (!Spend(cost)) { GameAudio.Global(this, AudioCue.RepairFail); Tell("修理材料不足。引擎首次需要2块铁板，之后损坏可免费重修。"); return false; }
                 repairAuthorized[index] = true;
             }
             CrewActor owner = captain;
@@ -113,11 +125,13 @@ namespace Lifeline
             else if (kind == StationKind.Circuit) { circuitRepaired = true; Tell("电路修复。探照灯、求救电台与炮塔现在可以工作。"); }
             else if (kind == StationKind.Engine) { MarkEngineRepaired(); return; }
             else return;
+            GameAudio.Global(this, AudioCue.RepairComplete);
             repairAuthorized[(int)kind] = false; Changed();
         }
 
         public void MarkEngineRepaired()
         {
+            if (!engineRepaired) GameAudio.Global(this, AudioCue.EngineStart);
             engineRepaired = engineEverRepaired = true;
             lowPowerSailingSeconds = 0; repairAuthorized[(int)StationKind.Engine] = false;
             for (int i = 0; i < engineFaultFixed.Length; i++) { engineFaultFixed[i] = true; engineFaultClean[i] = 1; }
@@ -127,6 +141,7 @@ namespace Lifeline
         public bool DamageEngine(string reason)
         {
             if (!engineRepaired) return false;
+            GameAudio.Global(this, AudioCue.EngineDamageAlert);
             engineRepaired = false; engineRepairVersion++; lowPowerSailingSeconds = 0;
             repairAuthorized[(int)StationKind.Engine] = false; ResetEngineFaults();
             Tell(reason + "。四处新故障已出现，可免费重修。"); Changed(); return true;
@@ -143,13 +158,14 @@ namespace Lifeline
         public bool RevealEngineFault(int faultIndex)
         {
             if (!repairAuthorized[(int)StationKind.Engine] || faultIndex < 0 || faultIndex >= engineFaultClean.Length) return false;
+            if (engineFaultClean[faultIndex] < 1) GameAudio.Global(this, AudioCue.SymbolReveal);
             engineFaultClean[faultIndex] = 1; Changed(); return true;
         }
 
         public bool TryRepairEngineFault(int faultIndex, int part)
         {
             if (!repairAuthorized[(int)StationKind.Engine] || faultIndex < 0 || faultIndex >= engineFaultFixed.Length || engineFaultClean[faultIndex] < 1 || engineFaultFixed[faultIndex]) return false;
-            if (engineFaultTypes[faultIndex] != part) { Tell("维修部件不匹配；先识别油污下的故障类型。"); return false; }
+            if (engineFaultTypes[faultIndex] != part) { GameAudio.Global(this, AudioCue.WrongPart); Tell("维修部件不匹配；先识别油污下的故障类型。"); return false; }
             engineFaultFixed[faultIndex] = true;
             bool complete = true; foreach (bool fixedFault in engineFaultFixed) complete &= fixedFault;
             if (complete) CompleteRepair(StationKind.Engine);
@@ -159,6 +175,7 @@ namespace Lifeline
         public bool TryCatchFish(bool quality, CrewActor actor)
         {
             if (phase != SessionPhase.Playing || !hasRod || actor == null || !actor.onboard || actor.downed) return false;
+            GameAudio.At(actor, quality ? AudioCue.FishRare : AudioCue.FishCommon);
             if (!quality) { AddResource(ResourceKind.Fish, 1); Tell("钓获普通鱼，可在制作台加工成诱饵。"); return true; }
             CrewBuffs buffs = Buffs(actor);
             int effect = UnityEngine.Random.Range(0, 6);
@@ -186,6 +203,7 @@ namespace Lifeline
             if (!circuitRepaired || radioStage < 3 || diver == null || !diver.onboard)
             { Tell("救援航程需要完整三级电台与修复电路，并接回潜水员。修复引擎后才能航行。"); return false; }
             rescueVoyage = true;
+            GameAudio.Global(this, AudioCue.DepartureHorn);
             Tell(day < 4 ? "救援航程已登记。等待第4日救援频道，先修船、准备物资和动力；游戏时间继续自然流逝。" : "第4章：搜救频道锁定东侧信号。向东航行，用船长绞盘接回幸存者。");
             Changed(); return true;
         }

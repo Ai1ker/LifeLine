@@ -19,6 +19,7 @@ namespace Lifeline
         public bool onboard = true, downed, controlsCaptured;
         public bool hidden, fainted;
         [NonSerialized] public float craftFailureUntil;
+        internal LootPickup CollectionTarget { get; set; }
         public Vector3 hidingPosition;
         bool visibleBeforeHiding;
         public float oxygen, oxygenMax;

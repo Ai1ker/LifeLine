@@ -71,13 +71,20 @@ namespace Lifeline
                 if (enemy != null)
                 {
                     if (!enemy.IsAlive) continue;
-                    if (!hasHit) { hasHit = true; enemy.ReceiveHit(!turretShot && enemy.IsAirborne ? damage * session.AirborneWeaponMultiplier(owner) : damage, owner); }
+                    if (!hasHit)
+                    {
+                        hasHit = true;
+                        if (!turretShot && enemy.kind != EnemyKind.ArmoredBird)
+                            GameAudio.At(session, AudioCue.SpearHitFlesh, hit.point, onShipMap);
+                        enemy.ReceiveHit(!turretShot && enemy.IsAirborne ? damage * session.AirborneWeaponMultiplier(owner) : damage, owner);
+                    }
                     transform.position = hit.point;
                     if (turretShot) Destroy(gameObject);
                     else { lodged = true; transform.SetParent(enemy.transform, true); }
                     return;
                 }
                 if (hit.collider.isTrigger) continue;
+                if (!turretShot) GameAudio.At(session, AudioCue.SpearHitMetal, hit.point, onShipMap);
                 transform.position = hit.point;
                 if (turretShot) Destroy(gameObject); else lodged = true;
                 return;
@@ -86,7 +93,12 @@ namespace Lifeline
             if(!turretShot && (travelled>=maximumRange-.001f||Vector3.Distance(transform.position,RecallPoint)>=maximumRange-.001f))Recall();
         }
 
-        public void Recall() { if (turretShot) return; returning = true; lodged = false; transform.SetParent(null, true); }
+        public void Recall()
+        {
+            if (turretShot || returning) return;
+            GameAudio.At(session, AudioCue.SpearRecall, transform.position, onShipMap);
+            returning = true; lodged = false; transform.SetParent(null, true);
+        }
         void OnDestroy()
         {
             if (session != null && owner != null && session.activeSpears[(int)owner.role] == this) session.activeSpears[(int)owner.role] = null;

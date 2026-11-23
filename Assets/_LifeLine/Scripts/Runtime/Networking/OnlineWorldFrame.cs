@@ -23,6 +23,13 @@ namespace Lifeline
     }
 
     [Serializable]
+    public struct OnlineCollectionProgress
+    {
+        public string targetId;
+        public float fraction;
+    }
+
+    [Serializable]
     public sealed class OnlineWorldFrame
     {
         public bool baseline, hostPaused, waitingForCrew;
@@ -36,6 +43,8 @@ namespace Lifeline
         public bool[] reviving;
         public int helmsman = -1;
         public int statusAudienceRole = -1;
+        public OnlineAudioCue[] audio;
+        public OnlineCollectionProgress captainCollection, diverCollection;
     }
 
     public static class OnlineFrameCodec

@@ -49,6 +49,7 @@ GameObject:
   - component: {fileID: 8868813379687983149}
   - component: {fileID: 7986864138063870263}
   - component: {fileID: 6017328901484628828}
+  - component: {fileID: 6097333216026002053}
   m_Layer: 0
   m_Name: Test pressure
   m_TagString: Untagged
@@ -158,6 +159,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6097333216026002053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942398378483462449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cdfd84a2c4b5940a84bfd33f1f39c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.AudioUiFeedback
+  click: 126
+  denied: 127
+  hover: 1
 --- !u!1 &2763154621664086720
 GameObject:
   m_ObjectHideFlags: 0

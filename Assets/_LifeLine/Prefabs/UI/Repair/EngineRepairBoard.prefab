@@ -549,6 +549,7 @@ GameObject:
   - component: {fileID: 2485623122086770197}
   - component: {fileID: 8329458720424114411}
   - component: {fileID: 9054951512044961234}
+  - component: {fileID: 4864592917434882912}
   m_Layer: 0
   m_Name: Install part 3
   m_TagString: Untagged
@@ -659,6 +660,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4864592917434882912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525453322635959425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cdfd84a2c4b5940a84bfd33f1f39c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.AudioUiFeedback
+  click: 126
+  denied: 127
+  hover: 1
 --- !u!1 &1920571862169452467
 GameObject:
   m_ObjectHideFlags: 0
@@ -750,6 +766,7 @@ GameObject:
   - component: {fileID: 1528624813894741405}
   - component: {fileID: 7643150122305547555}
   - component: {fileID: 2753377453297123498}
+  - component: {fileID: 6108203345505627454}
   m_Layer: 0
   m_Name: Select fault 0
   m_TagString: Untagged
@@ -859,6 +876,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6108203345505627454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2085021097253371920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cdfd84a2c4b5940a84bfd33f1f39c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.AudioUiFeedback
+  click: 126
+  denied: 127
+  hover: 1
 --- !u!1 &2129138123641246764
 GameObject:
   m_ObjectHideFlags: 0
@@ -1184,6 +1216,7 @@ GameObject:
   - component: {fileID: 8618147779539547875}
   - component: {fileID: 3847313523930281607}
   - component: {fileID: 2609394715034854752}
+  - component: {fileID: 1966811436868423429}
   m_Layer: 0
   m_Name: Select fault 2
   m_TagString: Untagged
@@ -1293,6 +1326,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1966811436868423429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3583409970816885484}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cdfd84a2c4b5940a84bfd33f1f39c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.AudioUiFeedback
+  click: 126
+  denied: 127
+  hover: 1
 --- !u!1 &4370874011848084324
 GameObject:
   m_ObjectHideFlags: 0
@@ -1305,6 +1353,7 @@ GameObject:
   - component: {fileID: 1503666128847522740}
   - component: {fileID: 7668081105914349027}
   - component: {fileID: 2202770143985976395}
+  - component: {fileID: 6931168683243522761}
   m_Layer: 0
   m_Name: Install part 1
   m_TagString: Untagged
@@ -1415,6 +1464,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6931168683243522761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4370874011848084324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cdfd84a2c4b5940a84bfd33f1f39c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.AudioUiFeedback
+  click: 126
+  denied: 127
+  hover: 1
 --- !u!1 &4652101695342622868
 GameObject:
   m_ObjectHideFlags: 0
@@ -1919,6 +1983,7 @@ GameObject:
   - component: {fileID: 2328716912099129005}
   - component: {fileID: 4640308721760690748}
   - component: {fileID: 6545959313126577977}
+  - component: {fileID: 4945680793638116621}
   m_Layer: 0
   m_Name: Select fault 1
   m_TagString: Untagged
@@ -2028,6 +2093,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4945680793638116621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5124864083493082322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cdfd84a2c4b5940a84bfd33f1f39c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.AudioUiFeedback
+  click: 126
+  denied: 127
+  hover: 1
 --- !u!1 &5316670986050766968
 GameObject:
   m_ObjectHideFlags: 0
@@ -2276,6 +2356,7 @@ GameObject:
   - component: {fileID: 4516286510883824051}
   - component: {fileID: 5496930273215056755}
   - component: {fileID: 8393880382782372217}
+  - component: {fileID: 2976231325612931581}
   m_Layer: 0
   m_Name: Install part 2
   m_TagString: Untagged
@@ -2386,6 +2467,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2976231325612931581
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6099495554923851897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cdfd84a2c4b5940a84bfd33f1f39c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.AudioUiFeedback
+  click: 126
+  denied: 127
+  hover: 1
 --- !u!1 &6383876152699862052
 GameObject:
   m_ObjectHideFlags: 0
@@ -2931,6 +3027,7 @@ GameObject:
   - component: {fileID: 1220093891477515014}
   - component: {fileID: 1441679441342656887}
   - component: {fileID: 2349301116439955429}
+  - component: {fileID: 8296814535296090714}
   m_Layer: 0
   m_Name: Select fault 3
   m_TagString: Untagged
@@ -3040,6 +3137,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8296814535296090714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8016538123521869232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cdfd84a2c4b5940a84bfd33f1f39c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.AudioUiFeedback
+  click: 126
+  denied: 127
+  hover: 1
 --- !u!1 &8055465905273424590
 GameObject:
   m_ObjectHideFlags: 0
@@ -3052,6 +3164,7 @@ GameObject:
   - component: {fileID: 1469138463221912670}
   - component: {fileID: 3304746760575184046}
   - component: {fileID: 8049537012719766671}
+  - component: {fileID: 4275279007899177548}
   m_Layer: 0
   m_Name: Install part 0
   m_TagString: Untagged
@@ -3162,6 +3275,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4275279007899177548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8055465905273424590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cdfd84a2c4b5940a84bfd33f1f39c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.AudioUiFeedback
+  click: 126
+  denied: 127
+  hover: 1
 --- !u!1 &8343619288517658570
 GameObject:
   m_ObjectHideFlags: 0

@@ -2702,3 +2702,15 @@ MonoBehaviour:
     zh: "\u7B2C {0} \u5929"
     en: DAY {0}
     fragment: 1
+  - key: audio.master
+    zh: "\u4E3B\u97F3\u91CF"
+    en: Master Volume
+    fragment: 0
+  - key: audio.effects
+    zh: "\u97F3\u6548\u97F3\u91CF"
+    en: Sound Effects
+    fragment: 0
+  - key: audio.music
+    zh: "\u97F3\u4E50\u97F3\u91CF"
+    en: Music Volume
+    fragment: 0

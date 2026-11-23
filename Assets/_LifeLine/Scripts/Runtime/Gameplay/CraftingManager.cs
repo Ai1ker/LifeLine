@@ -220,6 +220,7 @@ namespace Lifeline
             if (session == null || string.IsNullOrEmpty(reason)) return;
             if (actor != null && reason == InsufficientMaterials)
             {
+                GameAudio.Global(session, AudioCue.CraftDeny, actor);
                 actor.craftFailureUntil = Time.unscaledTime + 2.5f;
                 return;
             }
@@ -227,12 +228,12 @@ namespace Lifeline
         }
 
         public static StationKind JobStation(CraftJob job) => job != null && job.recipe != null && job.recipe.repairAmount > 0 ? StationKind.HullRepair : StationKind.Workbench;
-        public bool CraftQteAtStation(int jobId, int direction, StationKind station, float rewind = 0f)
+        public bool CraftQteAtStation(int jobId, int direction, StationKind station, float rewind = 0f, CrewActor operatorActor = null)
         {
             var job=jobs.Find(candidate=>candidate!=null&&candidate.id==jobId);
-            return job!=null && JobStation(job)==station && CraftQte(jobId,direction,rewind);
+            return job!=null && JobStation(job)==station && CraftQte(jobId,direction,rewind,operatorActor);
         }
-        public bool CraftQte(int jobId, int direction, float rewind = 0f)
+        public bool CraftQte(int jobId, int direction, float rewind = 0f, CrewActor operatorActor = null)
         {
             if (session == null || session.phase != SessionPhase.Playing || session.tuning == null) return false;
             CraftJob job = jobs.Find(candidate => candidate != null && candidate.id == jobId);
@@ -247,6 +248,8 @@ namespace Lifeline
                 job.hits++; job.feedback = "+" + bonus.ToString("0.#") + "秒";
             }
             else { job.misses++; job.feedback = "节奏错过 · 自动制作继续"; }
+            GameAudio.Global(session, good ? AudioCue.CraftHit : AudioCue.CraftMiss, operatorActor);
+            if (good && job.recipe.repairAmount > 0) GameAudio.Global(session, AudioCue.RepairHammer, operatorActor);
             job.feedbackTime = feedbackSeconds;
             ApplyRepairProgress(job);
             if (job.progress >= job.duration) CompleteCraft(job);
@@ -291,6 +294,14 @@ namespace Lifeline
             if (job.completed || !jobs.Contains(job)) return;
             job.completed = true; job.progress = job.duration;
             RecipeDefinition recipe = job.recipe;
+            AudioCue completion = recipe.radioStage switch
+            {
+                1 => AudioCue.RadioAntennaDone,
+                2 => AudioCue.RadioReceiverStage,
+                3 => AudioCue.RadioAmplifierStage,
+                _ => recipe.repairAmount > 0 ? AudioCue.RepairComplete : AudioCue.CraftComplete
+            };
+            GameAudio.Global(session, completion);
             // Remove before notifying inventory listeners, so they cannot see or complete a finished job twice.
             jobs.Remove(job);
             if (recipe.output != null) foreach (ResourceAmount output in recipe.output) if (output != null) session.AddResource(output.resource, output.amount * Mathf.Max(1, job.quantity));

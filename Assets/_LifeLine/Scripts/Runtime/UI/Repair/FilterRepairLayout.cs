@@ -34,17 +34,23 @@ namespace Lifeline
                 view.Bind("Pipe " + slot, tiles[slot].button, () =>
                 {
                     puzzle.RotateTile(slot);
+                    GameAudio.Global(view.session, AudioCue.FilterWire, view.actor);
                     Refresh(puzzle, view.theme);
                 });
             }
             view.Bind("Test pressure", testPressure, () =>
             {
+                GameAudio.Global(view.session, AudioCue.FilterPressurize, view.actor);
                 if (puzzle.IsSolved())
                 {
                     view.session.CompleteRepair(StationKind.Filter);
                     view.panel.RebuildRepair();
                 }
-                else view.session.Tell("尚未连通出口，继续调整。");
+                else
+                {
+                    GameAudio.Global(view.session, AudioCue.RepairFail, view.actor);
+                    view.session.Tell("尚未连通出口，继续调整。");
+                }
             });
             Refresh(puzzle, view.theme);
         }

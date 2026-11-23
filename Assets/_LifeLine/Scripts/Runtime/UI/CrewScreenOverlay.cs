@@ -193,14 +193,21 @@ namespace Lifeline
             var game = hud.session;
             var world = game.world;
             if (world == null) return false;
+            string collect = actor.input.GetBindingLabel("Collect");
+            if (game.TryGetCollectionProgress(actor, out var collecting, out float fraction))
+            {
+                target = collecting.transform.position;
+                caption = CollectionCaption(collecting, interact, collect) + " · " +
+                    Mathf.Min(99, Mathf.RoundToInt(fraction * 100f)) + "%";
+                return true;
+            }
             var fish = world.FindCatchableFish(actor);
             if (fish != null)
             {
                 target = fish.transform.position;
-                caption = Format("按住 [{0}] 捕捞小鱼", interact);
+                caption = CollectionCaption(fish, interact, collect);
                 return true;
             }
-            string collect = actor.input.GetBindingLabel("Collect");
             var crate = world.FindNearest(actor, true);
             bool canLoad = crate != null && crate.contents.Count < crate.capacity && actor.backpack.Count > 0;
             var hatch = world.FindTrapdoor(actor);
@@ -229,10 +236,9 @@ namespace Lifeline
             if (pickup != null)
             {
                 target = pickup.transform.position;
-                if (pickup.isCrate) caption = Format("按住 [{0}] 挂绳", collect);
-                else if (pickup.GetComponent<FilterSalvage>() != null) caption = Format("按住 [{0}] 打捞海水过滤器", collect);
-                else caption = actor.backpack.Count >= actor.BagCapacity ? UiLocalization.Text("背包已满") :
-                    Format("按住 [{0}] 收集 · {1}", collect, UiLocalization.Text(pickup.isCabinet ? "残骸物资" : GameNames.Resource(pickup.resource)));
+                bool usesBackpack = !pickup.isCrate && pickup.GetComponent<FilterSalvage>() == null;
+                caption = usesBackpack && actor.backpack.Count >= actor.BagCapacity ? UiLocalization.Text("背包已满") :
+                    CollectionCaption(pickup, interact, collect);
                 return true;
             }
             if (Vector3.Distance(actor.Position, game.BoatAnchor) > 3f) return false;
@@ -240,6 +246,14 @@ namespace Lifeline
             caption = actor == game.captain ? Format("按住 [{0}] 回船 · {1:0.0}/{2:0.#} 秒", interact, game.captainBoardProgress, game.captainBoardSeconds) :
                 UiLocalization.Text("等待队友用绞盘接回");
             return true;
+        }
+
+        static string CollectionCaption(LootPickup pickup, string interact, string collect)
+        {
+            if (pickup.IsSwimmingFish) return Format("按住 [{0}] 捕捞小鱼", interact);
+            if (pickup.isCrate) return Format("按住 [{0}] 挂绳", collect);
+            if (pickup.GetComponent<FilterSalvage>() != null) return Format("按住 [{0}] 打捞海水过滤器", collect);
+            return Format("按住 [{0}] 收集 · {1}", collect, UiLocalization.Text(pickup.isCabinet ? "残骸物资" : GameNames.Resource(pickup.resource)));
         }
 
         bool Place(Text label, Camera view, Vector3 point)

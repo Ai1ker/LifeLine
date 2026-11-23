@@ -199,6 +199,7 @@ namespace Lifeline.Tests
                 hud = Object.FindAnyObjectByType<GameHUDController>();
                 Assert.That(hud.saveButton.gameObject.activeSelf, Is.False);
                 VerifyNauticalHudRoles(hud, game, rig);
+                VerifyGuestCollectionPrompt(hud, game, guestLink, landed.sequence + 1);
             }
             finally
             {
@@ -216,6 +217,29 @@ namespace Lifeline.Tests
                 string slotDirectory = Path.GetDirectoryName(hostSave);
                 if (Directory.Exists(slotDirectory)) Directory.Delete(slotDirectory);
             }
+        }
+
+        static void VerifyGuestCollectionPrompt(GameHUDController hud, GameSession game, TestLink link, uint sequence)
+        {
+            var pickup = game.world.pickups.Find(item => item != null && item.gameObject.activeInHierarchy &&
+                !item.isCrate && !item.isCabinet && !item.IsSwimmingFish && item.resource == ResourceKind.Wood);
+            Assert.That(pickup, Is.Not.Null);
+            var motion = game.CaptureOnlineMotion(sequence);
+            motion.captain.onboard = false;
+            motion.captain.position = pickup.transform.position;
+            link.DeliverMotion(motion);
+            game.RenderOnlineMotion(.05f);
+
+            var frame = game.CaptureOnlineFrame(hud, false, false);
+            frame.captainCollection = new OnlineCollectionProgress { targetId = pickup.saveId, fraction = .42f };
+            link.Deliver(OnlineFrameCodec.Encode(frame));
+            Assert.That(hud.crewOverlay.TryGetPrompt(game.captain, out var point, out var caption));
+            Assert.That(point, Is.EqualTo(pickup.transform.position));
+            Assert.That(caption, Does.Contain("42%"));
+
+            frame.captainCollection = default;
+            link.Deliver(OnlineFrameCodec.Encode(frame));
+            Assert.That(game.TryGetCollectionProgress(game.captain, out _, out _), Is.False);
         }
 
         static void VerifyNauticalHudRoles(GameHUDController hud, GameSession game, GameCameraRig rig)

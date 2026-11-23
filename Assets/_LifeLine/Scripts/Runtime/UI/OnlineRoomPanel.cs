@@ -222,8 +222,20 @@ namespace Lifeline
 
             string error = service == null ? "online.menu.noProvider" : service.StatusKey;
             status.text = !string.IsNullOrEmpty(notice) ? notice : error ?? string.Empty;
+            int memberCount = inRoom ? service.Members.Count : 0;
+            if (isActiveAndEnabled)
+            {
+                if (memberCount > audibleMemberCount) GameAudio.Local(AudioCue.OnlineJoin);
+                if (!string.IsNullOrEmpty(error) && error != audibleStatus && !busy)
+                    GameAudio.Local(AudioCue.OnlineFail, .8f, .3f);
+            }
+            audibleMemberCount = memberCount;
+            audibleStatus = error;
             if (inRoom) RefreshRoom(started, busy);
         }
+
+        int audibleMemberCount;
+        string audibleStatus;
 
         void RefreshRoom(bool started, bool busy)
         {
