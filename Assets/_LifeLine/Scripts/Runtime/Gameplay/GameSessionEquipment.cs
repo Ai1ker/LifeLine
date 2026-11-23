@@ -81,6 +81,13 @@ namespace Lifeline
                 if (station.kind == StationKind.Generator && world != null && world.pixelArt != null)
                     station.ShowEelGenerator(world.pixelArt.eelGenerator, infinitePower);
             }
+            RefreshRadioDisplay();
+        }
+
+        public void RefreshRadioDisplay()
+        {
+            if (ship != null && ship.TryGetComponent<ShipRadioDisplay>(out var display))
+                display.ApplyStage(radioStage);
         }
 
         /// <summary>Pre-progression saves already owned these fixtures. Never remove an existing save's ship.</summary>

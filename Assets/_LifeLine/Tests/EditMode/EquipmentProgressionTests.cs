@@ -56,12 +56,59 @@ namespace Lifeline.Tests
         [Test] public void EquipmentRecipeConsumesRawResourcesAndOnlyRevealsFixtureOnCompletion()
         {
             var station = Child("Generator", game.ship.transform).AddComponent<StationAnchor>(); station.kind = StationKind.Generator; game.RefreshEquipmentVisibility();
-            Recipe("generator", "generator", new ResourceAmount(ResourceKind.Metal, 2), new ResourceAmount(ResourceKind.Wood, 2), new ResourceAmount(ResourceKind.Fiber, 1));
+            var recipe = Recipe("generator", "generator", new ResourceAmount(ResourceKind.Metal, 2), new ResourceAmount(ResourceKind.Wood, 2), new ResourceAmount(ResourceKind.Fiber, 1));
+            recipe.hideWhenCompleted = true;
             game.AddResource(ResourceKind.Metal, 2); game.AddResource(ResourceKind.Fiber, 1);
             Assert.That(game.TryCraft("generator", game.captain)); Assert.That(game.generatorInstalled, Is.False);
+            Assert.That(game.craftingManager.ShowsRecipe(recipe, StationKind.Workbench));
             Assert.That(game.GetResource(ResourceKind.Wood), Is.Zero); Assert.That(game.GetResource(ResourceKind.Metal), Is.Zero); Assert.That(game.GetResource(ResourceKind.Fiber), Is.Zero);
             game.craftingManager.Tick(40); Assert.That(game.generatorInstalled); Assert.That(station.gameObject.activeSelf);
+            Assert.That(game.craftingManager.ShowsRecipe(recipe, StationKind.Workbench), Is.False);
             Assert.That(game.TryCraft("generator", game.captain), Is.False);
+        }
+
+        [Test] public void RadioArtAndWorkbenchRecipesFollowCompletedStagesAcrossAContinue()
+        {
+            var display = game.ship.gameObject.AddComponent<ShipRadioDisplay>();
+            display.antenna = Child("Antenna", display.transform).AddComponent<SpriteRenderer>();
+            display.receiver = Child("Receiver", display.transform).AddComponent<SpriteRenderer>();
+            display.amplifier = Child("Amplifier", display.transform).AddComponent<SpriteRenderer>();
+            game.RefreshEquipmentVisibility();
+            game.circuitRepaired = true;
+            var antenna = Recipe("antenna");
+            var receiver = Recipe("receiver");
+            var amplifier = Recipe("amplifier");
+            var radios = new[] { antenna, receiver, amplifier };
+            for (int i = 0; i < radios.Length; i++)
+            {
+                radios[i].radioStage = i + 1;
+                radios[i].hideWhenCompleted = true;
+            }
+
+            var manager = game.craftingManager;
+            Assert.That(game.TryCraft(antenna.id, game.captain));
+            Assert.That(game.CancelCraft(game.jobs.Single().id));
+            Assert.That(manager.VisibleRecipeCount(StationKind.Workbench), Is.EqualTo(3));
+            Assert.That(display.antenna.gameObject.activeSelf, Is.False);
+            Assert.That(game.TryCraft(antenna.id, game.captain));
+            manager.Tick(manager.GetCraftDuration(antenna));
+            Assert.That(manager.ShowsRecipe(antenna, StationKind.Workbench), Is.False);
+            Assert.That(manager.ShowsRecipe(receiver, StationKind.Workbench));
+            Assert.That(display.antenna.gameObject.activeSelf);
+            Assert.That(display.receiver.gameObject.activeSelf, Is.False);
+            var saved = game.CaptureSaveData();
+
+            Assert.That(game.TryCraft(receiver.id, game.captain));
+            manager.Tick(manager.GetCraftDuration(receiver));
+            Assert.That(game.TryCraft(amplifier.id, game.captain));
+            manager.Tick(manager.GetCraftDuration(amplifier));
+            Assert.That(display.receiver.gameObject.activeSelf && display.amplifier.gameObject.activeSelf);
+            Assert.That(manager.VisibleRecipeCount(StationKind.Workbench), Is.Zero);
+
+            Assert.That(game.TryRestoreSaveData(saved, out string error), Is.True, error);
+            Assert.That(manager.VisibleRecipeCount(StationKind.Workbench), Is.EqualTo(2));
+            Assert.That(display.antenna.gameObject.activeSelf);
+            Assert.That(display.receiver.gameObject.activeSelf || display.amplifier.gameObject.activeSelf, Is.False);
         }
 
         [Test] public void SpeargunConsumesOneExistingHarpoonAtomicallyAndDoesNotRefundOnCancellation()

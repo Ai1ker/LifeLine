@@ -46,6 +46,7 @@ namespace Lifeline
         private readonly List<GameObject> buttons = new List<GameObject>();
         private int engineVersion = -1;
         private int lastJobCount = -1;
+        private int lastVisibleRecipeCount = -1;
         private float fishWait;
         private HoldActionButton heldButton;
         private bool repairStarted;
@@ -179,6 +180,7 @@ namespace Lifeline
                         ? string.Format(UiLocalization.Text("制作作业 {0}秒。校准成功加进度，离开仍继续，不返还已投入材料。"), session.GetCraftDuration().ToString("0"))
                         : "普通作业 " + session.tuning.craftSeconds.ToString("0") + "秒；快速修补用时减半。校准成功加进度，离开仍继续，不返还已投入材料。";
                     if (ActiveJob() == null) selectedJobId = 0;
+                    lastVisibleRecipeCount = 0;
                     foreach (CraftJob job in session.jobs)
                     {
                         if (!JobBelongsHere(job)) continue;
@@ -187,7 +189,8 @@ namespace Lifeline
                     }
                     foreach (RecipeDefinition recipe in session.recipes)
                     {
-                        if (recipe == null || (station == StationKind.HullRepair) != (recipe.repairAmount > 0)) continue;
+                        if (!manager.ShowsRecipe(recipe, station)) continue;
+                        lastVisibleRecipeCount++;
                         RecipeDefinition chosen = recipe;
                         Add(recipe.displayName + "  " + RecipeCosts(recipe) + " / " + session.GetCraftDuration(recipe).ToString("0.#") + "s",
                             () => SelectRecipe(chosen), manager.SlotCount(station) < manager.SlotCapacity(station));
@@ -379,7 +382,9 @@ namespace Lifeline
                 if (batchRecipe != null) { UpdateBatchText(); return; }
                 var manager = session.craftingManager;
                 int active = manager.SlotCount(station);
-                if (lastJobCount != active) BuildActions();
+                // A guest's button positions must follow the same menu revision as the host.
+                if (!ReplicaPanel && (lastJobCount != active || lastVisibleRecipeCount != manager.VisibleRecipeCount(station)))
+                    BuildActions();
                 CraftJob job = ActiveJob();
                 if (!ReplicaPanel) session.craftingManager?.SetInteractionContext(actor, job != null ? job.id : 0, station);
                 if (job == null) { liveText.text = "作业槽 " + active + "/" + manager.SlotCapacity(station); rhythmFill.fillAmount = 0; if (qteView != null) qteView.gameObject.SetActive(false); return; }

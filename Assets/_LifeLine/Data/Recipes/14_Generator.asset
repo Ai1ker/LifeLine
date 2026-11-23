@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: 14_Generator
   m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.RecipeDefinition
   id: generator
+  allowBatch: 0
+  hideWhenCompleted: 1
   displayName: "\u624B\u6447\u53D1\u7535\u673A"
   description: "2\u91D1\u5C5E\u30012\u6728\u6750\u30011\u7EA4\u7EF4\u5EFA\u9020\u8239\u8231\u624B\u6447\u53D1\u7535\u673A\u3002"
   cost:

@@ -75,7 +75,7 @@ namespace Lifeline.Editor
             var recipe = AssetDatabase.LoadAssetAtPath<RecipeDefinition>(path);
             if (recipe != null) return recipe;
             recipe = ScriptableObject.CreateInstance<RecipeDefinition>(); recipe.id = id; recipe.toolId = id;
-            recipe.displayName = name; recipe.description = description; recipe.cost = cost;
+            recipe.displayName = name; recipe.description = description; recipe.cost = cost; recipe.hideWhenCompleted = true;
             AssetDatabase.CreateAsset(recipe, path); return recipe;
         }
 

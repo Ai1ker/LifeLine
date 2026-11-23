@@ -68,6 +68,23 @@ namespace Lifeline
         public bool CanBatch(RecipeDefinition recipe) => recipe != null && recipe.allowBatch && recipe.repairAmount <= 0 &&
             session != null && session.GetUpgrade(UpgradeKind.Workbench) >= 2;
 
+        public bool ShowsRecipe(RecipeDefinition recipe, StationKind station)
+        {
+            if (recipe == null || (station == StationKind.HullRepair) != (recipe.repairAmount > 0)) return false;
+            if (!recipe.hideWhenCompleted || session == null) return true;
+            return recipe.radioStage > 0 ? session.radioStage < recipe.radioStage :
+                string.IsNullOrEmpty(recipe.toolId) || !session.HasEquipment(recipe.toolId);
+        }
+
+        public int VisibleRecipeCount(StationKind station)
+        {
+            var definitions = recipeDefinitions;
+            int count = 0;
+            foreach (var recipe in definitions)
+                if (ShowsRecipe(recipe, station)) count++;
+            return count;
+        }
+
         public void Initialize(GameSession owner)
         {
             session = owner;
@@ -278,7 +295,11 @@ namespace Lifeline
             jobs.Remove(job);
             if (recipe.output != null) foreach (ResourceAmount output in recipe.output) if (output != null) session.AddResource(output.resource, output.amount * Mathf.Max(1, job.quantity));
             if (!string.IsNullOrEmpty(recipe.toolId)) session.UnlockEquipment(recipe.toolId);
-            if (recipe.radioStage > 0) session.radioStage = Mathf.Max(session.radioStage, recipe.radioStage);
+            if (recipe.radioStage > session.radioStage)
+            {
+                session.radioStage = recipe.radioStage;
+                session.RefreshRadioDisplay();
+            }
             ApplyRepairProgress(job);
             if (recipe.radioStage == 1) session.Tell("无线电1/3：「……有人吗？我们在东边，浮筏上还有孩子……」");
             else if (recipe.radioStage == 2) session.Tell("无线电2/3：「坐标确认，向东。浮筏撑不了多久。」");

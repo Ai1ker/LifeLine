@@ -7,6 +7,8 @@ namespace Lifeline
     {
         public string id;
         [Tooltip("May be queued as a batch at a T2 or higher workbench.")] public bool allowBatch;
+        [Tooltip("Hide this recipe at the workbench once its equipment or radio stage is complete.")]
+        public bool hideWhenCompleted;
         public string displayName;
         [TextArea] public string description;
         public ResourceAmount[] cost = new ResourceAmount[0];

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: 08_Antenna
   m_EditorClassIdentifier: LifeLine.Runtime::Lifeline.RecipeDefinition
   id: antenna
+  allowBatch: 0
+  hideWhenCompleted: 1
   displayName: "\u65E0\u7EBF\u7535\xB7\u5929\u7EBF"
   description: "\u5148\u4FEE\u590D\u8239\u8231\u7535\u8DEF\u3002"
   cost:
